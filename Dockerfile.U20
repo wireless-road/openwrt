@@ -9,7 +9,8 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 # Install required packages
-RUN apt-get install -y build-essential libssl-dev git libncurses5-dev unzip gawk zlib1g-dev flex vim curl wget bison python net-tools iputils-ping
+RUN apt-get install -y build-essential libssl-dev git libncurses5-dev unzip gawk zlib1g-dev flex vim curl wget bison python net-tools iputils-ping \
+    python3 rsync
 
 # Set environment variables.
 ENV HOME /root
