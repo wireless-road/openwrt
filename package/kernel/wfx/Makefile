@@ -22,7 +22,7 @@ define KernelPackage/wfx
   SUBMENU:=Wireless Drivers
   TITLE:=Silabs WF200 Wireless Driver
   DEPENDS:= \
-	+wf200-firmware +kmod-mac80211 +kmod-cfg80211 +@DRIVER_11N_SUPPORT
+	+wf200-firmware +kmod-mac80211 +kmod-cfg80211 +kmod-mmc +@DRIVER_11N_SUPPORT
   FILES:=$(PKG_BUILD_DIR)/wfx.ko
   AUTOLOAD:=$(call AutoProbe,mac80211 wfx)
   PROVIDES:=kmod-wfx
@@ -45,13 +45,18 @@ PKG_MAKE_FLAGS:= CONFIG_WFX=m
 NOSTDINC_FLAGS+= -DCONFIG_WFX
 
 define Build/Compile
-	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
-		$(KERNEL_MAKE_FLAGS) \
-		$(PKG_MAKE_FLAGS) \
-		SUBDIRS="$(PKG_BUILD_DIR)" \
-		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
-		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
-		modules
+#	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+#		$(KERNEL_MAKE_FLAGS) \
+#		$(PKG_MAKE_FLAGS) \
+#		SUBDIRS="$(PKG_BUILD_DIR)" \
+#		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+#		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
+#		modules
+	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
+        EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+        $(PKG_EXTRA_KCONFIG) \
+        CONFIG_WFX=m \
+        modules
 endef
 
 $(eval $(call KernelPackage,wfx))
