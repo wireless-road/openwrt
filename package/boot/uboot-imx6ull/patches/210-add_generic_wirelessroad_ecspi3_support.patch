@@ -605,10 +605,10 @@ diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ec
 +#include <asm/arch/mx6-pins.h>
 +#include <asm/arch/sys_proto.h>
 +#include <asm/gpio.h>
-+#include <asm/imx-common/spi.h>
-+#include <asm/imx-common/iomux-v3.h>
-+#include <asm/imx-common/boot_mode.h>
-+#include <asm/imx-common/mxc_i2c.h>
++#include <asm/mach-imx/spi.h>
++#include <asm/mach-imx/iomux-v3.h>
++#include <asm/mach-imx/boot_mode.h>
++#include <asm/mach-imx/mxc_i2c.h>
 +#include <asm/io.h>
 +#include <common.h>
 +#include <fsl_esdhc.h>
@@ -969,7 +969,7 @@ diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ec
 +	}
 +}
 +
-+int board_eth_init(bd_t *bis)
++int board_eth_init(struct bd_info *bis)
 +{
 +	eth_reset(ENET_RESET, "enet reset", MX6_PAD_LCD_DATA13__GPIO3_IO18|MUX_PAD_CTRL(NO_PAD_CTRL), 1);
 +	eth_reset(ENET2_RESET, "enet2 reset", MX6_PAD_LCD_DATA00__GPIO3_IO05|MUX_PAD_CTRL(NO_PAD_CTRL), 0);
@@ -1448,7 +1448,7 @@ diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ec
 diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.07-002-generic_ecspi3/configs/wirelessroad_ecspi3_defconfig
 --- u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig	1970-01-01 03:00:00.000000000 +0300
 +++ u-boot-2017.07-002-generic_ecspi3/configs/wirelessroad_ecspi3_defconfig	2020-03-28 01:16:29.418162945 +0200
-@@ -0,0 +1,1039 @@
+@@ -0,0 +1,1040 @@
 +#
 +# Automatically generated file; DO NOT EDIT.
 +# U-Boot 2017.07 Configuration
@@ -1456,6 +1456,7 @@ diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.0
 +CONFIG_CREATE_ARCH_SYMLINK=y
 +# CONFIG_ARC is not set
 +CONFIG_ARM=y
++CONFIG_SYS_TEXT_BASE=0x87800000
 +# CONFIG_M68K is not set
 +# CONFIG_MICROBLAZE is not set
 +# CONFIG_MIPS is not set
@@ -2151,7 +2152,7 @@ diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.0
 +# CONFIG_CROS_EC is not set
 +# CONFIG_DS4510 is not set
 +# CONFIG_FSL_SEC_MON is not set
-+# CONFIG_MXC_OCOTP is not set
++CONFIG_MXC_OCOTP=y
 +# CONFIG_NUVOTON_NCT6102D is not set
 +# CONFIG_PWRSEQ is not set
 +# CONFIG_PCA9551_LED is not set
@@ -2505,7 +2506,7 @@ diff -Nru u-boot-2017.07-001/include/configs/wirelessroad_ecspi3.h u-boot-2017.0
 +#include <asm/arch/imx-regs.h>
 +#include <linux/sizes.h>
 +#include "mx6_common.h"
-+#include <asm/imx-common/gpio.h>
++#include <asm/mach-imx/gpio.h>
 +
 +/* #define CONFIG_DM_WARN */
 +/* #define DEBUG */
