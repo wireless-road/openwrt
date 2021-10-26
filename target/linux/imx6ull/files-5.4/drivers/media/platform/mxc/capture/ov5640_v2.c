@@ -1745,8 +1745,8 @@ static int init_device(void)
 }
 
 static struct v4l2_subdev_video_ops ov5640_subdev_video_ops = {
-	.g_parm = ov5640_g_parm,
-	.s_parm = ov5640_s_parm,
+	//.g_parm = ov5640_g_parm,
+	//.s_parm = ov5640_s_parm,
 };
 
 static const struct v4l2_subdev_pad_ops ov5640_subdev_pad_ops = {

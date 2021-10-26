@@ -1370,7 +1370,7 @@ static int mx6s_vidioc_qbuf(struct file *file, void *priv,
 
 	WARN_ON(priv != file->private_data);
 
-	return vb2_qbuf(&csi_dev->vb2_vidq, p);
+	return vb2_qbuf(&csi_dev->vb2_vidq, NULL, p);
 }
 
 static int mx6s_vidioc_dqbuf(struct file *file, void *priv,
@@ -1615,13 +1615,15 @@ static int mx6s_vidioc_s_crop(struct file *file, void *priv,
 	return 0;
 }
 
+
 static int mx6s_vidioc_g_parm(struct file *file, void *priv,
 			     struct v4l2_streamparm *a)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
 	struct v4l2_subdev *sd = csi_dev->sd;
 
-	return v4l2_subdev_call(sd, video, g_parm, a);
+    return -ENODEV;
+	//return v4l2_subdev_call(sd, video, g_parm, a);
 }
 
 static int mx6s_vidioc_s_parm(struct file *file, void *priv,
@@ -1630,8 +1632,10 @@ static int mx6s_vidioc_s_parm(struct file *file, void *priv,
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
 	struct v4l2_subdev *sd = csi_dev->sd;
 
-	return v4l2_subdev_call(sd, video, s_parm, a);
+    return -ENODEV;
+	//return v4l2_subdev_call(sd, video, s_parm, a);
 }
+
 
 static int mx6s_vidioc_enum_framesizes(struct file *file, void *priv,
 					 struct v4l2_frmsizeenum *fsize)
@@ -1706,9 +1710,9 @@ static const struct v4l2_ioctl_ops mx6s_csi_ioctl_ops = {
 	.vidioc_try_fmt_vid_cap   = mx6s_vidioc_try_fmt_vid_cap,
 	.vidioc_g_fmt_vid_cap     = mx6s_vidioc_g_fmt_vid_cap,
 	.vidioc_s_fmt_vid_cap     = mx6s_vidioc_s_fmt_vid_cap,
-	.vidioc_cropcap       = mx6s_vidioc_cropcap,
-	.vidioc_s_crop        = mx6s_vidioc_s_crop,
-	.vidioc_g_crop        = mx6s_vidioc_g_crop,
+	//.vidioc_cropcap       = mx6s_vidioc_cropcap,
+	//.vidioc_s_crop        = mx6s_vidioc_s_crop,
+	//.vidioc_g_crop        = mx6s_vidioc_g_crop,
 	.vidioc_reqbufs       = mx6s_vidioc_reqbufs,
 	.vidioc_querybuf      = mx6s_vidioc_querybuf,
 	.vidioc_qbuf          = mx6s_vidioc_qbuf,
@@ -1735,7 +1739,7 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
 	struct mx6s_csi_dev *csi_dev = notifier_to_mx6s_dev(notifier);
 
 	/* Find platform data for this sensor subdev */
-	if (csi_dev->asd.match.fwnode.fwnode == dev_fwnode(subdev->dev))
+	if (csi_dev->asd.match.fwnode == dev_fwnode(subdev->dev))
 		csi_dev->sd = subdev;
 
 	if (subdev == NULL)
@@ -1829,16 +1833,16 @@ static int mx6sx_register_subdevs(struct mx6s_csi_dev *csi_dev)
 		}
 
 		csi_dev->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-		csi_dev->asd.match.fwnode.fwnode = of_fwnode_handle(rem);
+		csi_dev->asd.match.fwnode = of_fwnode_handle(rem);
 		csi_dev->async_subdevs[0] = &csi_dev->asd;
 
 		of_node_put(rem);
 		break;
 	}
 
-	csi_dev->subdev_notifier.subdevs = csi_dev->async_subdevs;
-	csi_dev->subdev_notifier.num_subdevs = 1;
-	csi_dev->subdev_notifier.bound = subdev_notifier_bound;
+	//csi_dev->subdev_notifier.sd = csi_dev->async_subdevs;
+	//csi_dev->subdev_notifier.num_subdevs = 1;
+	//csi_dev->subdev_notifier.bound = subdev_notifier_bound;
 
 	ret = v4l2_async_notifier_register(&csi_dev->v4l2_dev,
 					&csi_dev->subdev_notifier);

@@ -18,6 +18,7 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/types.h>
+#include <linux/mod_devicetable.h>
 
 #include "vdoa.h"
 /* 6band(3field* double buffer) * (width*2) * bandline(8)

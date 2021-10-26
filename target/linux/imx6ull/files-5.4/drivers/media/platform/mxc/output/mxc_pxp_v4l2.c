@@ -206,6 +206,8 @@ static int alloc_dma_buf(struct pxps *pxp, struct dma_mem *buf)
 	return 0;
 }
 
+inline void do_gettimeofday(struct timeval *tv) { struct timespec64 ts; ktime_get_real_ts64(&ts); tv->tv_sec = ts.tv_sec; tv->tv_usec = ts.tv_nsec/1000;}
+
 /* callback function */
 static void video_dma_done(void *arg)
 {

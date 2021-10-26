@@ -419,6 +419,8 @@ static int update_setting_from_fbi(struct mxc_vout_output *vout,
 	return 0;
 }
 
+inline void do_gettimeofday(struct timeval *tv) { struct timespec64 ts; ktime_get_real_ts64(&ts); tv->tv_sec = ts.tv_sec; tv->tv_usec = ts.tv_nsec/1000;}
+
 static inline unsigned long get_jiffies(struct timeval *t)
 {
 	struct timeval cur;

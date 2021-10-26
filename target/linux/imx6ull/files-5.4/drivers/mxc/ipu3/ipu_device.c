@@ -47,6 +47,8 @@
 #include "ipu_param_mem.h"
 #include "ipu_regs.h"
 #include "vdoa.h"
+#include <uapi/linux/sched/types.h>
+
 
 #define CHECK_RETCODE(cont, str, err, label, ret)			\
 do {									\
