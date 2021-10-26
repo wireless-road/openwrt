@@ -27,13 +27,11 @@ diff -Nru linux-4.14.75-01-orig/drivers/media/platform/Kconfig linux-4.14.75-02-
 diff -Nru linux-4.14.75-01-orig/drivers/media/platform/Makefile linux-4.14.75-02-mxc/drivers/media/platform/Makefile
 --- linux-4.14.75-01-orig/drivers/media/platform/Makefile	2018-10-10 09:54:28.000000000 +0300
 +++ linux-4.14.75-02-mxc/drivers/media/platform/Makefile	2020-01-17 05:10:24.436865374 +0200
-@@ -76,6 +76,9 @@
+@@ -76,4 +76,7 @@
  
  obj-$(CONFIG_VIDEO_STM32_DCMI)		+= stm32/
  
 +obj-$(CONFIG_VIDEO_MXC_CAPTURE) 	+= mxc/capture/
 +obj-$(CONFIG_VIDEO_MXC_OUTPUT)  	+= mxc/output/
 +
- ccflags-y += -I$(srctree)/drivers/media/i2c
- 
  obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
