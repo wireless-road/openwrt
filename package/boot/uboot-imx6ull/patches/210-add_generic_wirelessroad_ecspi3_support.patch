@@ -1460,7 +1460,7 @@ diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ec
 diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.07-002-generic_ecspi3/configs/wirelessroad_ecspi3_defconfig
 --- u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig	1970-01-01 03:00:00.000000000 +0300
 +++ u-boot-2017.07-002-generic_ecspi3/configs/wirelessroad_ecspi3_defconfig	2020-03-28 01:16:29.418162945 +0200
-@@ -0,0 +1,1049 @@
+@@ -0,0 +1,1048 @@
 +#
 +# Automatically generated file; DO NOT EDIT.
 +# U-Boot 2017.07 Configuration
@@ -1604,7 +1604,6 @@ diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.0
 +# CONFIG_TARGET_THUNDERX_88XX is not set
 +# CONFIG_ARCH_ASPEED is not set
 +# CONFIG_SECURE_BOOT is not set
-+CONFIG_SYS_TEXT_BASE=0x00000
 +CONFIG_SYS_MALLOC_F_LEN=0x400
 +CONFIG_NR_DRAM_BANKS=1
 +CONFIG_ENV_SIZE=0x2000
