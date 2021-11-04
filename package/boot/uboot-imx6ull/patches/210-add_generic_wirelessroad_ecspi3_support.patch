@@ -45,7 +45,7 @@ diff -Nru u-boot-2017.07-001/arch/arm/cpu/armv7/mx6/Kconfig u-boot-2017.07-002-g
 diff -Nru u-boot-2017.07-001/arch/arm/dts/wirelessroad_ecspi3.dts u-boot-2017.07-002-generic_ecspi3/arch/arm/dts/wirelessroad_ecspi3.dts
 --- u-boot-2017.07-001/arch/arm/dts/wirelessroad_ecspi3.dts	1970-01-01 03:00:00.000000000 +0300
 +++ u-boot-2017.07-002-generic_ecspi3/arch/arm/dts/wirelessroad_ecspi3.dts	2020-03-28 01:07:01.467369482 +0200
-@@ -0,0 +1,240 @@
+@@ -0,0 +1,241 @@
 +/*
 + * Copyright (C) 2016 Freescale Semiconductor, Inc.
 + *
@@ -67,7 +67,8 @@ diff -Nru u-boot-2017.07-001/arch/arm/dts/wirelessroad_ecspi3.dts u-boot-2017.07
 +		stdout-path = &uart1;
 +	};
 +
-+	memory {
++	memory@80000000 {
++		device_type = "memory";
 +		reg = <0x80000000 0x20000000>;
 +	};
 +
@@ -1604,7 +1605,7 @@ diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.0
 +# CONFIG_TARGET_THUNDERX_88XX is not set
 +# CONFIG_ARCH_ASPEED is not set
 +# CONFIG_SECURE_BOOT is not set
-+CONFIG_SYS_MALLOC_F_LEN=0x400
++CONFIG_SYS_MALLOC_F_LEN=0x1000
 +CONFIG_NR_DRAM_BANKS=1
 +CONFIG_ENV_SIZE=0x2000
 +CONFIG_MX6=y
