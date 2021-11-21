@@ -55,7 +55,7 @@ void wfx_rx_cb(struct wfx_vif *wvif,
 	}
 
 	hdr->band = NL80211_BAND_2GHZ;
-	hdr->freq = ieee80211_channel_to_frequency(arg->channel_number,
+	hdr->freq = ieee80211_channel_to_freq_khz(arg->channel_number,
 						   hdr->band);
 
 	if (arg->rxed_rate >= 14) {

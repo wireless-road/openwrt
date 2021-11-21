@@ -33,10 +33,12 @@ define KernelPackage/wfx/description
 endef
 
 NOSTDINC_FLAGS = \
+	$(KERNEL_NOSTDINC_FLAGS) \
 	-I$(PKG_BUILD_DIR) \
 	-I$(STAGING_DIR)/usr/include/mac80211-backport/uapi \
 	-I$(STAGING_DIR)/usr/include/mac80211-backport \
 	-I$(STAGING_DIR)/usr/include/mac80211/uapi \
+	-I$(STAGING_DIR)/usr/include/net/mac80211 \
 	-I$(STAGING_DIR)/usr/include/mac80211 \
 	-include backport/autoconf.h \
 	-include backport/backport.h
@@ -45,18 +47,22 @@ PKG_MAKE_FLAGS:= CONFIG_WFX=m
 NOSTDINC_FLAGS+= -DCONFIG_WFX
 
 define Build/Compile
-#	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
-#		$(KERNEL_MAKE_FLAGS) \
-#		$(PKG_MAKE_FLAGS) \
-#		SUBDIRS="$(PKG_BUILD_DIR)" \
-#		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
-#		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
-#		modules
-	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
-        EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
-        $(PKG_EXTRA_KCONFIG) \
-        CONFIG_WFX=m \
-        modules
+	echo "Called Build/Compile"
+	$(MAKE)  -C "$(LINUX_DIR)" \
+		$(KERNEL_MAKE_FLAGS) \
+		PATH="$(TARGET_PATH)" \
+		$(PKG_MAKE_FLAGS) \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
+		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
+		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+		$(PKG_EXTRA_KCONFIG) \
+		M="$(PKG_BUILD_DIR)" \
+		modules
+#	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
+#        EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+#        $(PKG_EXTRA_KCONFIG) \
+#        CONFIG_WFX=m \
+#        modules
 endef
 
 $(eval $(call KernelPackage,wfx))
