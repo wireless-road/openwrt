@@ -676,8 +676,7 @@ static int mx6s_videobuf_prepare(struct vb2_buffer *vb)
 	struct mx6s_csi_dev *csi_dev = vb2_get_drv_priv(vb->vb2_queue);
 	int ret = 0;
 
-	dev_dbg(csi_dev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__,
-		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+	//dev_dbg(csi_dev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
 
 #ifdef DEBUG
 	/*
@@ -709,8 +708,7 @@ static void mx6s_videobuf_queue(struct vb2_buffer *vb)
 	struct mx6s_buffer *buf = container_of(vbuf, struct mx6s_buffer, vb);
 	unsigned long flags;
 
-	dev_dbg(csi_dev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__,
-		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+	//dev_dbg(csi_dev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
 
 	spin_lock_irqsave(&csi_dev->slock, flags);
 
@@ -858,6 +856,8 @@ static int mx6s_configure_csi(struct mx6s_csi_dev *csi_dev)
 		pr_debug("   case not supported\n");
 		return -EINVAL;
 	}
+
+	dev_dbg(csi_dev->dev,  "mx6s_configure_csi  call to csi_set_imagpara  width=%d  heigth=%d \n", width,  pix->height);
 	csi_set_imagpara(csi_dev, width, pix->height);
 
 	if (csi_dev->csi_mipi_mode == true) {
@@ -1039,9 +1039,7 @@ static void mx6s_csi_frame_done(struct mx6s_csi_dev *csi_dev,
 					phys_fb1);
 			}
 		}
-		dev_dbg(csi_dev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,
-				vb2_plane_vaddr(vb, 0),
-				vb2_get_plane_payload(vb, 0));
+		//dev_dbg(csi_dev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,	vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
 
 		list_del_init(&buf->internal.queue);
 		vb->timestamp =ktime_get_ns();
@@ -1181,26 +1179,12 @@ static int mx6s_csi_open(struct file *file)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
 	struct v4l2_subdev *sd = csi_dev->sd;
-	struct vb2_queue *q = &csi_dev->vb2_vidq;
 	int ret = 0;
 
 	file->private_data = csi_dev;
 
 	if (mutex_lock_interruptible(&csi_dev->lock))
 		return -ERESTARTSYS;
-
-	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	q->io_modes = VB2_MMAP | VB2_USERPTR;
-	q->drv_priv = csi_dev;
-	q->ops = &mx6s_videobuf_ops;
-	q->mem_ops = &vb2_dma_contig_memops;
-	q->buf_struct_size = sizeof(struct mx6s_buffer);
-	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-	q->lock = &csi_dev->lock;
-
-	ret = vb2_queue_init(q);
-	if (ret < 0)
-		goto unlock;
 
 	pm_runtime_get_sync(csi_dev->dev);
 
@@ -1224,7 +1208,7 @@ static int mx6s_csi_close(struct file *file)
 
 	mutex_lock(&csi_dev->lock);
 
-	vb2_queue_release(&csi_dev->vb2_vidq);
+	//vb2_queue_release(&csi_dev->vb2_vidq);
 
 	mx6s_csi_deinit(csi_dev);
 	v4l2_subdev_call(sd, core, s_power, 0);
@@ -1475,8 +1459,7 @@ static int mx6s_vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 	csi_dev->pix.sizeimage = f->fmt.pix.sizeimage;
 	csi_dev->pix.field     = f->fmt.pix.field;
 	csi_dev->type          = f->type;
-	dev_dbg(csi_dev->dev, "set to pixelformat '%4.6s'\n",
-			(char *)&csi_dev->fmt->name);
+	dev_dbg(csi_dev->dev,  "mx6s_vidioc_s_fmt_vid_cap   set to pixelformat '%4.6s' width=%d  heigth=%d \n",  (char *)&csi_dev->fmt->name, csi_dev->pix.width,  csi_dev->pix.height);
 
 	/* Config csi */
 	mx6s_configure_csi(csi_dev);
@@ -1622,8 +1605,7 @@ static int mx6s_vidioc_g_parm(struct file *file, void *priv,
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
 	struct v4l2_subdev *sd = csi_dev->sd;
 
-    return -ENODEV;
-	//return v4l2_subdev_call(sd, video, g_parm, a);
+	return v4l2_g_parm_cap(video_devdata(file), sd, a);
 }
 
 static int mx6s_vidioc_s_parm(struct file *file, void *priv,
@@ -1632,7 +1614,7 @@ static int mx6s_vidioc_s_parm(struct file *file, void *priv,
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
 	struct v4l2_subdev *sd = csi_dev->sd;
 
-    return -ENODEV;
+    return v4l2_s_parm_cap(video_devdata(file), csi_dev->sd, a);
 	//return v4l2_subdev_call(sd, video, s_parm, a);
 }
 
@@ -1808,6 +1790,13 @@ static int mx6s_csi_two_8bit_sensor_mode_sel(struct mx6s_csi_dev *csi_dev)
 	return 0;
 }
 
+static const struct v4l2_async_notifier_operations csi_notifier_ops = {
+       .bound          = subdev_notifier_bound,
+       .unbind         = NULL,
+};
+
+
+
 static int mx6sx_register_subdevs(struct mx6s_csi_dev *csi_dev)
 {
 	struct device_node *parent = csi_dev->dev->of_node;
@@ -1843,6 +1832,16 @@ static int mx6sx_register_subdevs(struct mx6s_csi_dev *csi_dev)
 	//csi_dev->subdev_notifier.sd = csi_dev->async_subdevs;
 	//csi_dev->subdev_notifier.num_subdevs = 1;
 	//csi_dev->subdev_notifier.bound = subdev_notifier_bound;
+    v4l2_async_notifier_init(&csi_dev->subdev_notifier);
+    ret = v4l2_async_notifier_add_subdev(&csi_dev->subdev_notifier,
+        &csi_dev->asd);
+       if (ret) {
+               dev_err(csi_dev->dev, "fail to register asd to notifier %d",
+                       ret);
+               fwnode_handle_put(csi_dev->asd.match.fwnode);
+               return ret;
+       }
+    csi_dev->subdev_notifier.ops = &csi_notifier_ops;
 
 	ret = v4l2_async_notifier_register(&csi_dev->v4l2_dev,
 					&csi_dev->subdev_notifier);
@@ -1859,6 +1858,7 @@ static int mx6s_csi_probe(struct platform_device *pdev)
 	const struct of_device_id *of_id;
 	struct mx6s_csi_dev *csi_dev;
 	struct video_device *vdev;
+    struct vb2_queue *q;
 	struct resource *res;
 	int ret = 0;
 
@@ -1930,6 +1930,7 @@ static int mx6s_csi_probe(struct platform_device *pdev)
 	mutex_init(&csi_dev->lock);
 	spin_lock_init(&csi_dev->slock);
 
+		dev_err(dev, "before allocating memory\n");
 	/* Allocate memory for video device */
 	vdev = video_device_alloc();
 	if (vdev == NULL) {
@@ -1945,13 +1946,35 @@ static int mx6s_csi_probe(struct platform_device *pdev)
 	vdev->release		= video_device_release;
 	vdev->lock			= &csi_dev->lock;
 
+    //gunja
+    vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+
+    //mutex_init(&csi_dev->vb2_vidq_queue_lock);
 	vdev->queue = &csi_dev->vb2_vidq;
+    //vdev->queue->lock = &csi_dev->vb2_vidq_queue_lock;
+
+    // initialization of vb2_queue is now inside _probe
+    
+	q = &csi_dev->vb2_vidq;
+	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	q->io_modes = VB2_MMAP | VB2_USERPTR;
+	q->drv_priv = csi_dev;
+	q->ops = &mx6s_videobuf_ops;
+	q->mem_ops = &vb2_dma_contig_memops;
+	q->buf_struct_size = sizeof(struct mx6s_buffer);
+	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+	q->lock = &csi_dev->lock;
+
+	ret = vb2_queue_init(q);
+	if (ret < 0)
+		return ret;
 
 	csi_dev->vdev = vdev;
 
 	video_set_drvdata(csi_dev->vdev, csi_dev);
 	mutex_lock(&csi_dev->lock);
 
+		dev_err(dev, "before registering TYPE_GRABBER\n");
 	ret = video_register_device(csi_dev->vdev, VFL_TYPE_GRABBER, -1);
 	if (ret < 0) {
 		video_device_release(csi_dev->vdev);
@@ -1994,6 +2017,7 @@ static int mx6s_csi_remove(struct platform_device *pdev)
 
 	video_unregister_device(csi_dev->vdev);
 	v4l2_device_unregister(&csi_dev->v4l2_dev);
+    vb2_queue_release(&csi_dev->vb2_vidq);
 
 	pm_runtime_disable(csi_dev->dev);
 	return 0;

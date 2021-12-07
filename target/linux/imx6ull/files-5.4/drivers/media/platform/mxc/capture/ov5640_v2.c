@@ -114,6 +114,9 @@ struct ov5640 {
 	int csi;
 
 	void (*io_init)(void);
+
+    int set_fmt_width_rq;
+    int set_fmt_height_rq;
 };
 
 /*!
@@ -1575,6 +1578,8 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct ov5640 *sensor = to_ov5640(client);
 
+pr_info("entered ov5640_set_fmt with format->pad == %d and format->which  = %d (checked for === 0)   and width=%d and height=%d\n", format->pad, format->which, mf->width, mf->height);
+
 	if (format->pad)
 		return -EINVAL;
 
@@ -1589,6 +1594,8 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
 		return 0;
 
 	sensor->fmt = fmt;
+    sensor->set_fmt_width_rq = mf->width;
+    sensor->set_fmt_height_rq = mf->height;
 
 	return 0;
 }
@@ -1744,9 +1751,78 @@ static int init_device(void)
 	return ret;
 }
 
+static int ov5640_v2_find_capture_mode_for_w_h_at_framerate(int w, int h, struct v4l2_fract *f)
+{
+    int tgt_fps, j;
+    int frame_rate;
+    int ret = 0;
+    if (f->numerator == 0 || f->denominator == 0)
+    {
+        return 0;
+    }
+
+	tgt_fps = ov5640_data.streamcap.timeperframe.denominator /
+		  ov5640_data.streamcap.timeperframe.numerator;
+
+	if (tgt_fps == 15)
+    {
+		frame_rate = ov5640_15_fps;
+    }
+	else if (tgt_fps == 30)
+    {
+		frame_rate = ov5640_30_fps;
+    }
+	else
+		return 0; /* Only support 15fps or 30fps now. */
+
+	for (j = 0; j < (ov5640_mode_MAX + 1); j++) {
+			if (w == ov5640_mode_info_data[frame_rate][j].width
+			 && h == ov5640_mode_info_data[frame_rate][j].height)
+			  {
+                pr_debug("ov5640_v2_find_capture_mode_for_w_h_at_framerate  found a match for w=%d and h=%d to be %d\n", w ,h , j);
+				ret = j;
+                break;
+			}
+	}
+    return ret;
+};
+
+static int ov5640_s_frame_interval(struct v4l2_subdev *sd, struct v4l2_subdev_frame_interval *interval)
+{
+    struct v4l2_streamparm a;
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
+	struct ov5640 *sensor = to_ov5640(client);
+    pr_info("ov5640_s_frame_interval entered with interval = %d/%d. Mimic ov5640_s_parm  with caturemode = %d \n", interval->interval.denominator, interval->interval.numerator, sensor->streamcap.capturemode);
+    a.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    a.parm.capture.timeperframe = interval->interval;
+    a.parm.capture.capturemode = ov5640_v2_find_capture_mode_for_w_h_at_framerate(sensor->set_fmt_width_rq, sensor->set_fmt_height_rq, &interval->interval);
+    return ov5640_s_parm(sd, &a);
+
+}
+static int ov5640_g_frame_interval(struct v4l2_subdev *sd, struct v4l2_subdev_frame_interval *interval)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
+	struct ov5640 *sensor = to_ov5640(client);
+    pr_info("ov5640_g_frame_interval  entered filling  %d/%d returning 0 \n", sensor->streamcap.timeperframe.numerator, sensor->streamcap.timeperframe.denominator);
+    //mutex_lock(&sensor->lock);
+    interval->interval = sensor->streamcap.timeperframe;
+    return 0;
+}
+
+static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+{
+    pr_info("ov5640_s_stream called with enable =%d\n", enable);
+    return 0;
+}
+
 static struct v4l2_subdev_video_ops ov5640_subdev_video_ops = {
+    //gunja Regardes á MOI!
 	//.g_parm = ov5640_g_parm,
 	//.s_parm = ov5640_s_parm,
+      .g_frame_interval = ov5640_g_frame_interval,
+      .s_frame_interval = ov5640_s_frame_interval,
+      .s_stream = ov5640_s_stream,
+
 };
 
 static const struct v4l2_subdev_pad_ops ov5640_subdev_pad_ops = {
@@ -1895,7 +1971,7 @@ static int ov5640_probe(struct i2c_client *client,
 		dev_err(&client->dev,
 					"%s--Async register failed, ret=%d\n", __func__, retval);
 
-	pr_info("camera ov5640, is found\n");
+	pr_info("camera ov5640, is found and set default %dx%d@%d\n", ov5640_data.pix.width, ov5640_data.pix.height, ov5640_data.streamcap.timeperframe.denominator );
 	return retval;
 }
 
