@@ -8,6 +8,7 @@
 #include <linux/version.h>
 #include <linux/etherdevice.h>
 #include <net/mac80211.h>
+#include <net/cfg80211.h>
 
 #include "data_rx.h"
 #include "wfx.h"
@@ -55,7 +56,7 @@ void wfx_rx_cb(struct wfx_vif *wvif,
 	}
 
 	hdr->band = NL80211_BAND_2GHZ;
-	hdr->freq = ieee80211_channel_to_freq_khz(arg->channel_number,
+	hdr->freq = ieee80211_channel_to_frequency(arg->channel_number,
 						   hdr->band);
 
 	if (arg->rxed_rate >= 14) {
