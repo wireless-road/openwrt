@@ -6,7 +6,8 @@
 
 name="$0";
 boardsdir="./openwrt-configs";
-FINAL_PATH="/home/build/bin/"$(date '+%Y_%m_%d_%H_%M_%S/');
+USER_DIR=$( getent passwd "$USER" | cut -d: -f6 )
+FINAL_PATH=$USER_DIR"/build/bin/"$(date '+%Y_%m_%d_%H_%M_%S/');
 
 show_boards() {
 	echo -n "Available board names:";
@@ -82,6 +83,7 @@ compile_board() {
 	done
 	if [ $? -eq 0 ] && [ -n "$FINAL_PATH" ]; then
 		cp -R ./bin/targets/imx6ull/cortexa7/ "$FINAL_PATH"
+		cp -R ./bin/packages/arm_cortex-a7_neon-vfpv4/ "$FINAL_PATH"/packages
 	fi
 
 	compiled_successful_flag=1;
