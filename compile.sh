@@ -6,7 +6,8 @@
 
 name="$0";
 boardsdir="./openwrt-configs";
-FINAL_PATH="/home/build/bin/"$(date '+%Y_%m_%d_%H_%M_%S/');
+USER_DIR=$( getent passwd "$USER" | cut -d: -f6 )
+FINAL_PATH=$USER_DIR"/build/bin/"$(date '+%Y_%m_%d_%H_%M_%S/');
 
 show_boards() {
 	echo -n "Available board names:";
@@ -56,6 +57,11 @@ compile_board() {
 	local boardname="$1";
 	local configfile="$boardsdir/$boardname.config";
 
+	if [ "$boardname" == "home_assistant" ]; then
+		echo "   Target Home Assistant. Creating files folder and copy needed files."
+		cp -R ./_utilities/ha_files/ ./files
+	fi
+
 	if [ -d "build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-imx6ull_cortexa7" ];then
 		echo "-- removing all built packages.";
 		rm -rf ./build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-imx6ull_cortexa7;
@@ -82,6 +88,13 @@ compile_board() {
 	done
 	if [ $? -eq 0 ] && [ -n "$FINAL_PATH" ]; then
 		cp -R ./bin/targets/imx6ull/cortexa7/ "$FINAL_PATH"
+		if [ "$boardname" == "home_assistant" ]; then
+			cp -R ./bin/targets/imx6ull/cortexa7/packages/ "$FINAL_PATH"/packages_core
+			cp -R ./bin/packages/arm_cortex-a7_neon-vfpv4/ "$FINAL_PATH"/packages_ha
+			rm -rf ./files
+			echo "  Target Home Assistant. files folder removed."
+			echo "  Compiled packages copied to $FINAL_PATH directory."
+		fi
 	fi
 
 	compiled_successful_flag=1;
