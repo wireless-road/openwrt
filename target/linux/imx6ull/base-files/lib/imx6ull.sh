@@ -64,6 +64,10 @@ imx6ull_board_detect() {
 	"Amazon Voice Service WiFi")
 		name="amazon_voice_service_wifi";
 		;;
+	"Home Assistant Gateway")
+		name="home_assistant";
+		;;
+
 	*)
 
 		name="generic"
