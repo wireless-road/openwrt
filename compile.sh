@@ -6,8 +6,7 @@
 
 name="$0";
 boardsdir="./openwrt-configs";
-USER_DIR=$( getent passwd "$USER" | cut -d: -f6 )
-FINAL_PATH=$USER_DIR"/build/bin/"$(date '+%Y_%m_%d_%H_%M_%S/');
+FINAL_PATH="./bin/"$(date '+%Y_%m_%d_%H_%M_%S/');
 
 show_boards() {
 	echo -n "Available board names:";
@@ -77,6 +76,12 @@ compile_board() {
 	if [ ! -d "./feeds" ];then
 		./scripts/feeds update -a
 		./scripts/feeds install -a
+	else
+		if [ "$boardname" == "home_assistant" ]; then
+			echo "   Updating feeds for HA "
+			./scripts/feeds update homeassistant
+			./scripts/feeds install -a -p homeassistant
+		fi
 	fi
 	
 	cp "$configfile" ./.config;
@@ -94,6 +99,9 @@ compile_board() {
 			rm -rf ./files
 			echo "  Target Home Assistant. files folder removed."
 			echo "  Compiled packages copied to $FINAL_PATH directory."
+			echo "  after executing the script ./root/sd_format.sh and restarting the system,"
+			echo "  connect to the board and copy the directories $FINAL_PATH/packages_core "
+			echo "  and $FINAL_PATH/packages_ha to the /root directory on device"
 		fi
 	fi
 
