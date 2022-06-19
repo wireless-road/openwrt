@@ -28,7 +28,7 @@
 +
 +/ {
 +	model = "NetSom nand board";
-+	compatible = "wirelessroad,netsom_nand", "fsl,imx6ull";
++	compatible = "wirelessroad", "fsl,imx6ull";
 +
 +	chosen {
 +		stdout-path = &uart1;
