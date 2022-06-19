@@ -36,6 +36,7 @@ platform_check_image() {
 	local board=$(board_name)
 
 	case "$board" in
+	wirelessroad |\
 	gw,imx6dl-gw51xx |\
 	gw,imx6dl-gw52xx |\
 	gw,imx6dl-gw53xx |\
@@ -103,7 +104,8 @@ platform_do_upgrade() {
 	gw,imx6q-gw5907 |\
 	gw,imx6q-gw5910 |\
 	gw,imx6q-gw5912 |\
-	gw,imx6q-gw5913 )
+	gw,imx6q-gw5913 |\
+	wirelessroad )
 		nand_do_upgrade "$1"
 		;;
 	toradex,apalis_imx6q-eval |\

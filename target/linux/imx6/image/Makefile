@@ -49,6 +49,16 @@ define Build/bootfs.tar.gz
 		-czvf $@ .
 endef
 
+define Build/bootfs.tar.bz2
+	rm -rf $@.boot
+	mkdir -p $@.boot
+
+	$(TAR) -C $@.boot -xf $(IMAGE_KERNEL).boot.tar
+	$(TAR) -C $@.boot \
+		--numeric-owner --owner=0 --group=0 --transform "s,./,./boot/," \
+		-cjvf $@ .
+endef
+
 define Build/boot-scr
 	mkimage -A arm -O linux -T script -C none -a 0 -e 0 \
 	-n '$(DEVICE_ID) OpenWrt bootscript' \
@@ -237,5 +247,23 @@ define Device/apalis
   ARTIFACT/recovery.scr := recovery-scr
 endef
 TARGET_DEVICES += apalis
+
+define Device/wirelessroad
+  DEVICE_VENDOR := WirelessRoad
+  DEVICE_MODEL := NetSom-nand
+  DEVICE_DTS:= wirelessroad_nand
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  UBOOT := wirelessroad_nand_256mb  
+  KERNEL_INSTALL := 0
+  KERNEL_NAME := zImage
+  KERNEL_SUFFIX := -zImage
+  KERNEL := kernel-bin
+  IMAGES := dtb sysupgrade.bin
+  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1).$$(2)
+  IMAGE/dtb := install-dtb
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
+endef
+TARGET_DEVICES += wirelessroad
 
 $(eval $(call BuildImage))
