@@ -1,5 +1,4 @@
-#!/bin/sh /etc/rc.common
-# Copyright (C) 2007-2011 OpenWrt.org
+#!/bin/ash
 
 python /usr/bin/esptool.pyc -p /dev/ttymxc2 -b 960000 --before default_reset \
 write_flash --flash_mode dio --flash_freq 40m --flash_size detect \

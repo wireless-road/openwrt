@@ -39,14 +39,5 @@ define Package/python3-ha-esptool/description
  A Python-based, open-source, platform-independent utility to communicate with the ROM bootloader in Espressif chips.
 endef
 
-define Py3Package/python3-ha-esptool/install
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/esp32_ble $(1)/etc/init.d
-
-	$(INSTALL_DIR) $(1)/root
-	$(INSTALL_BIN) ./files/flash_esp.sh $(1)/root/
-endef
-
-
 $(eval $(call Py3Package,python3-ha-esptool))
 $(eval $(call BuildPackage,python3-ha-esptool))
