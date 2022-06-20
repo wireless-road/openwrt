@@ -16,9 +16,71 @@
 
 #include <linux/can.h>
 
-#define MAXDG   16		// maximum datagram size
+// 11 standart id
+//  id bit number        10 9 8 7 6 5    4 3 2 1 0
+//  id bit structure   |   dev addr   |  cmd code  |
 
-unsigned char udpframe[MAXDG];
+
+#define CAN0_ADDR_BIT_POSITION		(5UL)
+#define CAN0_ADDR_MASK				(0x3FUL << CAN0_ADDR_BIT_POSITION)
+#define CAN0_ADDR					(1UL << CAN0_ADDR_BIT_POSITION)
+
+#define CAN_MASTER_ADDR				(0UL << CAN0_ADDR_BIT_POSITION)
+
+#define CAN0_CMD_MASK				(0x1FUL)
+
+#define CMD_SET_HI_DATA				(0UL)
+#define CMD_SET_LO_DATA				(1UL)
+#define CMD_FW_UPDATE				(2UL)
+#define CMD_SET_ADDR				(3UL)
+#define CMD_ERASE					(4UL)
+#define CMD_WRITE					(5UL)
+#define CMD_READ					(6UL)
+#define CMD_GO_APP					(7UL)
+#define CMD_GET_STATE				(8UL)
+
+
+#define	STATE_APP					(1UL)
+#define	STATE_BOOTLOADER			(2UL)
+
+#define ERR_OK			(0UL)
+#define ERR_ERR			(0xFFUL)
+
+#define RESTART_DELAY	(40UL)
+#define	BOOT_WR_LEN		(2UL)
+#define BOOT_RD_LEN		(2UL)
+
+#define GO_APP_TIMEOUT	(40UL)
+#define RESTART_TIMEOUT	(40UL)
+
+typedef struct {
+	uint8_t status;
+	uint32_t build_date;
+	uint16_t build_number;
+}__attribute__((packed)) t_status_answer;
+
+typedef struct {
+	uint32_t address;
+}__attribute__((packed)) t_set_address_cmd;
+
+typedef struct {
+	uint8_t _err;
+}__attribute__((packed)) t_std_answer;
+
+typedef struct {
+	uint32_t data[2];
+}__attribute__((packed)) t_write_cmd;
+
+typedef struct {
+	uint32_t data[2];
+}__attribute__((packed)) t_read_answer;
+
+
+typedef struct{
+	uint8_t data[8];
+	uint32_t len;
+	uint32_t id;
+}t_rcv_data;
 
 int verbose = 1;
 int background = 0;
@@ -26,36 +88,7 @@ int local_port = 15731;
 int destination_port = 15730;
 unsigned char can_interface[4] = "can0";
 
-int UDP_client_init(char* server_address, int server_port, struct sockaddr_in* baddr) {
-    int sb;
-    if ( (sb = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
 
-    baddr->sin_family = AF_INET;
-    baddr->sin_port = htons(server_port);
-    baddr->sin_addr.s_addr = inet_addr(server_address);
-    return sb;
-}
-
-int UDP_server_init(int port_to_bind, struct sockaddr_in* saddr) {
-    int sa;
-    if ((sa = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        fprintf(stderr, "UDP socket error: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    saddr->sin_family = AF_INET;
-    saddr->sin_addr.s_addr = inet_addr("0.0.0.0"); //INADDR_ANY;
-    saddr->sin_port = htons(port_to_bind);
-
-    if (bind(sa, (struct sockaddr *)saddr, sizeof(*saddr)) < 0) {
-        fprintf(stderr, "UDP bind error: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    return sa;
-}
 
 int CAN_socker_init(char* interface) {
     int sc;
@@ -83,31 +116,6 @@ int CAN_socker_init(char* interface) {
         exit(EXIT_FAILURE);
     }
     return sc;
-}
-
-void retransmit_udp_to_can(int udp_sd, int can_sd, char* udpframe, struct can_frame* frame) {
-    int canid = 0;
-    read(udp_sd, udpframe, MAXDG);
-    memcpy(&canid, &udpframe[0], 4);
-    frame->can_id = ntohl(canid);
-    frame->can_dlc = udpframe[4];
-    memcpy(&frame->data, &udpframe[5], 8);
-    memcpy(&frame->data, &udpframe[5], 8);
-
-    if (write(can_sd, frame, sizeof(*frame)) != sizeof(*frame))
-        fprintf(stderr, "CAN write error: %s\n", strerror(errno));
-}
-
-void retransmit_can_to_udp(int udp_sd, char* udpframe, struct can_frame* frame, struct sockaddr_in* udp_addr) {
-    int canid = 0;
-    frame->can_id &= CAN_EFF_MASK;
-    canid = htonl(frame->can_id);
-    memcpy(udpframe, &canid, 4);
-    udpframe[4] = frame->can_dlc;
-    memcpy(&udpframe[5], &frame->data, frame->can_dlc);
-
-    if (sendto(udp_sd, udpframe, 13, 0, (struct sockaddr *)udp_addr, sizeof(*udp_addr)) != 13)
-        fprintf(stderr, "UDP write error: %s\n", strerror(errno));
 }
 
 void print_verbose(char* direction, struct can_frame* frame, char* udpframe) {
@@ -166,29 +174,23 @@ void parse_args(int argc, char **argv) {
 
 int main(int argc, char **argv) {
     struct can_frame frame;
-    int sa, sb, sc;		// UDP socket , CAN socket, UDP Broadcast Socket
+    int sc;		// CAN socket
     struct sockaddr_in saddr, baddr;
     fd_set readfds;
 
-    printf("------ HELLO udp2can app ----------\n");
+    printf("--------------------------------------------------------\n");
+    printf("--------------------------------------------------------\n");
+    printf("------ HELLO CAN bootloader for indicator app ----------\n");
+    printf("--------------------------------------------------------\n");    
 
-    memset(&saddr, 0, sizeof(saddr));
-    memset(&baddr, 0, sizeof(baddr));
-    memset(&frame, 0, sizeof(frame));
-    memset(udpframe, 0, sizeof(udpframe));
+    //parse_args(argc, argv);
 
-    parse_args(argc, argv);
-
-    sb = UDP_client_init("192.168.1.65", destination_port, &baddr);
-    sa = UDP_server_init(local_port, &saddr);
     sc = CAN_socker_init(can_interface);
 
     fprintf(stdout, "sc: %d, sb: %d, sa: %d\n", sc, sb, sa);
     while (1) {
         FD_ZERO(&readfds);
         FD_SET(sc, &readfds);
-        FD_SET(sa, &readfds);
-        FD_SET(sb, &readfds);
 
         if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0)
         {
@@ -196,32 +198,26 @@ int main(int argc, char **argv) {
             return -1;
         }
 
+        frame->can_id = CAN0_ADDR + CMD_GET_STATE;
+        frame->can_dlc = 0;
+
+        if (write(can_sd, frame, sizeof(*frame)) != sizeof(*frame))
+            fprintf(stderr, "CAN write error: %s\n", strerror(errno));
+
+        sleep(1);
+
         // received a CAN frame
-        if (FD_ISSET(sc, &readfds)) {
-            if (read(sc, &frame, sizeof(struct can_frame)) < 0) {
-                fprintf(stderr, "CAN read error: %s\n", strerror(errno));
-            }
-            else {
-                retransmit_can_to_udp(sb, udpframe, &frame, &baddr);
-                print_verbose("--> CAN --> UDP", &frame, udpframe);
-            }
-        }
-
-        // received a UDP packet
-        if (FD_ISSET(sb, &readfds)) {
-            retransmit_udp_to_can(sb, sc, udpframe, &frame);
-            print_verbose("--> UDP --> CAN", &frame, udpframe);
-        }
-
-        // received a UDP packet
-        if (FD_ISSET(sa, &readfds)) {
-            retransmit_udp_to_can(sa, sc, udpframe, &frame);
-            print_verbose("--> UDP --> CAN", &frame, udpframe);
-        }
+   //     if (FD_ISSET(sc, &readfds)) {
+   //         if (read(sc, &frame, sizeof(struct can_frame)) < 0) {
+   //             fprintf(stderr, "CAN read error: %s\n", strerror(errno));
+   //         }
+   //         else {
+   //             retransmit_can_to_udp(sb, udpframe, &frame, &baddr);
+   //             print_verbose("--> CAN --> UDP", &frame, udpframe);
+   //         }
+   //     }
 
     }
     close(sc);
-    close(sa);
-    close(sb);
     return 0;
 }
