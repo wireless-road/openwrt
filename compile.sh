@@ -92,7 +92,6 @@ compile_board() {
 		sleep 1;
 	done
 	if [ $? -eq 0 ] && [ -n "$FINAL_PATH" ]; then
-		cp -R ./bin/targets/imx6ull/cortexa7/ "$FINAL_PATH"
 		if [ "$boardname" == "home_assistant" ]; then
 			cp -R ./bin/targets/imx6ull/cortexa7/packages/ "$FINAL_PATH"/packages_core
 			cp -R ./bin/packages/arm_cortex-a7_neon-vfpv4/ "$FINAL_PATH"/packages_ha
@@ -152,7 +151,6 @@ help|usage)
 	compile "$1";
 	;;
 esac
-
 
 
 
