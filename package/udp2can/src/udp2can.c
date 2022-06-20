@@ -170,6 +170,8 @@ int main(int argc, char **argv) {
     struct sockaddr_in saddr, baddr;
     fd_set readfds;
 
+    printf("------ HELLO udp2can app ----------\n");
+
     memset(&saddr, 0, sizeof(saddr));
     memset(&baddr, 0, sizeof(baddr));
     memset(&frame, 0, sizeof(frame));
