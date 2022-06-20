@@ -41,7 +41,7 @@ wand,imx6dl-wandboard )
 	ucidef_set_interface_wan 'eth0'
 	;;
 wirelessroad )
-	ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
+	ucidef_set_interface_lan 'eth0'
 	;;
 esac
 
