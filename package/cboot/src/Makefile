@@ -13,7 +13,7 @@ OBJ = $(patsubst %.c, %.o, $(SRC))
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-udp2can: $(OBJ)
+cboot: $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean

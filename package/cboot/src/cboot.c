@@ -100,19 +100,19 @@ int CAN_socker_init(char* interface) {
     strcpy(ifr.ifr_name, interface);
 
     if ((sc = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
-        fprintf(stderr, "CAN socket error: %s\n", strerror(errno));
+        printf("CAN socket error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     caddr.can_family = AF_CAN;
     if (ioctl(sc, SIOCGIFINDEX, &ifr) < 0) {
-        fprintf(stderr, "CAN setup error: %s\n", strerror(errno));
+        printf("CAN setup error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     caddr.can_ifindex = ifr.ifr_ifindex;
 
     if (bind(sc, (struct sockaddr *)&caddr, caddrlen) < 0) {
-        fprintf(stderr, "CAN bind error: %s\n", strerror(errno));
+        printf("CAN bind error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     return sc;
@@ -120,24 +120,24 @@ int CAN_socker_init(char* interface) {
 
 void print_verbose(char* direction, struct can_frame* frame, char* udpframe) {
     if (verbose && !background) {
-        fprintf(stdout,"%s CANID 0x%06X R", direction, frame->can_id);
-        fprintf(stdout," [%u]", *(udpframe+4));
+        printf("%s CANID 0x%06X R", direction, frame->can_id);
+        printf(" [%u]", *(udpframe+4));
         for (int i = 5; i < 5 + frame->can_dlc; i++) {
-            fprintf(stdout," %02x", *(udpframe+i));
+            printf(" %02x", *(udpframe+i));
         }
-        fprintf(stdout,"\n");
+        printf("\n");
     }
 }
 
 void print_usage(char *prg) {
-    fprintf(stderr, "\nUsage: %s -l <port> -d <port> -i <can interface>\n", prg);
-    fprintf(stderr, "   Version 0.93\n");
-    fprintf(stderr, "\n");
-    fprintf(stderr, "         -l <port>           listening UDP port for the server - default 15731\n");
-    fprintf(stderr, "         -d <port>           destination UDP port for the server - default 15730\n");
-    fprintf(stderr, "         -i <can int>        can interface - default can0\n");
-    fprintf(stderr, "         -f                  running in foreground\n\n");
-    fprintf(stderr, "         -v                  verbose output (in foreground)\n\n");
+    printf("\nUsage: %s -l <port> -d <port> -i <can interface>\n", prg);
+    printf("   Version 0.93\n");
+    printf("\n");
+    printf("         -l <port>           listening UDP port for the server - default 15731\n");
+    printf("         -d <port>           destination UDP port for the server - default 15730\n");
+    printf("         -i <can int>        can interface - default can0\n");
+    printf("         -f                  running in foreground\n\n");
+    printf("         -v                  verbose output (in foreground)\n\n");
 }
 
 void parse_args(int argc, char **argv) {
@@ -165,7 +165,7 @@ void parse_args(int argc, char **argv) {
                 print_usage(basename(argv[0]));
                 exit(EXIT_SUCCESS);
             default:
-                fprintf(stderr, "Unknown option %c\n", opt);
+                printf("Unknown option %c\n", opt);
                 print_usage(basename(argv[0]));
                 exit(EXIT_FAILURE);
         }
@@ -179,7 +179,6 @@ int main(int argc, char **argv) {
     fd_set readfds;
 
     printf("--------------------------------------------------------\n");
-    printf("--------------------------------------------------------\n");
     printf("------ HELLO CAN bootloader for indicator app ----------\n");
     printf("--------------------------------------------------------\n");    
 
@@ -187,22 +186,26 @@ int main(int argc, char **argv) {
 
     sc = CAN_socker_init(can_interface);
 
-    fprintf(stdout, "sc: %d, sb: %d, sa: %d\n", sc, sb, sa);
+    printf("sc: %d\n", sc);
     while (1) {
         FD_ZERO(&readfds);
         FD_SET(sc, &readfds);
 
         if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0)
         {
-            fprintf(stderr, "SELECT error: %s\n", strerror(errno));
+            printf("SELECT error: %s\n", strerror(errno));
             return -1;
         }
 
-        frame->can_id = CAN0_ADDR + CMD_GET_STATE;
-        frame->can_dlc = 0;
+        frame.can_id = CAN0_ADDR + CMD_GET_STATE;
+        frame.can_dlc = 0;
 
-        if (write(can_sd, frame, sizeof(*frame)) != sizeof(*frame))
-            fprintf(stderr, "CAN write error: %s\n", strerror(errno));
+        if (write(sc, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+        {
+            printf("CAN write error: %s\n", strerror(errno));
+        }else{
+            printf("CAN snd OK\n");
+        }
 
         sleep(1);
 

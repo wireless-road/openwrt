@@ -11,10 +11,10 @@ include $(INCLUDE_DIR)/package.mk
 define Package/cboot
   SECTION:=examples
   CATEGORY:=Examples
-  TITLE:=c-boot driving example
+  TITLE:=cboot driving example
 endef
 
-define Package/c-boot/description
+define Package/cboot/description
   GPIO input/output driving example
 endef
 
@@ -28,11 +28,11 @@ define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" LDFLAGS="$(TARGET_LDFLAGS)"
 endef
 
-define Package/c-boot/install
+define Package/cboot/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/c-boot $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/cboot $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/c-bootn.conf $(1)/etc/cboot.json
+	$(INSTALL_DATA) ./files/cboot.conf $(1)/etc/cboot.json
 endef
 
 $(eval $(call BuildPackage,cboot))
