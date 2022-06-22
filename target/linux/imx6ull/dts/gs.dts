@@ -43,7 +43,9 @@
 		usdhc1 = &usdhc1;
 		usdhc2 = &usdhc2;
 		wdog1 = &wdog1;
+		uart3 = &uart3;
 		uart5 = &uart5;
+		uart6 = &uart6;
 		i2c1 = &i2c1;
 	};
 	
@@ -115,9 +117,7 @@
 				MX6UL_PAD_UART1_RTS_B__GPIO1_IO19	0x17059 /* SD1 CD */
 				MX6UL_PAD_NAND_ALE__GPIO4_IO10		0x000010B0 /* General GPIO */
 				MX6UL_PAD_NAND_DATA03__GPIO4_IO05	0x000010B0 /* General GPIO */
-				MX6UL_PAD_NAND_READY_B__GPIO4_IO12	0x000010B0 /* General GPIO */
 				MX6UL_PAD_NAND_CLE__GPIO4_IO15		0x000010B0 /* General GPIO */
-				MX6UL_PAD_NAND_CE0_B__GPIO4_IO13	0x000010B0 /* General GPIO */
 				MX6UL_PAD_NAND_CE1_B__GPIO4_IO14	0x000010B0 /* General GPIO */
 				MX6UL_PAD_NAND_WP_B__GPIO4_IO11		0x000010B0 /* General GPIO */
 				MX6UL_PAD_NAND_DQS__GPIO4_IO16		0x000010B0 /* General GPIO */
@@ -131,9 +131,9 @@
 				MX6UL_PAD_SNVS_TAMPER6__GPIO5_IO06	0x000010B0 /* General GPIO */
 				MX6UL_PAD_SNVS_TAMPER7__GPIO5_IO07	0x000010B0 /* General GPIO */
 				MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03	0x000010B0 /* General GPIO */
-				MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00	0x000010B0 /* General GPIO */
-				MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08	0x000010B0 /* General GPIO */
-				MX6UL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x000010B0 /* General GPIO */
+				MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00	0x000010B0 /* DE6 */
+				MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08	0x000010B0 /* DE5 */
+				MX6UL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x000010B0 /* DE3 */
 				MX6UL_PAD_SNVS_TAMPER4__GPIO5_IO04	0x000010B0 /* General GPIO */
 				MX6UL_PAD_SNVS_TAMPER5__GPIO5_IO05	0x000010B0 /* General GPIO */
 				MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09	0x000010B0 /* General GPIO */
@@ -254,12 +254,27 @@
 			>;
 		};
 
+		pinctrl_uart3: uart3grp {
+			fsl,pins = <
+				MX6UL_PAD_NAND_READY_B__UART3_DCE_TX 0x1b0b1
+				MX6UL_PAD_NAND_CE0_B__UART3_DCE_RX   0x1b0b1
+			>;
+		};
+
 		pinctrl_uart5: uart5grp {
 			fsl,pins = <
 				MX6UL_PAD_UART5_TX_DATA__UART5_DCE_TX 0x1b0b1
 				0x00c0 0x034c 0x0644 0 7 0x1b0b1
 			>;
 		};
+
+		pinctrl_uart6: uart6grp {
+			fsl,pins = <
+				MX6UL_PAD_CSI_MCLK__UART6_DCE_TX   0x1b0b1
+				MX6UL_PAD_CSI_PIXCLK__UART6_DCE_RX 0x1b0b1
+			>;
+		};
+
 		pinctrl_usdhc1: usdhc1grp {
 			fsl,pins = <
 				MX6UL_PAD_SD1_CMD__USDHC1_CMD     0x17059
@@ -388,9 +403,21 @@
 	};
 };
 
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3>;
+	status = "okay";
+};
+
 &uart5 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart5>;
+	status = "okay";
+};
+
+&uart6 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart6>;
 	status = "okay";
 };
 
