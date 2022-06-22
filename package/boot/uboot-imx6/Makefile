@@ -7,10 +7,10 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=2020.04
+PKG_VERSION:=2020.10
 PKG_RELEASE:=1
 
-PKG_HASH:=fe732aaf037d9cc3c0909bad8362af366ae964bbdac6913a34081ff4ad565372
+PKG_HASH:=0d481bbdc05c0ee74908ec2f56a6daa53166cc6a78a0e4fac2ac5d025770a622
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
@@ -68,6 +68,11 @@ define U-Boot/wandboard
   BUILD_DEVICES:=wandboard
 endef
 
+define U-Boot/wirelessroad_nand_256mb
+  NAME:=WirelessRoad Netsom Nand module 256mb 
+  BUILD_DEVICES:=wirelessroad_nand_256mb
+endef
+
 UBOOT_TARGETS := \
 	apalis_imx6 \
 	mx6cuboxi \
@@ -78,7 +83,8 @@ UBOOT_TARGETS := \
 	nitrogen6q2g \
 	nitrogen6s \
 	nitrogen6s1g \
-	wandboard
+	wandboard \
+	wirelessroad_nand_256mb
 
 UBOOT_MAKE_FLAGS += u-boot.imx
 
