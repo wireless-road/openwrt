@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
     memset(&frame, 0, sizeof(frame));
     memset(udpframe, 0, sizeof(udpframe));
 
-    parse_args(argc, argv);
+  //  parse_args(argc, argv);
 
     sb = UDP_client_init("192.168.1.65", destination_port, &baddr);
     sa = UDP_server_init(local_port, &saddr);
@@ -194,6 +194,8 @@ int main(int argc, char **argv) {
         {
             fprintf(stderr, "SELECT error: %s\n", strerror(errno));
             return -1;
+        }else{
+            printf("select OK\n");
         }
 
         // received a CAN frame
@@ -217,7 +219,7 @@ int main(int argc, char **argv) {
         if (FD_ISSET(sa, &readfds)) {
             retransmit_udp_to_can(sa, sc, udpframe, &frame);
             print_verbose("--> UDP --> CAN", &frame, udpframe);
-        }
+       }
 
     }
     close(sc);

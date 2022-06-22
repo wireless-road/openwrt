@@ -21,13 +21,13 @@
 //  id bit structure   |   dev addr   |  cmd code  |
 
 
-#define CAN0_ADDR_BIT_POSITION		(5UL)
-#define CAN0_ADDR_MASK				(0x3FUL << CAN0_ADDR_BIT_POSITION)
-#define CAN0_ADDR					(1UL << CAN0_ADDR_BIT_POSITION)
+#define CAN_ADDR_BIT_POSITION		(5UL)
+#define CAN_ADDR_MASK				(0x3FUL << CAN_ADDR_BIT_POSITION)
+#define CAN_ADDR					(1UL << CAN_ADDR_BIT_POSITION)
 
-#define CAN_MASTER_ADDR				(0UL << CAN0_ADDR_BIT_POSITION)
+#define CAN_MASTER_ADDR				(0UL << CAN_ADDR_BIT_POSITION)
 
-#define CAN0_CMD_MASK				(0x1FUL)
+#define CAN_CMD_MASK				(0x1FUL)
 
 #define CMD_SET_HI_DATA				(0UL)
 #define CMD_SET_LO_DATA				(1UL)
@@ -75,7 +75,6 @@ typedef struct {
 	uint32_t data[2];
 }__attribute__((packed)) t_read_answer;
 
-
 typedef struct{
 	uint8_t data[8];
 	uint32_t len;
@@ -87,6 +86,10 @@ int background = 0;
 int local_port = 15731;
 int destination_port = 15730;
 unsigned char can_interface[4] = "can0";
+
+char dev_state_str[3][30] = {"",
+                             "device in app state",
+                             "device in boot state"};
 
 
 
@@ -191,34 +194,60 @@ int main(int argc, char **argv) {
         FD_ZERO(&readfds);
         FD_SET(sc, &readfds);
 
+        frame.can_id = CAN_ADDR + CMD_GET_STATE;
+        frame.can_dlc = 0;
+
+        if (write(sc, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+        {
+            printf("CAN write error: %s\n", strerror(errno));
+            return -1;
+        }else{
+            printf("CAN snd OK\n");
+        }
+
         if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0)
         {
             printf("SELECT error: %s\n", strerror(errno));
             return -1;
         }
 
-        frame.can_id = CAN0_ADDR + CMD_GET_STATE;
-        frame.can_dlc = 0;
-
-        if (write(sc, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
-        {
-            printf("CAN write error: %s\n", strerror(errno));
-        }else{
-            printf("CAN snd OK\n");
+        // received a CAN frame
+        if (FD_ISSET(sc, &readfds)) {
+            if (read(sc, &frame, sizeof(struct can_frame)) < 0) {
+                fprintf(stderr, "CAN read error: %s\n", strerror(errno));
+            }
+            else {
+                printf("CAN rcv\n"
+                       "    id = %u\n"
+                       "    size = %u\n",
+                       frame.can_id, frame.can_dlc);
+                uint32_t addr = frame.can_id;
+                addr &= CAN_ADDR_MASK;
+                if(addr == CAN_MASTER_ADDR) 
+                {
+                    uint32_t cmd = frame.can_id & CAN_CMD_MASK;
+                    switch(cmd)
+                    {
+                        case CMD_GET_STATE:
+                            {
+                                t_status_answer answ;
+                                memcpy(&answ, &frame.data, frame.can_dlc);
+                                if((answ.status == 0) || (answ.status > 2))
+                                {
+                                    printf("DEV status - unknow\n");
+                                }else{
+                                    printf("DEV status - %s\n", dev_state_str[answ.status]);
+                                }
+                                printf("DEV_FW build data - %u\n", answ.build_date);
+                                printf("DEV_FW build number - %u\n", answ.build_number);
+                            }
+                            break;
+                    }
+                }
+            }
         }
 
         sleep(1);
-
-        // received a CAN frame
-   //     if (FD_ISSET(sc, &readfds)) {
-   //         if (read(sc, &frame, sizeof(struct can_frame)) < 0) {
-   //             fprintf(stderr, "CAN read error: %s\n", strerror(errno));
-   //         }
-   //         else {
-   //             retransmit_can_to_udp(sb, udpframe, &frame, &baddr);
-   //             print_verbose("--> CAN --> UDP", &frame, udpframe);
-   //         }
-   //     }
 
     }
     close(sc);
