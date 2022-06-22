@@ -12,7 +12,7 @@
  	imx7d-colibri-emmc-eval-v3.dtb \
 --- /dev/null
 +++ b/arch/arm/boot/dts/wirelessroad_nand.dts
-@@ -0,0 +1,388 @@
+@@ -0,0 +1,393 @@
 +/*
 + * Copyright (C) 2016 Freescale Semiconductor, Inc.
 + *
@@ -24,6 +24,7 @@
 +/dts-v1/;
 +
 +#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
 +#include "imx6ull.dtsi"
 +
 +/ {
@@ -141,9 +142,7 @@
 +				MX6UL_PAD_SNVS_TAMPER6__GPIO5_IO06	0x000010B0 /* General GPIO */
 +				MX6UL_PAD_SNVS_TAMPER7__GPIO5_IO07	0x000010B0 /* General GPIO */
 +				MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03	0x000010B0 /* General GPIO */
-+				MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00	0x000010B0 /* General GPIO */
 +				MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08	0x000010B0 /* General GPIO */
-+				MX6UL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x000010B0 /* General GPIO */
 +				MX6UL_PAD_SNVS_TAMPER4__GPIO5_IO04	0x000010B0 /* General GPIO */
 +				MX6UL_PAD_SNVS_TAMPER5__GPIO5_IO05	0x000010B0 /* General GPIO */
 +				MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09	0x000010B0 /* General GPIO */
@@ -269,6 +268,8 @@
 +			fsl,pins = <
 +	        	        MX6UL_PAD_UART3_RX_DATA__UART3_DCE_RX      0x1b0b1
 +		                MX6UL_PAD_UART3_TX_DATA__UART3_DCE_TX      0x1b0b1
++				MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00	0x000010B0 /* General GPIO */
++				MX6UL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x000010B0 /* General GPIO */
 +			>;
 +		};
 +
@@ -330,6 +331,10 @@
 +&uart3 {
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&pinctrl_uart3>;
++	//fsl,dte-mode;
++	fsl,uart-has-rtscts;
++	rts-gpios = <&gpio5 1 GPIO_ACTIVE_LOW>;
++	dtr-gpios = <&gpio5 0 GPIO_ACTIVE_LOW>;
 +	status = "okay";
 +};
 +
