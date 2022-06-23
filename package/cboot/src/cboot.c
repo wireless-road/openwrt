@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <libgen.h>
@@ -16,70 +17,7 @@
 
 #include <linux/can.h>
 
-// 11 standart id
-//  id bit number        10 9 8 7 6 5    4 3 2 1 0
-//  id bit structure   |   dev addr   |  cmd code  |
-
-
-#define CAN_ADDR_BIT_POSITION		(5UL)
-#define CAN_ADDR_MASK				(0x3FUL << CAN_ADDR_BIT_POSITION)
-#define CAN_ADDR					(1UL << CAN_ADDR_BIT_POSITION)
-
-#define CAN_MASTER_ADDR				(0UL << CAN_ADDR_BIT_POSITION)
-
-#define CAN_CMD_MASK				(0x1FUL)
-
-#define CMD_SET_HI_DATA				(0UL)
-#define CMD_SET_LO_DATA				(1UL)
-#define CMD_FW_UPDATE				(2UL)
-#define CMD_SET_ADDR				(3UL)
-#define CMD_ERASE					(4UL)
-#define CMD_WRITE					(5UL)
-#define CMD_READ					(6UL)
-#define CMD_GO_APP					(7UL)
-#define CMD_GET_STATE				(8UL)
-
-
-#define	STATE_APP					(1UL)
-#define	STATE_BOOTLOADER			(2UL)
-
-#define ERR_OK			(0UL)
-#define ERR_ERR			(0xFFUL)
-
-#define RESTART_DELAY	(40UL)
-#define	BOOT_WR_LEN		(2UL)
-#define BOOT_RD_LEN		(2UL)
-
-#define GO_APP_TIMEOUT	(40UL)
-#define RESTART_TIMEOUT	(40UL)
-
-typedef struct {
-	uint8_t status;
-	uint32_t build_date;
-	uint16_t build_number;
-}__attribute__((packed)) t_status_answer;
-
-typedef struct {
-	uint32_t address;
-}__attribute__((packed)) t_set_address_cmd;
-
-typedef struct {
-	uint8_t _err;
-}__attribute__((packed)) t_std_answer;
-
-typedef struct {
-	uint32_t data[2];
-}__attribute__((packed)) t_write_cmd;
-
-typedef struct {
-	uint32_t data[2];
-}__attribute__((packed)) t_read_answer;
-
-typedef struct{
-	uint8_t data[8];
-	uint32_t len;
-	uint32_t id;
-}t_rcv_data;
+#include "can_defs.h"
 
 int verbose = 1;
 int background = 0;
@@ -175,11 +113,74 @@ void parse_args(int argc, char **argv) {
     }
 }
 
+typedef enum{
+	ST_BOOT_CONNECT = 0,
+	ST_BOOT_SET_ERASE_ADDR,
+	ST_BOOT_ERASE,
+	ST_BOOT_SET_WRITE_ADDR,
+	ST_BOOT_WRTE,
+	ST_BOOT_SET_READ_ADDR,
+	ST_BOOT_READ,
+	ST_BOOT_VERIFY,
+	ST_BOOT_EXIT,
+}t_boot_state;
+
+int32_t send_to_can(int can_sc, struct can_frame* frame)
+{
+	int32_t ret_val = 0;
+
+	if (write(can_sc, frame, sizeof(*frame)) != sizeof(*frame))
+	{
+		printf("CAN write error: %s\n", strerror(errno));
+		ret_val = -1;
+	}else{
+		printf("CAN snd OK\n");
+	}
+
+	return ret_val;
+}
+
+int32_t wait_can_response(int can_sc, struct can_frame* frame)
+{
+	int32_t ret_val = 0;
+	fd_set readfds;
+
+	/* Ждем не больше пяти секунд. */
+	struct timeval tv;
+	tv.tv_sec = 5;
+	tv.tv_usec = 0;
+
+	FD_ZERO(&readfds);
+	FD_SET(can_sc, &readfds);
+
+	int32_t res = select(FD_SETSIZE, &readfds, NULL, NULL, &tv);
+	if(res)
+	{
+		if (FD_ISSET(can_sc, &readfds)) // received a CAN frame
+		{
+			if (read(can_sc, frame, sizeof(*frame)) < 0)
+			{
+				fprintf(stderr, "CAN read error: %s\n", strerror(errno));
+				ret_val = -1;
+			}else{
+				ret_val = -1;
+			}
+		}else{
+			ret_val = -1;
+		}
+	}else{
+		ret_val = -1;
+	}
+
+	return ret_val;
+}
+
 int main(int argc, char **argv) {
-    struct can_frame frame;
+    struct can_frame cframe;
+    uint8_t rcv_data[8];
     int sc;		// CAN socket
     struct sockaddr_in saddr, baddr;
-    fd_set readfds;
+    uint32_t addr;
 
     printf("--------------------------------------------------------\n");
     printf("------ HELLO CAN bootloader for indicator app ----------\n");
@@ -189,67 +190,142 @@ int main(int argc, char **argv) {
 
     sc = CAN_socker_init(can_interface);
 
-    printf("sc: %d\n", sc);
-    while (1) {
-        FD_ZERO(&readfds);
-        FD_SET(sc, &readfds);
+    t_boot_state boot_state = ST_BOOT_CONNECT;
+    while(boot_state != ST_BOOT_EXIT)
+    {
+		switch(boot_state)
+		{
+			case ST_BOOT_CONNECT:
+				{
+					cframe.can_id = CAN_ADDR + CMD_GET_STATE;
+					cframe.can_dlc = 0;
 
-        frame.can_id = CAN_ADDR + CMD_GET_STATE;
-        frame.can_dlc = 0;
+					int32_t res = send_to_can(sc, &cframe);
+					if(res == 0)
+					{
+						res = wait_can_response(sc, &cframe);
+						if(res == 0)
+						{
+							printf("CAN rcv\n"
+								   "    id = %u\n"
+								   "    size = %u\n",
+								   cframe.can_id, cframe.can_dlc);
+							uint32_t addr = cframe.can_id;
+							addr &= CAN_ADDR_MASK;
+							if(addr == CAN_MASTER_ADDR)
+							{
+								uint32_t cmd = cframe.can_id & CAN_CMD_MASK;
+								if(cmd == CMD_GET_STATE)
+								{
+									memcpy(rcv_data, cframe.data, 8);
+									t_status_answer* p_answ = (t_status_answer*)rcv_data;
+									if(p_answ->status == STATE_BOOTLOADER)
+									{
+										boot_state = ST_BOOT_SET_WRITE_ADDR;
+										break;
+									}
+								}
+							}
+						}
+					}
+					boot_state = ST_BOOT_EXIT;
+				}
+				break;
+			case ST_BOOT_SET_WRITE_ADDR:
+				{
+					cframe.can_id = CAN_ADDR + CMD_SET_ADDR;
+					addr = START_APP_ADDR;
+					memcpy(cframe.data, &addr, sizeof(addr));
+					cframe.can_dlc = sizeof(addr);
 
-        if (write(sc, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
-        {
-            printf("CAN write error: %s\n", strerror(errno));
-            return -1;
-        }else{
-            printf("CAN snd OK\n");
-        }
+					int32_t res = send_to_can(sc, &cframe);;
+					if(res == 0)
+					{
+						res = wait_can_response(sc, &cframe);
+						if(res == 0)
+						{
+							uint32_t addr = cframe.can_id;
+							addr &= CAN_ADDR_MASK;
+							if(addr == CAN_MASTER_ADDR)
+							{
+								uint32_t cmd = cframe.can_id & CAN_CMD_MASK;
+								if(cmd == CMD_SET_ADDR)
+								{
+									memcpy(rcv_data, cframe.data, 8);
+									t_std_answer* p_answ = (t_std_answer*)rcv_data;
+									if(p_answ->_err == ERR_OK)
+									{
+										boot_state = ST_BOOT_ERASE;
+										printf("now erase\n");
+										break;
+									}
+								}
+							}
+						}
+					}
+					boot_state = ST_BOOT_EXIT;
+				}
+				break;
+			case ST_BOOT_ERASE:
+				do{
+					cframe.can_id = CAN_ADDR + CMD_ERASE;
+					cframe.can_dlc = 0;
 
-        if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0)
-        {
-            printf("SELECT error: %s\n", strerror(errno));
-            return -1;
-        }
+					int32_t res = send_to_can(sc, &cframe);;
+					if(res != 0)
+					{
+						boot_state = ST_BOOT_EXIT;
+						break;
+					}
 
-        // received a CAN frame
-        if (FD_ISSET(sc, &readfds)) {
-            if (read(sc, &frame, sizeof(struct can_frame)) < 0) {
-                fprintf(stderr, "CAN read error: %s\n", strerror(errno));
-            }
-            else {
-                printf("CAN rcv\n"
-                       "    id = %u\n"
-                       "    size = %u\n",
-                       frame.can_id, frame.can_dlc);
-                uint32_t addr = frame.can_id;
-                addr &= CAN_ADDR_MASK;
-                if(addr == CAN_MASTER_ADDR) 
-                {
-                    uint32_t cmd = frame.can_id & CAN_CMD_MASK;
-                    switch(cmd)
-                    {
-                        case CMD_GET_STATE:
-                            {
-                                t_status_answer answ;
-                                memcpy(&answ, &frame.data, frame.can_dlc);
-                                if((answ.status == 0) || (answ.status > 2))
-                                {
-                                    printf("DEV status - unknow\n");
-                                }else{
-                                    printf("DEV status - %s\n", dev_state_str[answ.status]);
-                                }
-                                printf("DEV_FW build data - %u\n", answ.build_date);
-                                printf("DEV_FW build number - %u\n", answ.build_number);
-                            }
-                            break;
-                    }
-                }
-            }
-        }
+					res = wait_can_response(sc, &cframe);
 
-        sleep(1);
+					if(res != 0)
+					{
+						boot_state = ST_BOOT_EXIT;
+						break;
+					}
 
+					uint32_t addr = cframe.can_id;
+					addr &= CAN_ADDR_MASK;
+					if(addr != CAN_MASTER_ADDR)
+					{
+						boot_state = ST_BOOT_EXIT;
+						break;
+					}
+					uint32_t cmd = cframe.can_id & CAN_CMD_MASK;
+					if(cmd != CMD_ERASE)
+					{
+						boot_state = ST_BOOT_EXIT;
+						break;
+					}
+
+					memcpy(rcv_data, cframe.data, 8);
+					t_std_answer* p_answ = (t_std_answer*)rcv_data;
+					if(p_answ->_err != ERR_OK)
+					{
+						boot_state = ST_BOOT_EXIT;
+						break;
+					}
+
+					addr += ERASE_INC_ADDR;
+				}while(addr < END_APP_ADDR);
+				if(boot_state != ST_BOOT_EXIT)
+				{
+					boot_state = ST_BOOT_WRTE;
+					printf("erase success\n");
+					printf("now write\n");
+				}
+				break;
+			case ST_BOOT_WRTE:
+				break;
+			case ST_BOOT_READ:
+				break;
+			case ST_BOOT_VERIFY:
+				break;
+		}
     }
+
     close(sc);
     return 0;
 }
