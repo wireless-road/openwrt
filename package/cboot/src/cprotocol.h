@@ -11,6 +11,6 @@
 #include <stdint.h>
 #include <linux/can.h>
 
-uint32_t can_protocol(struct can_frame* p_frame);
+uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame);
 
 #endif /* _PROTOCOL_H_ */

@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "can_defs.h"
 #include "cprotocol.h"
 
@@ -15,58 +17,7 @@ t_boot_state proto_state;
 uint32_t addr;
 uint32_t sent_size;
 
-
-/*
-
-file_read = fopen(file_name, "r");
-if(file_read == NULL)
-{
-	printf("can not open file\n");
-	boot_state = ST_BOOT_EXIT;
-	break;
-}
-file_len = ftell(file_read);
-printf("file size - %u\n", file_len);
-
-res = fseek(file_read, LEN_INFO_FILE_POSITION, SEEK_SET);
-if(res)
-{
-	printf("can not seek position 1\n");
-	boot_state = ST_BOOT_EXIT;
-	break;
-}
-
-
-size_t bytes_read = fread(rcv_data, 4, 1, file_read);
-if(bytes_read != 4)
-{
-	printf("can not read file\n");
-	boot_state = ST_BOOT_EXIT;
-	break;
-}
-uint32_t mem_len;
-memcpy(&mem_len, rcv_data, 4);
-if(file_len > mem_len)
-{
-	printf("wrong file length\n");
-	boot_state = ST_BOOT_EXIT;
-	break;
-}
-res = fseek (file_read, 0, SEEK_SET);
-if(res)
-{
-	printf("can not seek position 2\n");
-	boot_state = ST_BOOT_EXIT;
-	break;
-}
-
-// здесь надо посчитать CRC32
-boot_state = ST_BOOT_WRITE;
-printf("now write\n");
-
- */
-
-uint32_t can_protocol(struct can_frame* p_frame)
+uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 {
 	uint32_t ret_val = 0;
 	uint8_t rcv_data[8];
@@ -82,7 +33,7 @@ uint32_t can_protocol(struct can_frame* p_frame)
 					t_status_answer* p_answ = (t_status_answer*)rcv_data;
 					if(p_answ->status == STATE_BOOTLOADER)
 					{
-						p_frame->can_id = CAN_ADDR + CMD_SET_ADDR;
+						p_frame->can_id = caddr + CMD_SET_ADDR;
 						addr = START_APP_ADDR;
 						memcpy(p_frame->data, &addr, sizeof(addr));
 						p_frame->can_dlc = sizeof(addr);
@@ -92,7 +43,7 @@ uint32_t can_protocol(struct can_frame* p_frame)
 						ret_val = 1;
 					}else if(p_answ->status == STATE_APP)
 					{
-						p_frame->can_id = CAN_ADDR + CMD_FW_UPDATE;
+						p_frame->can_id = caddr + CMD_FW_UPDATE;
 						p_frame->can_dlc = 0;
 
 						proto_state = ST_BOOT_TO_BOOT;
@@ -108,7 +59,7 @@ uint32_t can_protocol(struct can_frame* p_frame)
 				if(cmd == CMD_FW_UPDATE)
 				{
 					sleep(1);
-					p_frame->can_id = CAN_ADDR + CMD_GET_STATE;
+					p_frame->can_id = caddr + CMD_GET_STATE;
 					p_frame->can_dlc = 0;
 
 					proto_state = ST_BOOT_CONNECT;
@@ -127,7 +78,7 @@ uint32_t can_protocol(struct can_frame* p_frame)
 					if(p_answ->_err == ERR_OK)
 					{
 						addr = START_APP_ADDR;
-						p_frame->can_id = CAN_ADDR + CMD_ERASE;
+						p_frame->can_id = caddr + CMD_ERASE;
 						p_frame->can_dlc = 0;
 						printf("now erase\n");
 						proto_state = ST_BOOT_ERASE;
@@ -137,31 +88,33 @@ uint32_t can_protocol(struct can_frame* p_frame)
 			}
 			break;
 		case ST_BOOT_ERASE:
-			uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
-			if(cmd == CMD_ERASE)
 			{
-				if(addr < END_APP_ADDR)
+				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
+				if(cmd == CMD_ERASE)
 				{
-					memcpy(rcv_data, p_frame->data, 8);
-					t_std_answer* p_answ = (t_std_answer*)rcv_data;
-					if(p_answ->_err == ERR_OK)
+					if(addr < END_APP_ADDR)
 					{
-						addr += ERASE_INC_ADDR;
-						p_frame->can_id = CAN_ADDR + CMD_ERASE;
-						p_frame->can_dlc = 0;
-						ret_val = 1;
+						memcpy(rcv_data, p_frame->data, 8);
+						t_std_answer* p_answ = (t_std_answer*)rcv_data;
+						if(p_answ->_err == ERR_OK)
+						{
+							addr += ERASE_INC_ADDR;
+							p_frame->can_id = caddr + CMD_ERASE;
+							p_frame->can_dlc = 0;
+							ret_val = 1;
+						}else{
+							printf("error while erasing 1\n");
+							ret_val = 2;
+						}
 					}else{
-						printf("error while erasing 1\n");
-						ret_val = 2;
+						addr = START_APP_ADDR;
+						p_frame->can_id = caddr + CMD_SET_ADDR;
+						addr = START_APP_ADDR;
+						memcpy(p_frame->data, &addr, sizeof(addr));
+						p_frame->can_dlc = sizeof(addr);
+						proto_state = ST_BOOT_SET_WRITE_ADDR;
+						ret_val = 1;
 					}
-				}else{
-					addr = START_APP_ADDR;
-					p_frame->can_id = CAN_ADDR + CMD_SET_ADDR;
-					addr = START_APP_ADDR;
-					memcpy(p_frame->data, &addr, sizeof(addr));
-					p_frame->can_dlc = sizeof(addr);
-					proto_state = ST_BOOT_SET_WRITE_ADDR;
-					ret_val = 1;
 				}
 			}
 			break;
@@ -174,9 +127,9 @@ uint32_t can_protocol(struct can_frame* p_frame)
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
-						size_t bytes_read = fread(rcv_data, 8, 1, file_read);
+						size_t bytes_read = fread(rcv_data, 8, 1, fr);
 
-						p_frame->can_id = CAN_ADDR + CMD_WRITE;
+						p_frame->can_id = caddr + CMD_WRITE;
 						memcpy(p_frame->data, rcv_data, bytes_read);
 						p_frame->can_dlc = bytes_read;
 						addr += bytes_read;
@@ -201,23 +154,23 @@ uint32_t can_protocol(struct can_frame* p_frame)
 					{
 						if(addr < END_APP_ADDR)
 						{
-							size_t bytes_read = fread(rcv_data, 8, 1, file_read);
+							size_t bytes_read = fread(rcv_data, 8, 1, fr);
 
-							p_frame->can_id = CAN_ADDR + CMD_WRITE;
+							p_frame->can_id = caddr + CMD_WRITE;
 							memcpy(p_frame->data, rcv_data, bytes_read);
 							p_frame->can_dlc = bytes_read;
 							addr += bytes_read;
 							proto_state = ST_BOOT_WRITE;
 							ret_val = 1;
 						}else{
-							uint32_t res = fseek(file_read, 0, SEEK_SET);
+							uint32_t res = fseek(fr, 0, SEEK_SET);
 							if(res)
 							{
 								printf("can not seek position 1\n");
 								ret_val = 2;
 							}else{
 								addr = START_APP_ADDR;
-								p_frame->can_id = CAN_ADDR + CMD_SET_ADDR;
+								p_frame->can_id = caddr + CMD_SET_ADDR;
 								memcpy(p_frame->data, &addr, sizeof(addr));
 								p_frame->can_dlc = sizeof(addr);
 								proto_state = ST_BOOT_SET_READ_ADDR;
@@ -240,7 +193,7 @@ uint32_t can_protocol(struct can_frame* p_frame)
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
-						p_frame->can_id = CAN_ADDR + CMD_READ;
+						p_frame->can_id = caddr + CMD_READ;
 						p_frame->can_dlc = 0;
 						proto_state = ST_BOOT_READ;
 						ret_val = 1;
@@ -258,14 +211,14 @@ uint32_t can_protocol(struct can_frame* p_frame)
 				{
 					memcpy(rcv_data, p_frame->data, p_frame->can_dlc);
 					uint8_t rd_data[8];
-					size_t bytes_read = fread(rd_data, 8, 1, file_read);
+					size_t bytes_read = fread(rd_data, 8, 1, fr);
 					int32_t res = memcmp(rcv_data, rd_data, bytes_read);
 					if(res == 0)
 					{
 						addr += p_frame->can_dlc;
 						if(addr < MCU_MEM_SZ)
 						{
-							p_frame->can_id = CAN_ADDR + CMD_READ;
+							p_frame->can_id = caddr + CMD_READ;
 							p_frame->can_dlc = 0;
 							ret_val = 1;
 						}else{
@@ -274,7 +227,7 @@ uint32_t can_protocol(struct can_frame* p_frame)
 
 							proto_state = ST_BOOT_TO_APP;
 
-							p_frame->can_id = CAN_ADDR + CMD_GO_APP;
+							p_frame->can_id = caddr + CMD_GO_APP;
 							p_frame->can_dlc = 0;
 							ret_val = 1;
 						}
@@ -291,7 +244,7 @@ uint32_t can_protocol(struct can_frame* p_frame)
 				if(cmd == CMD_GO_APP)
 				{
 					sleep(1);
-					p_frame->can_id = CAN_ADDR + CMD_GET_STATE;
+					p_frame->can_id = caddr + CMD_GET_STATE;
 					p_frame->can_dlc = 0;
 
 					proto_state = ST_BOOT_GET_STATE_AFTER_UPDATE;

@@ -20,19 +20,14 @@
 
 #include "can_defs.h"
 #include "cprotocol.h"
+#include "stm32_crc32.h"
 
-int verbose = 1;
-int background = 0;
-int local_port = 15731;
-int destination_port = 15730;
-unsigned char can_interface[4] = "can0";
-char* file_name;
+
+unsigned char can_interface[5] = "can0";
+char file_name[256] = "";
 FILE* file_read;
-
-char dev_state_str[3][30] = {"",
-                             "device in app state",
-                             "device in boot state"};
-
+int64_t file_len;
+uint32_t can_addr = (1 << CAN_ADDR_BIT_POSITION);
 
 
 int CAN_socker_init(char* interface) {
@@ -63,17 +58,6 @@ int CAN_socker_init(char* interface) {
     return sc;
 }
 
-void print_verbose(char* direction, struct can_frame* frame, char* udpframe) {
-    if (verbose && !background) {
-        printf("%s CANID 0x%06X R", direction, frame->can_id);
-        printf(" [%u]", *(udpframe+4));
-        for (int i = 5; i < 5 + frame->can_dlc; i++) {
-            printf(" %02x", *(udpframe+i));
-        }
-        printf("\n");
-    }
-}
-
 void print_usage(char *prg) {
     printf("\nUsage: %s -l <port> -d <port> -i <can interface>\n", prg);
     printf("   Version 0.93\n");
@@ -87,23 +71,18 @@ void print_usage(char *prg) {
 
 void parse_args(int argc, char **argv) {
     int opt;
-    while ((opt = getopt(argc, argv, "l:d:b:i:hfv?")) != -1) {
+    while ((opt = getopt(argc, argv, "a:f:r:i:h?")) != -1) {
         switch (opt) {
-            case 'l':
-                local_port = strtoul(optarg, (char **)NULL, 10);
-                break;
-            case 'd':
-                destination_port = strtoul(optarg, (char **)NULL, 10);
-//                baddr.sin_port = htons(destination_port);
+            case 'a':
+            	can_addr = strtoul(optarg, (char **)NULL, 10);
                 break;
             case 'i':
-                strncpy(can_interface, optarg, sizeof(can_interface) - 1);
-                break;
-            case 'v':
-                verbose = 1;
+                strncpy(can_interface, optarg, sizeof(can_interface));
                 break;
             case 'f':
-                background = 0;
+				strncpy(file_name, optarg, sizeof(file_name));
+                break;
+            case 'r':
                 break;
             case 'h':
             case '?':
@@ -195,6 +174,7 @@ uint64_t timespec_to_ms(struct timespec ts)
 uint32_t check_timeout(uint64_t t_start, uint64_t timeinterval)
 {
 	uint32_t ret_val = 0;
+	struct timespec ts;
 
 	clock_gettime(CLOCK_REALTIME, &ts);
 
@@ -208,18 +188,132 @@ uint32_t check_timeout(uint64_t t_start, uint64_t timeinterval)
 	return ret_val;
 }
 
+int32_t check_input_file(char* file_name)
+{
+	uint32_t file_name_len = strlen(file_name);
+	if(file_name_len == 0)
+	{
+		printf("file name not set\n");
+		return -1;
+	}
+
+	file_read = fopen(file_name, "r+b");
+	if(file_read == NULL)
+	{
+		printf("can not open file\n");
+		return -1;
+	}
+
+	file_len = ftell(file_read);
+	printf("file size - %lld\n", file_len);
+
+	int res = fseek(file_read, LEN_INFO_FILE_POSITION, SEEK_SET);
+	if(res)
+	{
+		fclose(file_read);
+		printf("can not seek position 1\n");
+		return -1;
+	}
+
+	uint32_t mem_len;
+	size_t bytes_read = fread(&mem_len, sizeof(mem_len), 1, file_read);
+	if(bytes_read != sizeof(mem_len))
+	{
+		printf("can not read file\n");
+		return -1;
+	}
+	if(mem_len > MCU_MEM_SZ)
+	{
+		printf("file length is big\n");
+		return -1;
+	}
+
+	if(file_len != mem_len)
+	{
+		printf("file length is big\n");
+		return -1;
+	}
+	res = fseek (file_read, 0, SEEK_SET);
+	if(res)
+	{
+		printf("can not seek position 2\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+int32_t calc_CRC32_input_file(FILE* fl)
+{
+	uint32_t crc32 = CRC_INITIALVALUE;
+	uint8_t crc_data[1];
+	uint32_t i;
+	uint32_t sz = file_len - 4;
+
+	printf("CRC32 calculating\n");
+
+	for(i=0; i<sz; ++i)
+	{
+		size_t bytes_read = fread(crc_data, 1, 1, fl);
+		crc32 = stm32_sw_crc32_by_byte(crc32, crc_data, 1);
+	}
+
+	fwrite(&crc32, sizeof(crc32), 1, fl);
+
+	fclose(fl);
+	fopen(file_name, "rb");
+
+	if(file_read == NULL)
+	{
+		printf("can not open file\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 int main(int argc, char **argv) {
     struct can_frame cframe;
     uint8_t rcv_data[8];
     int sc;		// CAN socket
-    struct sockaddr_in saddr, baddr;
     uint32_t addr;
 
     printf("--------------------------------------------------------\n");
-    printf("------ HELLO CAN bootloader for indicator app ----------\n");
+    printf("------ HELLO CAN bootloader ----------------------------\n");
     printf("--------------------------------------------------------\n");    
 
-    //parse_args(argc, argv);
+    parse_args(argc, argv);
+
+    printf("can_interface - %s\n", can_interface);
+    printf("file_name - %s\n", file_name);
+    printf("can addr - %u\n", can_addr);
+
+    if(can_addr > CAN_ADD_MAX)
+    {
+    	printf("wrong CAN address\n");
+    	printf("Exit\n");
+		return 0;
+    }
+
+    can_addr <<= CAN_ADDR_BIT_POSITION;
+    can_addr &= CAN_ADDR_MASK;
+
+    int32_t res = check_input_file(file_name);
+
+    if(res != 0)
+    {
+    	fclose(file_read);
+    	printf("Exit\n");
+    	return 0;
+    }
+
+    res = calc_CRC32_input_file(file_read);
+    if(res != 0)
+	{
+		fclose(file_read);
+		printf("Exit\n");
+		return 0;
+	}
 
     sc = CAN_socker_init(can_interface);
 
@@ -238,7 +332,7 @@ int main(int argc, char **argv) {
 			res = can_check_addr(&cframe);
 			if(res == 0)
 			{
-				res = can_protocol(&cframe);
+				res = can_protocol(file_read, can_addr, &cframe);
 				if(res == 1)
 				{
 					res = send_to_can(sc, &cframe);
