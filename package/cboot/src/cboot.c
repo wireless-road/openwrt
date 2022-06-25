@@ -16,14 +16,18 @@
 #include <arpa/inet.h>
 
 #include <linux/can.h>
+#include <time.h>
 
 #include "can_defs.h"
+#include "cprotocol.h"
 
 int verbose = 1;
 int background = 0;
 int local_port = 15731;
 int destination_port = 15730;
 unsigned char can_interface[4] = "can0";
+char* file_name;
+FILE* file_read;
 
 char dev_state_str[3][30] = {"",
                              "device in app state",
@@ -113,18 +117,6 @@ void parse_args(int argc, char **argv) {
     }
 }
 
-typedef enum{
-	ST_BOOT_CONNECT = 0,
-	ST_BOOT_SET_ERASE_ADDR,
-	ST_BOOT_ERASE,
-	ST_BOOT_SET_WRITE_ADDR,
-	ST_BOOT_WRTE,
-	ST_BOOT_SET_READ_ADDR,
-	ST_BOOT_READ,
-	ST_BOOT_VERIFY,
-	ST_BOOT_EXIT,
-}t_boot_state;
-
 int32_t send_to_can(int can_sc, struct can_frame* frame)
 {
 	int32_t ret_val = 0;
@@ -175,6 +167,47 @@ int32_t wait_can_response(int can_sc, struct can_frame* frame)
 	return ret_val;
 }
 
+uint32_t can_check_addr(struct can_frame* p_frame)
+{
+	uint32_t ret_val = 0;
+
+	uint32_t addr = p_frame->can_id;
+	addr &= CAN_ADDR_MASK;
+	if(addr != CAN_MASTER_ADDR)
+	{
+		ret_val = 1;
+	}
+
+	return ret_val;
+}
+
+uint64_t timespec_to_ms(struct timespec ts)
+{
+	uint64_t val, val_l, val_h;
+	val_h = 1000 * ts.tv_sec;
+	val_l = ts.tv_nsec / 1000000;
+
+	val = val_h + val_l;
+
+	return val;
+}
+
+uint32_t check_timeout(uint64_t t_start, uint64_t timeinterval)
+{
+	uint32_t ret_val = 0;
+
+	clock_gettime(CLOCK_REALTIME, &ts);
+
+	uint64_t time_now = timespec_to_ms(ts);
+	uint64_t time_delta = time_now - t_start;
+	if(time_delta >= timeinterval)
+	{
+		ret_val = 1;
+	}
+
+	return ret_val;
+}
+
 int main(int argc, char **argv) {
     struct can_frame cframe;
     uint8_t rcv_data[8];
@@ -191,141 +224,58 @@ int main(int argc, char **argv) {
     sc = CAN_socker_init(can_interface);
 
     t_boot_state boot_state = ST_BOOT_CONNECT;
-    while(boot_state != ST_BOOT_EXIT)
+
+    uint32_t finish = 1;
+    struct timespec ts;
+    uint64_t time_start;
+
+
+    while(finish)
     {
-		switch(boot_state)
+		int32_t res = wait_can_response(sc, &cframe);
+		if(res == 0)
 		{
-			case ST_BOOT_CONNECT:
+			res = can_check_addr(&cframe);
+			if(res == 0)
+			{
+				res = can_protocol(&cframe);
+				if(res == 1)
 				{
-					cframe.can_id = CAN_ADDR + CMD_GET_STATE;
-					cframe.can_dlc = 0;
-
-					int32_t res = send_to_can(sc, &cframe);
-					if(res == 0)
-					{
-						res = wait_can_response(sc, &cframe);
-						if(res == 0)
-						{
-							printf("CAN rcv\n"
-								   "    id = %u\n"
-								   "    size = %u\n",
-								   cframe.can_id, cframe.can_dlc);
-							uint32_t addr = cframe.can_id;
-							addr &= CAN_ADDR_MASK;
-							if(addr == CAN_MASTER_ADDR)
-							{
-								uint32_t cmd = cframe.can_id & CAN_CMD_MASK;
-								if(cmd == CMD_GET_STATE)
-								{
-									memcpy(rcv_data, cframe.data, 8);
-									t_status_answer* p_answ = (t_status_answer*)rcv_data;
-									if(p_answ->status == STATE_BOOTLOADER)
-									{
-										boot_state = ST_BOOT_SET_WRITE_ADDR;
-										break;
-									}
-								}
-							}
-						}
-					}
-					boot_state = ST_BOOT_EXIT;
-				}
-				break;
-			case ST_BOOT_SET_WRITE_ADDR:
-				{
-					cframe.can_id = CAN_ADDR + CMD_SET_ADDR;
-					addr = START_APP_ADDR;
-					memcpy(cframe.data, &addr, sizeof(addr));
-					cframe.can_dlc = sizeof(addr);
-
-					int32_t res = send_to_can(sc, &cframe);;
-					if(res == 0)
-					{
-						res = wait_can_response(sc, &cframe);
-						if(res == 0)
-						{
-							uint32_t addr = cframe.can_id;
-							addr &= CAN_ADDR_MASK;
-							if(addr == CAN_MASTER_ADDR)
-							{
-								uint32_t cmd = cframe.can_id & CAN_CMD_MASK;
-								if(cmd == CMD_SET_ADDR)
-								{
-									memcpy(rcv_data, cframe.data, 8);
-									t_std_answer* p_answ = (t_std_answer*)rcv_data;
-									if(p_answ->_err == ERR_OK)
-									{
-										boot_state = ST_BOOT_ERASE;
-										printf("now erase\n");
-										break;
-									}
-								}
-							}
-						}
-					}
-					boot_state = ST_BOOT_EXIT;
-				}
-				break;
-			case ST_BOOT_ERASE:
-				do{
-					cframe.can_id = CAN_ADDR + CMD_ERASE;
-					cframe.can_dlc = 0;
-
-					int32_t res = send_to_can(sc, &cframe);;
+					res = send_to_can(sc, &cframe);
 					if(res != 0)
 					{
-						boot_state = ST_BOOT_EXIT;
-						break;
-					}
+						finish = 0;
+					}else{
 
-					res = wait_can_response(sc, &cframe);
+						clock_gettime(CLOCK_REALTIME, &ts);
 
-					if(res != 0)
-					{
-						boot_state = ST_BOOT_EXIT;
-						break;
+						time_start = timespec_to_ms(ts);
 					}
-
-					uint32_t addr = cframe.can_id;
-					addr &= CAN_ADDR_MASK;
-					if(addr != CAN_MASTER_ADDR)
-					{
-						boot_state = ST_BOOT_EXIT;
-						break;
-					}
-					uint32_t cmd = cframe.can_id & CAN_CMD_MASK;
-					if(cmd != CMD_ERASE)
-					{
-						boot_state = ST_BOOT_EXIT;
-						break;
-					}
-
-					memcpy(rcv_data, cframe.data, 8);
-					t_std_answer* p_answ = (t_std_answer*)rcv_data;
-					if(p_answ->_err != ERR_OK)
-					{
-						boot_state = ST_BOOT_EXIT;
-						break;
-					}
-
-					addr += ERASE_INC_ADDR;
-				}while(addr < END_APP_ADDR);
-				if(boot_state != ST_BOOT_EXIT)
+				}else if(res == 3)
 				{
-					boot_state = ST_BOOT_WRTE;
-					printf("erase success\n");
-					printf("now write\n");
+					// update successful
+					// exit from program
+					finish = 0;
 				}
-				break;
-			case ST_BOOT_WRTE:
-				break;
-			case ST_BOOT_READ:
-				break;
-			case ST_BOOT_VERIFY:
-				break;
+				else{
+					uint32_t tout = check_timeout(time_start, 5000ULL);
+					if(tout)
+					{
+						finish = 0;
+					}
+				}
+			}else{
+				uint32_t tout = check_timeout(time_start, 5000ULL);
+				if(tout)
+				{
+					finish = 0;
+				}
+			}
+		}else{
+			finish = 0;
 		}
     }
-
+    fclose(file_read);
     close(sc);
     return 0;
 }

@@ -8,6 +8,8 @@
 #ifndef _CAN_DEFS_H_
 #define _CAN_DEFS_H_
 
+#include <stdint.h>
+
 // 11 standart id
 //  id bit number        10 9 8 7 6 5    4 3 2 1 0
 //  id bit structure   |   dev addr   |  cmd code  |
@@ -46,7 +48,23 @@
 
 #define	START_APP_ADDR	(0x08004000UL)
 #define	END_APP_ADDR	(0x08010000UL)
+#define MCU_MEM_SZ		(END_APP_ADDR - START_APP_ADDR)
 #define	ERASE_INC_ADDR	(0UL)
+#define	WRITE_INC_ADDR	(8UL)
+#define	LEN_INFO_FILE_POSITION		(0x108)
+
+typedef enum{
+	ST_BOOT_CONNECT = 0,
+	ST_BOOT_TO_BOOT,
+	ST_BOOT_SET_ERASE_ADDR,
+	ST_BOOT_ERASE,
+	ST_BOOT_SET_WRITE_ADDR,
+	ST_BOOT_WRITE,
+	ST_BOOT_SET_READ_ADDR,
+	ST_BOOT_READ,
+	ST_BOOT_TO_APP,
+	ST_BOOT_GET_STATE_AFTER_UPDATE,
+}t_boot_state;
 
 typedef struct {
 	uint8_t status;

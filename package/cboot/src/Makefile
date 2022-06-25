@@ -11,9 +11,13 @@ SRC = $(wildcard *.c)
 OBJ = $(patsubst %.c, %.o, $(SRC))
 
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	@echo 
+	@echo Compiling: $<	
+	@$(CC) -c -o $@ $< $(CFLAGS)
 
 cboot: $(OBJ)
+	@echo 
+	@echo Linking: $@	
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean
