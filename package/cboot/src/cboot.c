@@ -26,7 +26,7 @@
 unsigned char can_interface[5] = "can0";
 char file_name[256] = "";
 FILE* file_read;
-int64_t file_len;
+long int file_len;
 uint32_t can_addr = (1 << CAN_ADDR_BIT_POSITION);
 
 
@@ -104,8 +104,6 @@ int32_t send_to_can(int can_sc, struct can_frame* frame)
 	{
 		printf("CAN write error: %s\n", strerror(errno));
 		ret_val = -1;
-	}else{
-		printf("CAN snd OK\n");
 	}
 
 	return ret_val;
@@ -116,7 +114,7 @@ int32_t wait_can_response(int can_sc, struct can_frame* frame)
 	int32_t ret_val = 0;
 	fd_set readfds;
 
-	/* Ждем не больше пяти секунд. */
+	/* 5 seconds timeout */
 	struct timeval tv;
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
@@ -132,8 +130,6 @@ int32_t wait_can_response(int can_sc, struct can_frame* frame)
 			if (read(can_sc, frame, sizeof(*frame)) < 0)
 			{
 				fprintf(stderr, "CAN read error: %s\n", strerror(errno));
-				ret_val = -1;
-			}else{
 				ret_val = -1;
 			}
 		}else{
@@ -204,35 +200,53 @@ int32_t check_input_file(char* file_name)
 		return -1;
 	}
 
-	file_len = ftell(file_read);
-	printf("file size - %lld\n", file_len);
-
-	int res = fseek(file_read, LEN_INFO_FILE_POSITION, SEEK_SET);
+	int res = fseek(file_read, 0, SEEK_END);
 	if(res)
 	{
-		fclose(file_read);
+		printf("can not seek position 0\n");
+		return -1;
+	}
+
+	file_len = ftell(file_read);
+	if(file_len == -1)
+	{
+		printf("get file size error\n");
+		return -1;
+	}
+
+	printf("file size - %ld\n", file_len);
+
+	res = fseek(file_read, LEN_INFO_FILE_POSITION, SEEK_SET);
+	if(res)
+	{
 		printf("can not seek position 1\n");
 		return -1;
 	}
 
 	uint32_t mem_len;
 	size_t bytes_read = fread(&mem_len, sizeof(mem_len), 1, file_read);
-	if(bytes_read != sizeof(mem_len))
+	if(bytes_read != 1)
 	{
+		printf("bytes_read - %u\n", bytes_read);
 		printf("can not read file\n");
 		return -1;
 	}
+
+	mem_len *= 4UL;
+	printf("mem_len - %u\n", mem_len);
+
 	if(mem_len > MCU_MEM_SZ)
 	{
 		printf("file length is big\n");
 		return -1;
 	}
 
-	if(file_len != mem_len)
+	if(mem_len != (uint32_t)file_len)
 	{
-		printf("file length is big\n");
+		printf("file size is big\n");
 		return -1;
 	}
+
 	res = fseek (file_read, 0, SEEK_SET);
 	if(res)
 	{
@@ -243,25 +257,26 @@ int32_t check_input_file(char* file_name)
 	return 0;
 }
 
-int32_t calc_CRC32_input_file(FILE* fl)
+int32_t calc_CRC32_input_file(void)
 {
 	uint32_t crc32 = CRC_INITIALVALUE;
 	uint8_t crc_data[1];
 	uint32_t i;
-	uint32_t sz = file_len - 4;
+	uint32_t sz = (uint32_t)file_len;
+	sz -= 4U;
 
 	printf("CRC32 calculating\n");
 
 	for(i=0; i<sz; ++i)
 	{
-		size_t bytes_read = fread(crc_data, 1, 1, fl);
+		size_t bytes_read = fread(crc_data, 1, 1, file_read);
 		crc32 = stm32_sw_crc32_by_byte(crc32, crc_data, 1);
 	}
 
-	fwrite(&crc32, sizeof(crc32), 1, fl);
+	fwrite(&crc32, sizeof(crc32), 1, file_read);
 
-	fclose(fl);
-	fopen(file_name, "rb");
+	fclose(file_read);
+	file_read = fopen(file_name, "rb");
 
 	if(file_read == NULL)
 	{
@@ -307,10 +322,11 @@ int main(int argc, char **argv) {
     	return 0;
     }
 
-    res = calc_CRC32_input_file(file_read);
+    res = calc_CRC32_input_file();
     if(res != 0)
 	{
 		fclose(file_read);
+		printf("calc_CRC32 error\n");
 		printf("Exit\n");
 		return 0;
 	}
@@ -323,6 +339,18 @@ int main(int argc, char **argv) {
     struct timespec ts;
     uint64_t time_start;
 
+    can_protocol_make_connect_cmd(can_addr, &cframe);
+
+    res = send_to_can(sc, &cframe);
+	if(res != 0)
+	{
+		finish = 0;
+	}else{
+
+		clock_gettime(CLOCK_REALTIME, &ts);
+
+		time_start = timespec_to_ms(ts);
+	}
 
     while(finish)
     {
@@ -355,6 +383,7 @@ int main(int argc, char **argv) {
 					uint32_t tout = check_timeout(time_start, 5000ULL);
 					if(tout)
 					{
+						printf("reply timeout\n");
 						finish = 0;
 					}
 				}
@@ -362,14 +391,19 @@ int main(int argc, char **argv) {
 				uint32_t tout = check_timeout(time_start, 5000ULL);
 				if(tout)
 				{
+					printf("reply timeout 2\n");
 					finish = 0;
 				}
 			}
 		}else{
+			printf("reply timeout 1\n");
 			finish = 0;
 		}
     }
+	printf("close file\n");
     fclose(file_read);
+    printf("close can\n");
     close(sc);
+    printf("Exit\n");
     return 0;
 }

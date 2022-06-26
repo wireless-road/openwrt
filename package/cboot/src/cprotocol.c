@@ -17,6 +17,12 @@ t_boot_state proto_state;
 uint32_t addr;
 uint32_t sent_size;
 
+void can_protocol_make_connect_cmd(uint32_t caddr, struct can_frame* p_frame)
+{
+	p_frame->can_id = caddr + CMD_GET_STATE;
+	p_frame->can_dlc = 0;
+}
+
 uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 {
 	uint32_t ret_val = 0;

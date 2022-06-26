@@ -15,44 +15,44 @@
 //  id bit structure   |   dev addr   |  cmd code  |
 
 
-#define CAN_ADDR_BIT_POSITION		(5UL)
-#define CAN_ADDR_MASK				(0x3FUL << CAN_ADDR_BIT_POSITION)
-#define CAN_ADDR					(1UL << CAN_ADDR_BIT_POSITION)
-#define CAN_ADD_MAX					(0x3FUL)
+#define CAN_ADDR_BIT_POSITION		(5U)
+#define CAN_ADDR_MASK				(0x3FU << CAN_ADDR_BIT_POSITION)
+#define CAN_ADDR					(1U << CAN_ADDR_BIT_POSITION)
+#define CAN_ADD_MAX					(0x3FU)
 
-#define CAN_MASTER_ADDR				(0UL << CAN_ADDR_BIT_POSITION)
+#define CAN_MASTER_ADDR				(0U << CAN_ADDR_BIT_POSITION)
 
-#define CAN_CMD_MASK				(0x1FUL)
+#define CAN_CMD_MASK				(0x1FU)
 
-#define CMD_SET_HI_DATA				(0UL)
-#define CMD_SET_LO_DATA				(1UL)
-#define CMD_FW_UPDATE				(2UL)
-#define CMD_SET_ADDR				(3UL)
-#define CMD_ERASE					(4UL)
-#define CMD_WRITE					(5UL)
-#define CMD_READ					(6UL)
-#define CMD_GO_APP					(7UL)
-#define CMD_GET_STATE				(8UL)
+#define CMD_SET_HI_DATA				(0U)
+#define CMD_SET_LO_DATA				(1U)
+#define CMD_FW_UPDATE				(2U)
+#define CMD_SET_ADDR				(3U)
+#define CMD_ERASE					(4U)
+#define CMD_WRITE					(5U)
+#define CMD_READ					(6U)
+#define CMD_GO_APP					(7U)
+#define CMD_GET_STATE				(8U)
 
-#define	STATE_APP					(1UL)
-#define	STATE_BOOTLOADER			(2UL)
+#define	STATE_APP					(1U)
+#define	STATE_BOOTLOADER			(2U)
 
-#define ERR_OK			(0UL)
-#define ERR_ERR			(0xFFUL)
+#define ERR_OK			(0U)
+#define ERR_ERR			(0xFFU)
 
-#define RESTART_DELAY	(40UL)
-#define	BOOT_WR_LEN		(2UL)
-#define BOOT_RD_LEN		(2UL)
+#define RESTART_DELAY	(40U)
+#define	BOOT_WR_LEN		(2U)
+#define BOOT_RD_LEN		(2U)
 
-#define GO_APP_TIMEOUT	(40UL)
-#define RESTART_TIMEOUT	(40UL)
+#define GO_APP_TIMEOUT	(40U)
+#define RESTART_TIMEOUT	(40U)
 
-#define	START_APP_ADDR	(0x08004000UL)
-#define	END_APP_ADDR	(0x08010000UL)
+#define	START_APP_ADDR	(0x08004000U)
+#define	END_APP_ADDR	(0x08010000U)
 #define MCU_MEM_SZ		(END_APP_ADDR - START_APP_ADDR)
-#define	ERASE_INC_ADDR	(0UL)
-#define	WRITE_INC_ADDR	(8UL)
-#define	LEN_INFO_FILE_POSITION		(0x108)
+#define	ERASE_INC_ADDR	(1024U)
+#define	WRITE_INC_ADDR	(8U)
+#define	LEN_INFO_FILE_POSITION		(0x108U)
 
 typedef enum{
 	ST_BOOT_CONNECT = 0,
