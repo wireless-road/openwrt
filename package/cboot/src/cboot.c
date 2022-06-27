@@ -20,13 +20,9 @@
 
 #include "can_defs.h"
 #include "cprotocol.h"
-#include "stm32_crc32.h"
-
 
 unsigned char can_interface[5] = "can0";
 char file_name[256] = "";
-FILE* file_read;
-long int file_len;
 uint32_t can_addr = (1 << CAN_ADDR_BIT_POSITION);
 
 
@@ -184,109 +180,6 @@ uint32_t check_timeout(uint64_t t_start, uint64_t timeinterval)
 	return ret_val;
 }
 
-int32_t check_input_file(char* file_name)
-{
-	uint32_t file_name_len = strlen(file_name);
-	if(file_name_len == 0)
-	{
-		printf("file name not set\n");
-		return -1;
-	}
-
-	file_read = fopen(file_name, "r+b");
-	if(file_read == NULL)
-	{
-		printf("can not open file\n");
-		return -1;
-	}
-
-	int res = fseek(file_read, 0, SEEK_END);
-	if(res)
-	{
-		printf("can not seek position 0\n");
-		return -1;
-	}
-
-	file_len = ftell(file_read);
-	if(file_len == -1)
-	{
-		printf("get file size error\n");
-		return -1;
-	}
-
-	printf("file size - %ld\n", file_len);
-
-	res = fseek(file_read, LEN_INFO_FILE_POSITION, SEEK_SET);
-	if(res)
-	{
-		printf("can not seek position 1\n");
-		return -1;
-	}
-
-	uint32_t mem_len;
-	size_t bytes_read = fread(&mem_len, sizeof(mem_len), 1, file_read);
-	if(bytes_read != 1)
-	{
-		printf("bytes_read - %u\n", bytes_read);
-		printf("can not read file\n");
-		return -1;
-	}
-
-	mem_len *= 4UL;
-	printf("mem_len - %u\n", mem_len);
-
-	if(mem_len > MCU_MEM_SZ)
-	{
-		printf("file length is big\n");
-		return -1;
-	}
-
-	if(mem_len != (uint32_t)file_len)
-	{
-		printf("file size is big\n");
-		return -1;
-	}
-
-	res = fseek (file_read, 0, SEEK_SET);
-	if(res)
-	{
-		printf("can not seek position 2\n");
-		return -1;
-	}
-
-	return 0;
-}
-
-int32_t calc_CRC32_input_file(void)
-{
-	uint32_t crc32 = CRC_INITIALVALUE;
-	uint8_t crc_data[1];
-	uint32_t i;
-	uint32_t sz = (uint32_t)file_len;
-	sz -= 4U;
-
-	printf("CRC32 calculating\n");
-
-	for(i=0; i<sz; ++i)
-	{
-		size_t bytes_read = fread(crc_data, 1, 1, file_read);
-		crc32 = stm32_sw_crc32_by_byte(crc32, crc_data, 1);
-	}
-
-	fwrite(&crc32, sizeof(crc32), 1, file_read);
-
-	fclose(file_read);
-	file_read = fopen(file_name, "rb");
-
-	if(file_read == NULL)
-	{
-		printf("can not open file\n");
-		return -1;
-	}
-
-	return 0;
-}
-
 int main(int argc, char **argv) {
     struct can_frame cframe;
     uint8_t rcv_data[8];
@@ -313,23 +206,13 @@ int main(int argc, char **argv) {
     can_addr <<= CAN_ADDR_BIT_POSITION;
     can_addr &= CAN_ADDR_MASK;
 
-    int32_t res = check_input_file(file_name);
+    int32_t res = can_protocol_set_file(file_name);
 
     if(res != 0)
     {
-    	fclose(file_read);
     	printf("Exit\n");
-    	return 0;
-    }
-
-    res = calc_CRC32_input_file();
-    if(res != 0)
-	{
-		fclose(file_read);
-		printf("calc_CRC32 error\n");
-		printf("Exit\n");
 		return 0;
-	}
+    }
 
     sc = CAN_socker_init(can_interface);
 
@@ -341,7 +224,7 @@ int main(int argc, char **argv) {
 
     can_protocol_make_connect_cmd(can_addr, &cframe);
 
-    res = send_to_can(sc, &cframe);
+    int32_t res = send_to_can(sc, &cframe);
 	if(res != 0)
 	{
 		finish = 0;
@@ -360,7 +243,7 @@ int main(int argc, char **argv) {
 			res = can_check_addr(&cframe);
 			if(res == 0)
 			{
-				res = can_protocol(file_read, can_addr, &cframe);
+				res = can_protocol(can_addr, &cframe);
 				if(res == 1)
 				{
 					res = send_to_can(sc, &cframe);
@@ -401,7 +284,7 @@ int main(int argc, char **argv) {
 		}
     }
 	printf("close file\n");
-    fclose(file_read);
+	can_protocol_close_file();
     printf("close can\n");
     close(sc);
     printf("Exit\n");

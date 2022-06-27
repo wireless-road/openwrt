@@ -5,17 +5,135 @@
  *      Author: compic
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include "can_defs.h"
 #include "cprotocol.h"
+#include "stm32_crc32.h"
+
+#ifndef MAX
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#endif
+
+#ifndef MIN
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#endif
+
+typedef enum{
+	ST_BOOT_CONNECT = 0,
+	ST_BOOT_TO_BOOT,
+	ST_BOOT_SET_ERASE_ADDR,
+	ST_BOOT_ERASE,
+	ST_BOOT_SET_WRITE_ADDR,
+	ST_BOOT_WRITE,
+	ST_BOOT_WRITE_CRC32,
+	ST_BOOT_SET_READ_ADDR,
+	ST_BOOT_READ,
+	ST_BOOT_READ_CRC32,
+	ST_BOOT_TO_APP,
+	ST_BOOT_GET_STATE_AFTER_UPDATE,
+}t_boot_state;
 
 t_boot_state proto_state;
 uint32_t addr;
 uint32_t sent_size;
+static FILE* f_read;
+static uint32_t f_len;
+static uint32_t crc32;
+uint32_t rd_crc32;
+uint32_t remainder_crc32;
+
+void can_protocol_set_file_len(uint32_t len)
+{
+	f_len = len;
+}
+
+int32_t can_protocol_set_file(char* file_name)
+{
+	long int file_len;
+	uint32_t file_name_len = strlen(file_name);
+	if(file_name_len == 0)
+	{
+		printf("file name not set\n");
+		return -1;
+	}
+
+	f_read = fopen(file_name, "rb");
+	if(f_read == NULL)
+	{
+		printf("can not open file\n");
+		return -1;
+	}
+
+	int res = fseek(f_read, 0, SEEK_END);
+	if(res)
+	{
+		fclose(f_read);
+		printf("can not seek position 0\n");
+		return -1;
+	}
+
+	file_len = ftell(f_read);
+	if(file_len <= 0L)
+	{
+		fclose(f_read);
+		printf("get file size error\n");
+		return -1;
+	}
+
+	printf("file size - %ld\n", file_len);
+
+	res = fseek(f_read, LEN_INFO_FILE_POSITION, SEEK_SET);
+	if(res)
+	{
+		fclose(f_read);
+		printf("can not seek position 1\n");
+		return -1;
+	}
+
+	uint32_t mem_len;
+	size_t bytes_read = fread(&mem_len, sizeof(mem_len), 1, f_read);
+	if(bytes_read != 1)
+	{
+		printf("bytes_read - %u\n", bytes_read);
+		printf("can not read file\n");
+		fclose(f_read);
+		return -1;
+	}
+
+	mem_len *= 4U;
+	printf("mem_len - %u\n", mem_len);
+
+	if(mem_len > MCU_MEM_SZ)
+	{
+		fclose(f_read);
+		printf("file length is big\n");
+		return -1;
+	}
+
+	if(mem_len != (uint32_t)file_len)
+	{
+		fclose(f_read);
+		printf("file size is big\n");
+		return -1;
+	}
+
+	file_len -= 4;
+
+	f_len = (uint32_t)file_len;
+
+	res = fseek (f_read, 0, SEEK_SET);
+	if(res)
+	{
+		fclose(f_read);
+		printf("can not seek position 2\n");
+		return -1;
+	}
+
+	return 0;
+}
 
 void can_protocol_make_connect_cmd(uint32_t caddr, struct can_frame* p_frame)
 {
@@ -23,10 +141,10 @@ void can_protocol_make_connect_cmd(uint32_t caddr, struct can_frame* p_frame)
 	p_frame->can_dlc = 0;
 }
 
-uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
+uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 {
 	uint32_t ret_val = 0;
-	uint8_t rcv_data[8];
+	uint8_t rcv_data[RW_SIZE];
 
 	switch(proto_state)
 	{
@@ -35,7 +153,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_GET_STATE)
 				{
-					memcpy(rcv_data, p_frame->data, 8);
+					memcpy(rcv_data, p_frame->data, RW_SIZE);
 					t_status_answer* p_answ = (t_status_answer*)rcv_data;
 					if(p_answ->status == STATE_BOOTLOADER)
 					{
@@ -46,7 +164,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 
 						proto_state = ST_BOOT_SET_ERASE_ADDR;
 
-						ret_val = 1;
+						ret_val = 1U;
 					}else if(p_answ->status == STATE_APP)
 					{
 						p_frame->can_id = caddr + CMD_FW_UPDATE;
@@ -54,7 +172,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 
 						proto_state = ST_BOOT_TO_BOOT;
 
-						ret_val = 1;
+						ret_val = 1U;
 					}
 				}
 			}
@@ -70,7 +188,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 
 					proto_state = ST_BOOT_CONNECT;
 
-					ret_val = 1;
+					ret_val = 1U;
 				}
 			}
 			break;
@@ -79,7 +197,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_SET_ADDR)
 				{
-					memcpy(rcv_data, p_frame->data, 8);
+					memcpy(rcv_data, p_frame->data, RW_SIZE);
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
@@ -88,7 +206,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 						p_frame->can_dlc = 0;
 						printf("now erase\n");
 						proto_state = ST_BOOT_ERASE;
-						ret_val = 1;
+						ret_val = 1U;
 					}
 				}
 			}
@@ -100,17 +218,17 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 				{
 					if(addr < END_APP_ADDR)
 					{
-						memcpy(rcv_data, p_frame->data, 8);
+						memcpy(rcv_data, p_frame->data, RW_SIZE);
 						t_std_answer* p_answ = (t_std_answer*)rcv_data;
 						if(p_answ->_err == ERR_OK)
 						{
 							addr += ERASE_INC_ADDR;
 							p_frame->can_id = caddr + CMD_ERASE;
 							p_frame->can_dlc = 0;
-							ret_val = 1;
+							ret_val = 1U;
 						}else{
 							printf("error while erasing 1\n");
-							ret_val = 2;
+							ret_val = 2U;
 						}
 					}else{
 						addr = START_APP_ADDR;
@@ -119,7 +237,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 						memcpy(p_frame->data, &addr, sizeof(addr));
 						p_frame->can_dlc = sizeof(addr);
 						proto_state = ST_BOOT_SET_WRITE_ADDR;
-						ret_val = 1;
+						ret_val = 1U;
 					}
 				}
 			}
@@ -129,22 +247,25 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_SET_ADDR)
 				{
-					memcpy(rcv_data, p_frame->data, 8);
+					memcpy(rcv_data, p_frame->data, RW_SIZE);
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
-						size_t bytes_read = fread(rcv_data, 8, 1, fr);
+						size_t bytes_read = fread(rcv_data, RW_SIZE, 1, f_read);
+
+						crc32 = CRC_INITIALVALUE;
+						crc32 = stm32_sw_crc32_by_byte(crc32, rcv_data, bytes_read);
 
 						p_frame->can_id = caddr + CMD_WRITE;
 						memcpy(p_frame->data, rcv_data, bytes_read);
 						p_frame->can_dlc = bytes_read;
-						addr += bytes_read;
+						addr = bytes_read;
 						proto_state = ST_BOOT_WRITE;
-						ret_val = 1;
+						ret_val = 1U;
 
 					}else{
 						printf("error while erasing 2\n");
-						ret_val = 2;
+						ret_val = 2U;
 					}
 				}
 			}
@@ -154,38 +275,71 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_WRITE)
 				{
-					memcpy(rcv_data, p_frame->data, 8);
+					memcpy(rcv_data, p_frame->data, RW_SIZE);
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
-						if(addr < END_APP_ADDR)
+						if(addr < f_len)
 						{
-							size_t bytes_read = fread(rcv_data, 8, 1, fr);
+							uint32_t remainder = f_len - addr;
+							uint32_t rd_len = MIN(remainder, RW_SIZE);
+							size_t bytes_read = fread(rcv_data, rd_len, 1, f_read);
+
+							crc32 = stm32_sw_crc32_by_byte(crc32, rcv_data, bytes_read);
+							uint32_t delta = 0;
+
+							if(remainder < RW_SIZE)
+							{
+								delta = RW_SIZE - remainder;
+								memcpy(&rcv_data[bytes_read], &crc32, delta);
+								remainder_crc32 = sizeof(crc32) - delta;
+							}
 
 							p_frame->can_id = caddr + CMD_WRITE;
 							memcpy(p_frame->data, rcv_data, bytes_read);
-							p_frame->can_dlc = bytes_read;
+							p_frame->can_dlc = bytes_read + delta;
 							addr += bytes_read;
 							proto_state = ST_BOOT_WRITE;
-							ret_val = 1;
+							ret_val = 1U;
 						}else{
-							uint32_t res = fseek(fr, 0, SEEK_SET);
-							if(res)
-							{
-								printf("can not seek position 1\n");
-								ret_val = 2;
-							}else{
-								addr = START_APP_ADDR;
-								p_frame->can_id = caddr + CMD_SET_ADDR;
-								memcpy(p_frame->data, &addr, sizeof(addr));
-								p_frame->can_dlc = sizeof(addr);
-								proto_state = ST_BOOT_SET_READ_ADDR;
-								ret_val = 1;
-							}
+							p_frame->can_id = caddr + CMD_WRITE;
+							memcpy(p_frame->data, &crc32, remainder_crc32);
+							p_frame->can_dlc = remainder_crc32;
+							proto_state = ST_BOOT_WRITE_CRC32;
+							ret_val = 1U;
 						}
 					}else{
 						printf("error while writing 1\n");
-						ret_val = 2;
+						ret_val = 2U;
+					}
+				}
+			}
+			break;
+		case ST_BOOT_WRITE_CRC32:
+			{
+				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
+				if(cmd == CMD_WRITE)
+				{
+					memcpy(rcv_data, p_frame->data, RW_SIZE);
+					t_std_answer* p_answ = (t_std_answer*)rcv_data;
+					if(p_answ->_err == ERR_OK)
+					{
+						uint32_t res = fseek(f_read, 0, SEEK_SET);
+						if(res)
+						{
+							printf("can not seek position 1\n");
+							ret_val = 2U;
+						}else{
+							addr = START_APP_ADDR;
+							p_frame->can_id = caddr + CMD_SET_ADDR;
+							memcpy(p_frame->data, &addr, sizeof(addr));
+							p_frame->can_dlc = sizeof(addr);
+							proto_state = ST_BOOT_SET_READ_ADDR;
+							ret_val = 1U;
+						}
+					}else{
+						printf("error while writing CRC32\n");
+						ret_val = 2U;
 					}
 				}
 			}
@@ -195,17 +349,18 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_SET_ADDR)
 				{
-					memcpy(rcv_data, p_frame->data, 8);
+					memcpy(rcv_data, p_frame->data, RW_SIZE);
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
 						p_frame->can_id = caddr + CMD_READ;
 						p_frame->can_dlc = 0;
 						proto_state = ST_BOOT_READ;
-						ret_val = 1;
+						addr = 0;
+						ret_val = 1U;
 					}else{
 						printf("error while writing 2\n");
-						ret_val = 2;
+						ret_val = 2U;
 					}
 				}
 			}
@@ -215,18 +370,20 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_READ)
 				{
+					uint32_t delta = f_len - addr;
+
 					memcpy(rcv_data, p_frame->data, p_frame->can_dlc);
-					uint8_t rd_data[8];
-					size_t bytes_read = fread(rd_data, 8, 1, fr);
+					uint8_t rd_data[RW_SIZE];
+					size_t bytes_read = fread(rd_data, p_frame->can_dlc, 1, f_read);
 					int32_t res = memcmp(rcv_data, rd_data, bytes_read);
 					if(res == 0)
 					{
 						addr += p_frame->can_dlc;
-						if(addr < MCU_MEM_SZ)
+						if(addr < f_len)
 						{
 							p_frame->can_id = caddr + CMD_READ;
 							p_frame->can_dlc = 0;
-							ret_val = 1;
+							ret_val = 1U;
 						}else{
 							printf("verify OK\n");
 							printf("now go to APP\n");
@@ -235,14 +392,17 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 
 							p_frame->can_id = caddr + CMD_GO_APP;
 							p_frame->can_dlc = 0;
-							ret_val = 1;
+							ret_val = 1U;
 						}
 					}else{
-						printf("verify error at adddress - 0x%08X\n", addr);
-						ret_val = 2;
+						printf("verify error at adddress - 0x%08X\n", (addr + START_APP_ADDR));
+						ret_val = 2U;
 					}
+
 				}
 			}
+			break;
+		case ST_BOOT_READ_CRC32:
 			break;
 		case ST_BOOT_TO_APP:
 			{
@@ -255,7 +415,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 
 					proto_state = ST_BOOT_GET_STATE_AFTER_UPDATE;
 
-					ret_val = 1;
+					ret_val = 1U;
 				}
 			}
 			break;
@@ -270,7 +430,7 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 					{
 						printf("update successful\n");
 
-						ret_val = 3;
+						ret_val = 3U;
 					}
 				}
 			}
@@ -278,6 +438,14 @@ uint32_t can_protocol(FILE* fr, uint32_t caddr, struct can_frame* p_frame)
 	}
 
 	return ret_val;
+}
+
+void can_protocol_close_file(void)
+{
+	if(f_read)
+	{
+		fclose(f_read);
+	}
 }
 
 //------------------- End of File ------------------
