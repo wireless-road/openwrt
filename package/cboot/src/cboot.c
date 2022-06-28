@@ -216,15 +216,13 @@ int main(int argc, char **argv) {
 
     sc = CAN_socker_init(can_interface);
 
-    t_boot_state boot_state = ST_BOOT_CONNECT;
-
     uint32_t finish = 1;
     struct timespec ts;
     uint64_t time_start;
 
     can_protocol_make_connect_cmd(can_addr, &cframe);
 
-    int32_t res = send_to_can(sc, &cframe);
+    res = send_to_can(sc, &cframe);
 	if(res != 0)
 	{
 		finish = 0;
@@ -237,7 +235,7 @@ int main(int argc, char **argv) {
 
     while(finish)
     {
-		int32_t res = wait_can_response(sc, &cframe);
+		res = wait_can_response(sc, &cframe);
 		if(res == 0)
 		{
 			res = can_check_addr(&cframe);
