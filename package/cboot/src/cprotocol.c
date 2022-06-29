@@ -157,6 +157,8 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 					t_status_answer* p_answ = (t_status_answer*)rcv_data;
 					if(p_answ->status == STATE_BOOTLOADER)
 					{
+						printf("BOOTLOADER state\n"
+							   "Send set erase address cmd\n");
 						p_frame->can_id = caddr + CMD_SET_ADDR;
 						addr = START_APP_ADDR;
 						memcpy(p_frame->data, &addr, sizeof(addr));
@@ -198,10 +200,13 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 				if(cmd == CMD_SET_ADDR)
 				{
 					memcpy(rcv_data, p_frame->data, RW_SIZE);
-					t_std_answer* p_answ = (t_std_answer*)rcv_data;
+					t_set_address_answer* p_answ = (t_set_address_answer*)rcv_data;
+					printf("set erase address cmd answer\n");
 					if(p_answ->_err == ERR_OK)
 					{
-						addr = START_APP_ADDR;
+						printf("   status OK\n");
+						printf("   addr 0x%08X OK\n", p_answ->addr);
+						addr = START_APP_ADDR + ERASE_INC_ADDR;
 						p_frame->can_id = caddr + CMD_ERASE;
 						p_frame->can_dlc = 0;
 						printf("now erase\n");
@@ -216,28 +221,28 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_ERASE)
 				{
-					if(addr < END_APP_ADDR)
+					memcpy(rcv_data, p_frame->data, RW_SIZE);
+					t_erase_answer* p_answ = (t_erase_answer*)rcv_data;
+					if(p_answ->_err == ERR_OK)
 					{
-						memcpy(rcv_data, p_frame->data, RW_SIZE);
-						t_std_answer* p_answ = (t_std_answer*)rcv_data;
-						if(p_answ->_err == ERR_OK)
+						if(addr < END_APP_ADDR)
 						{
-							addr += ERASE_INC_ADDR;
-							p_frame->can_id = caddr + CMD_ERASE;
-							p_frame->can_dlc = 0;
-							ret_val = 1U;
+								addr += ERASE_INC_ADDR;
+								p_frame->can_id = caddr + CMD_ERASE;
+								p_frame->can_dlc = 0;
+								ret_val = 1U;
 						}else{
-							printf("error while erasing 1\n");
-							ret_val = 2U;
+							printf("erase OK\n");
+							p_frame->can_id = caddr + CMD_SET_ADDR;
+							addr = START_APP_ADDR;
+							memcpy(p_frame->data, &addr, sizeof(addr));
+							p_frame->can_dlc = sizeof(addr);
+							proto_state = ST_BOOT_SET_WRITE_ADDR;
+							ret_val = 1U;
 						}
 					}else{
-						addr = START_APP_ADDR;
-						p_frame->can_id = caddr + CMD_SET_ADDR;
-						addr = START_APP_ADDR;
-						memcpy(p_frame->data, &addr, sizeof(addr));
-						p_frame->can_dlc = sizeof(addr);
-						proto_state = ST_BOOT_SET_WRITE_ADDR;
-						ret_val = 1U;
+						printf("error while erasing 1\n");
+						ret_val = 2U;
 					}
 				}
 			}
@@ -251,7 +256,9 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
-						size_t bytes_read = fread(rcv_data, RW_SIZE, 1, f_read);
+						printf("set write address OK\n");
+						printf("start write\n");
+						size_t bytes_read = fread(rcv_data, 1, RW_SIZE, f_read);
 
 						crc32 = CRC_INITIALVALUE;
 						crc32 = stm32_sw_crc32_by_byte(crc32, rcv_data, bytes_read);
@@ -262,7 +269,6 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 						addr = bytes_read;
 						proto_state = ST_BOOT_WRITE;
 						ret_val = 1U;
-
 					}else{
 						printf("error while erasing 2\n");
 						ret_val = 2U;
@@ -283,7 +289,7 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 						{
 							uint32_t remainder = f_len - addr;
 							uint32_t rd_len = MIN(remainder, RW_SIZE);
-							size_t bytes_read = fread(rcv_data, rd_len, 1, f_read);
+							size_t bytes_read = fread(rcv_data, 1, rd_len, f_read);
 
 							crc32 = stm32_sw_crc32_by_byte(crc32, rcv_data, bytes_read);
 							uint32_t delta = 0;
@@ -293,6 +299,8 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 								delta = RW_SIZE - remainder;
 								memcpy(&rcv_data[bytes_read], &crc32, delta);
 								remainder_crc32 = sizeof(crc32) - delta;
+								printf("start write CRC32\n");
+								printf("            can_dlc = %u\n", bytes_read + delta);
 							}
 
 							p_frame->can_id = caddr + CMD_WRITE;
@@ -302,6 +310,7 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 							proto_state = ST_BOOT_WRITE;
 							ret_val = 1U;
 						}else{
+							printf("write CRC32, crc32 = 0x%08X\n", crc32);
 							p_frame->can_id = caddr + CMD_WRITE;
 							uint8_t* p_crc32 = (uint8_t*)&crc32;
 							p_crc32 += sizeof(crc32) - remainder_crc32;
@@ -332,6 +341,7 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 							printf("can not seek position 1\n");
 							ret_val = 2U;
 						}else{
+							printf("set start read address\n");
 							addr = START_APP_ADDR;
 							p_frame->can_id = caddr + CMD_SET_ADDR;
 							memcpy(p_frame->data, &addr, sizeof(addr));
@@ -355,6 +365,7 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
+						printf("start read\n");
 						p_frame->can_id = caddr + CMD_READ;
 						p_frame->can_dlc = 0;
 						proto_state = ST_BOOT_READ;
@@ -372,57 +383,69 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_READ)
 				{
-					memcpy(rcv_data, p_frame->data, p_frame->can_dlc);
-					uint8_t rd_data[RW_SIZE];
-					addr += p_frame->can_dlc;
-					size_t bytes_read = fread(rd_data, p_frame->can_dlc, 1, f_read);
-					if(addr < f_len)
+					if(p_frame->can_dlc)
 					{
-						int32_t res = memcmp(rcv_data, rd_data, bytes_read);
-						if(res == 0)
+						memcpy(rcv_data, p_frame->data, p_frame->can_dlc);
+						uint8_t rd_data[RW_SIZE];
+						addr += p_frame->can_dlc;
+						size_t bytes_read = fread(rd_data, p_frame->can_dlc, 1, f_read);
+						if(addr < f_len)
 						{
-							p_frame->can_id = caddr + CMD_READ;
-							p_frame->can_dlc = 0;
-							ret_val = 1U;
-						}else{
-							printf("verify error at adddress - 0x%08X\n", (addr + START_APP_ADDR));
-							ret_val = 2U;
-						}
-					}else{
-						uint32_t da = addr - p_frame->can_dlc;
-						da = f_len - da; // сколько не дочитали в прошлый раз
-						int32_t res = memcmp(rcv_data, rd_data, da);
-						if(res == 0)
-						{
-							uint32_t rem = addr - f_len;
-							uint32_t rem_len = MIN(sizeof(rd_crc32), rem);
-							if(rem > sizeof(rd_crc32))
+							int32_t res = memcmp(rcv_data, rd_data, bytes_read);
+							if(res == 0)
 							{
-								memcpy(&rd_crc32, &rcv_data[da], sizeof(rd_crc32));
-								if(rd_crc32 == crc32)
-								{
-									p_frame->can_id = caddr + CMD_GO_APP;
-									p_frame->can_dlc = 0;
-
-									proto_state = ST_BOOT_TO_APP;
-									ret_val = 1U;
-								}else{
-									printf("verify error CRC32\n");
-									ret_val = 2U;
-								}
-							}else{
-								memcpy(&rd_crc32, &rcv_data[da], rem);
-								addr = sizeof(rd_crc32) - rem;
-
 								p_frame->can_id = caddr + CMD_READ;
 								p_frame->can_dlc = 0;
-
-								proto_state = ST_BOOT_READ_CRC32;
+								ret_val = 1U;
+							}else{
+								printf("verify error at adddress - 0x%08X\n", (addr + START_APP_ADDR));
+								ret_val = 2U;
 							}
 						}else{
-							printf("verify error at adddress - 0x%08X\n", (addr + START_APP_ADDR));
-							ret_val = 2U;
+							uint32_t da = addr - p_frame->can_dlc;
+							da = f_len - da; // сколько не дочитали в прошлый раз
+							int32_t res = memcmp(rcv_data, rd_data, da);
+							if(res == 0)
+							{
+								uint32_t rem = addr - f_len;
+								uint32_t rem_len = MIN(sizeof(rd_crc32), rem);
+								if(rem > sizeof(rd_crc32))
+								{
+									memcpy(&rd_crc32, &rcv_data[da], sizeof(rd_crc32));
+									if(rd_crc32 == crc32)
+									{
+										printf("verify OK\n");
+										printf("go to APP\n");
+
+										p_frame->can_id = caddr + CMD_GO_APP;
+										p_frame->can_dlc = 0;
+
+										proto_state = ST_BOOT_TO_APP;
+										ret_val = 1U;
+									}else{
+										printf("verify error CRC32\n");
+										ret_val = 2U;
+									}
+								}else{
+									printf("additional read CRC32\n");
+
+									memcpy(&rd_crc32, &rcv_data[da], rem);
+									addr = sizeof(rd_crc32) - rem;
+
+									p_frame->can_id = caddr + CMD_READ;
+									p_frame->can_dlc = 0;
+
+									proto_state = ST_BOOT_READ_CRC32;
+									ret_val = 1U;
+								}
+							}else{
+								printf("verify error at adddress - 0x%08X\n", (addr + START_APP_ADDR));
+								ret_val = 2U;
+							}
 						}
+					}else{
+						printf("reading breaking\n");
+						ret_val = 2U;
 					}
 				}
 			}

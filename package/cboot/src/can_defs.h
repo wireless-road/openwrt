@@ -68,7 +68,17 @@ typedef struct {
 
 typedef struct {
 	uint8_t _err;
+	uint32_t addr;
+}__attribute__((packed)) t_set_address_answer;
+
+typedef struct {
+	uint8_t _err;
 }__attribute__((packed)) t_std_answer;
+
+typedef struct {
+	uint8_t _err;
+	uint32_t addr;
+}__attribute__((packed)) t_erase_answer;
 
 typedef struct {
 	uint32_t data[2];

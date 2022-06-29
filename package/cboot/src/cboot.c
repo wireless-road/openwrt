@@ -71,6 +71,8 @@ void parse_args(int argc, char **argv) {
         switch (opt) {
             case 'a':
             	can_addr = strtoul(optarg, (char **)NULL, 10);
+            	can_addr <<= CAN_ADDR_BIT_POSITION;
+				can_addr &= CAN_ADDR_MASK;
                 break;
             case 'i':
                 strncpy(can_interface, optarg, sizeof(can_interface));
@@ -203,9 +205,6 @@ int main(int argc, char **argv) {
 		return 0;
     }
 
-    can_addr <<= CAN_ADDR_BIT_POSITION;
-    can_addr &= CAN_ADDR_MASK;
-
     int32_t res = can_protocol_set_file(file_name);
 
     if(res != 0)
@@ -257,6 +256,11 @@ int main(int argc, char **argv) {
 				}else if(res == 3)
 				{
 					// update successful
+					// exit from program
+					finish = 0;
+				}else if(res == 2)
+				{
+					// error while update
 					// exit from program
 					finish = 0;
 				}
