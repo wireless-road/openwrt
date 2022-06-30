@@ -43,17 +43,20 @@
 		{
 			"controller_number": "5",
 			"pad_number": "1",
-			"direction": "out"
+			"direction": "out",
+			"default_value": "1"
 		},
 		{
 			"controller_number": "5",
 			"pad_number": "8",
-			"direction": "out"
+			"direction": "out",
+			"default_value": "1"
 		},
 		{
 			"controller_number": "5",
 			"pad_number": "0",
-			"direction": "out"
+			"direction": "out",
+			"default_value": "1"
 		}
 	]
 }
