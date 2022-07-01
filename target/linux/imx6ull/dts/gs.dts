@@ -427,10 +427,23 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
-	codec: wm8960@1a {
-		#sound-dai-cells = <0>;
-		compatible = "wlf,wm8960";
-		reg = <0x1a>;
-		wlf,shared-lrclk;
+	lm75: lm75@48 {
+		compatible = "st,stlm75";
+		reg = <0x48>;
+		status = "okay";
+	};
+
+	ads1115: adc@49 {
+		compatible = "ti,ads1015";
+		reg = <0x49>;
+		status = "okay";
+		
+/*		channel@0 {
+			reg = <0>;
+		};
+
+		channel@1 {
+			reg = <1>;
+		};*/
 	};
 };
