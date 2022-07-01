@@ -204,8 +204,17 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "CAN read error: %s\n", strerror(errno));
             }
             else {
-                retransmit_can_to_udp(sb, udpframe, &frame, &baddr);
-                print_verbose("--> CAN --> UDP", &frame, udpframe);
+                //retransmit_can_to_udp(sb, udpframe, &frame, &baddr);
+                //print_verbose("--> CAN --> UDP", &frame, udpframe);
+                if((frame.can_id & 0x1F) == 9)
+                {
+                    uint32_t data1, data2;
+                    memcpy(&data1, &frame.data[0], 4);
+                    memcpy(&data2, &frame.data[4], 4);
+                    printf("------------------------\n");
+                    printf("1: 0x%08X\n", data1);
+                    printf("2: 0x%08X\n", data2);
+                }
             }
         }
 

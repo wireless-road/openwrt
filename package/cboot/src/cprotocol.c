@@ -146,10 +146,11 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 				{
 					memcpy(rcv_data, p_frame->data, RW_SIZE);
 					t_status_answer* p_answ = (t_status_answer*)rcv_data;
+					printf("Dev state\n");
 					if(p_answ->status == STATE_BOOTLOADER)
 					{
-						printf("BOOTLOADER state\n"
-							   "Send set erase address cmd\n");
+						printf("BOOTLOADER state\n");
+						printf("Send set erase address cmd\n");
 						p_frame->can_id = caddr + CMD_SET_ADDR;
 						addr = START_APP_ADDR;
 						memcpy(p_frame->data, &addr, sizeof(addr));
@@ -160,6 +161,8 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 						ret_val = 1U;
 					}else if(p_answ->status == STATE_APP)
 					{
+						printf("APPLICATION state\n");
+						printf("Send go to bootloader cmd\n");
 						p_frame->can_id = caddr + CMD_FW_UPDATE;
 						p_frame->can_dlc = 0;
 
@@ -175,7 +178,9 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_FW_UPDATE)
 				{
+					printf("Send go to bootloader answer\n");
 					sleep(1);
+					printf("Check state\n");
 					p_frame->can_id = caddr + CMD_GET_STATE;
 					p_frame->can_dlc = 0;
 
@@ -422,6 +427,7 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 				uint32_t cmd = p_frame->can_id & CAN_CMD_MASK;
 				if(cmd == CMD_GO_APP)
 				{
+					printf("go app cmd successful\n");
 					sleep(1);
 					p_frame->can_id = caddr + CMD_GET_STATE;
 					p_frame->can_dlc = 0;
