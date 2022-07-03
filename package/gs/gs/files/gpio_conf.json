@@ -1,0 +1,116 @@
+{
+	"gpios": [
+		{
+			"controller_number": "3",
+			"pad_number": "1",
+			"direction": "out",
+			"alias": "K6"
+		},
+		{
+			"controller_number": "3",
+			"pad_number": "6",
+			"direction": "out",
+			"alias": "K5"
+		},
+		{
+			"controller_number": "3",
+			"pad_number": "16",
+			"direction": "out",
+			"alias": "K4"
+		},
+		{
+			"controller_number": "3",
+			"pad_number": "15",
+			"direction": "out",
+			"alias": "K3"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "20",
+			"direction": "out",
+			"alias": "K2"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "19",
+			"direction": "out",
+			"alias": "K1"
+		},
+		{
+			"controller_number": "3",
+			"pad_number": "22",
+			"direction": "out",
+			"alias": "Warm"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "24",
+			"direction": "out",
+			"alias": "Light"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "1",
+			"direction": "out",
+			"default_value": "1",
+			"alias": "RS-485 EN 3"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "8",
+			"direction": "out",
+			"default_value": "1",
+			"alias": "RS-485 EN 5"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "0",
+			"direction": "out",
+			"default_value": "1",
+			"alias": "RS-485 EN 6"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "4",
+			"direction": "out",
+			"default_value": "1",
+			"alias": "BUZZ"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "3",
+			"direction": "in",
+			"alias": "IN1"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "7",
+			"direction": "in",
+			"alias": "IN2"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "0",
+			"direction": "in",
+			"alias": "Start 1"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "1",
+			"direction": "in",
+			"alias": "Stop 1"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "3",
+			"direction": "in",
+			"alias": "Start 2"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "4",
+			"direction": "in",
+			"alias": "Stop 2"
+		}
+	]
+}
