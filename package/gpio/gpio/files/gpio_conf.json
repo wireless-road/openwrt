@@ -57,6 +57,42 @@
 			"pad_number": "0",
 			"direction": "out",
 			"default_value": "1"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "4",
+			"direction": "out"
+			"default_value": "1"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "3",
+			"direction": "in"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "7",
+			"direction": "in"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "0",
+			"direction": "in"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "1",
+			"direction": "in"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "3",
+			"direction": "in"
+		},
+		{
+			"controller_number": "4",
+			"pad_number": "4",
+			"direction": "in"
 		}
 	]
 }
