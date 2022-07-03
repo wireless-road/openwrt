@@ -61,7 +61,7 @@
 		{
 			"controller_number": "5",
 			"pad_number": "4",
-			"direction": "out"
+			"direction": "out",
 			"default_value": "1"
 		},
 		{
