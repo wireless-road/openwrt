@@ -17,6 +17,12 @@ flexcan_wifi)
 	ip link set can1 down
 	ip link set can1 up type can bitrate 500000
 	;;
+gs)
+        ip link set can0 down
+        ip link set can0 up type can bitrate 500000
+        ip link set can1 down
+        ip link set can1 up type can bitrate 500000
+        ;;
 esac
 
 board_config_flush
