@@ -433,17 +433,19 @@
 		status = "okay";
 	};
 
-	ads1115: adc@49 {
-		compatible = "ti,ads1015";
+	ads1015: adc@49 {
+		compatible = "ti,ads1115";
 		reg = <0x49>;
 		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <0>;
 		
-/*		channel@0 {
+		channel@0 {
 			reg = <0>;
 		};
 
 		channel@1 {
 			reg = <1>;
-		};*/
+		};
 	};
 };
