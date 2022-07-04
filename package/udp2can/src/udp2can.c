@@ -184,6 +184,25 @@ int main(int argc, char **argv) {
     sc = CAN_socker_init(can_interface);
 
     fprintf(stdout, "sc: %d, sb: %d, sa: %d\n", sc, sb, sa);
+
+    uint32_t data_1, data_2;
+    data_1 = 0x646606D2;
+    data_2 = 0x646686F2;
+
+    memcpy(&frame.data[0], &data_1, 4);
+    memcpy(&frame.data[4], &data_2, 4);
+    frame.can_dlc = 8;
+    frame.can_id = 32;
+    write(sc, &frame, sizeof(frame));
+    sleep(1);
+    data_1 = 0xB4182EB3;
+    memcpy(&frame.data[0], &data_1, 4);
+    frame.can_dlc = 4;
+    frame.can_id = 33;
+    write(sc, &frame, sizeof(frame));
+    sleep(5);
+
+
     while (1) {
         FD_ZERO(&readfds);
         FD_SET(sc, &readfds);
@@ -204,17 +223,9 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "CAN read error: %s\n", strerror(errno));
             }
             else {
-                //retransmit_can_to_udp(sb, udpframe, &frame, &baddr);
-                //print_verbose("--> CAN --> UDP", &frame, udpframe);
-                if((frame.can_id & 0x1F) == 9)
-                {
-                    uint32_t data1, data2;
-                    memcpy(&data1, &frame.data[0], 4);
-                    memcpy(&data2, &frame.data[4], 4);
-                    printf("------------------------\n");
-                    printf("1: 0x%08X\n", data1);
-                    printf("2: 0x%08X\n", data2);
-                }
+                retransmit_can_to_udp(sb, udpframe, &frame, &baddr);
+                print_verbose("--> CAN --> UDP", &frame, udpframe);
+                
             }
         }
 
