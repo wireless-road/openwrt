@@ -1,8 +1,8 @@
 all: gs
 
 CC = gcc
-CFLAGS = -Wall
-LDFLAGS = 
+CFLAGS += -Wall
+LDFLAGS += -lmodbus
 
 DEPS = $(wildcard *.h)
 
