@@ -5,17 +5,17 @@ PKG_VERSION:=1.0
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/gs-$(PKG_VERSION)
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/gs
   SECTION:=examples
   CATEGORY:=Examples
   TITLE:=gs control application
+  DEPENDS:=+libmodbus
 endef
 
 define Package/gs/description
-  GPIO input/output driving example
+  GS demo for getting info
 endef
 
 define Build/Prepare
@@ -25,7 +25,7 @@ define Build/Prepare
 endef
 
 define Build/Compile
-	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" LDFLAGS="$(TARGET_LDFLAGS)"
+	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" LDFLAGS="$(TARGET_LDFLAGS) -lmodbus"
 endef
 
 define Package/gs/install
