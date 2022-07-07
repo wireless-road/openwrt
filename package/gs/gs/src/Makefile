@@ -20,4 +20,3 @@ gs: $(OBJ)
 
 clean:
 	rm -f gs *.o
-
