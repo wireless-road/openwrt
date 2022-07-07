@@ -1,7 +1,7 @@
 all: gs
 
 CC = gcc
-CFLAGS += -Wall
+CFLAGS += -Wall -Wunused
 LDFLAGS =
 
 DEPS = $(wildcard *.h)
