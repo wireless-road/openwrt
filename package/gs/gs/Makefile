@@ -11,7 +11,8 @@ define Package/gs
   SECTION:=examples
   CATEGORY:=Examples
   TITLE:=gs control application
-  DEPENDS:=+libmodbus
+  DEPENDS:=+libmodbus \
+	+libgpiod
 endef
 
 define Package/gs/description
@@ -23,9 +24,9 @@ define Build/Prepare
 	cp ./src/* $(PKG_BUILD_DIR)/
 	$(Build/Patch)
 endef
-
+TARGET_LDFLAGS += -lmodbus -lgpiod
 define Build/Compile
-	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" LDFLAGS="$(TARGET_LDFLAGS) -lmodbus"
+	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" LDFLAGS="$(TARGET_LDFLAGS)"
 endef
 
 define Package/gs/install
