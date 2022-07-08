@@ -1,41 +1,33 @@
 #include "libgs.h"
 
-modbus_t *ctx;
+modbus_t *ctx_gs1;
+modbus_t *ctx_gs2;
+struct gpiod_chip *chip;
+struct gpiod_line *line_rts1;
+struct gpiod_line *line_rts2;
 
-static int gs_read_reg(int reg, int count, uint16_t *buffer)
+
+static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 {
     int ret;
     usleep(100000);
     ret = modbus_read_input_registers(ctx, reg, count, buffer);
     if (ret == -1)
-    {
         fprintf(stderr, "Read reg %d failed: %s\n", reg, modbus_strerror(errno));
-        return -1;
-    }
+    return ret;
 }
 
-int get_gs_protocol(void)
+int gs_get_version(modbus_t *ctx)
 {
     int ret;
-    uint16_t mode;
-    ret = gs_read_reg(REG_F_MBUS_MODE, 1, &mode);
-    if (mode)
-        printf("MODE: MMI\n");
-    else
-        printf("MODE: FLOMAC\n");
-}
-int gs_get_version(void)
-{
-    int ret;
-    int i;
     int device_mode;
     int sw_revision;
 
-    if (gs_read_reg(R_MMI_MBUS_MAP, 1, &device_mode) == -1)
+    if (gs_read_reg(ctx, R_MMI_MBUS_MAP, 1, &device_mode) == -1)
     {
         return -1;
     }
-    if (gs_read_reg(R_MMI_SW_VER, 1, &sw_revision) == -1)
+    if (gs_read_reg(ctx, R_MMI_SW_VER, 1, &sw_revision) == -1)
     {
         return -1;
     }
@@ -81,18 +73,18 @@ int gs_get_summator(int sum_num)
 }
 #endif
 
-int gs_get_total_values(void)
+int gs_get_total_values(modbus_t *ctx)
 {
     int ret;
     float mass_total;
     float volume_total;
 
     uint16_t buf[2];
-    ret = gs_read_reg(R_MMI_MASS_TOTAL, 2, buf);
+    ret = gs_read_reg(ctx, R_MMI_MASS_TOTAL, 2, buf);
     if (!ret)
         mass_total = modbus_get_float_badc(buf);
 
-    ret = gs_read_reg(R_MMI_VOL_TOTLAL, 2, buf);
+    ret = gs_read_reg(ctx, R_MMI_VOL_TOTLAL, 2, buf);
     if (!ret)
         volume_total = modbus_get_float_badc(buf);
 
@@ -100,7 +92,7 @@ int gs_get_total_values(void)
     return 0;
 }
 
-int gs_get_current_values(void)
+int gs_get_current_values(modbus_t *ctx)
 {
     int ret;
     float mass_flow;
@@ -108,19 +100,19 @@ int gs_get_current_values(void)
     /* add more if needed, just test */
 
     uint16_t buf[2];
-    ret = gs_read_reg(R_MMI_MASS_FRATE, 2, buf);
+    ret = gs_read_reg(ctx, R_MMI_MASS_FRATE, 2, buf);
     mass_flow = modbus_get_float_badc(buf);
-    ret = gs_read_reg(R_MMI_VOLUME_FRATE, 2, buf);
+    ret = gs_read_reg(ctx, R_MMI_VOLUME_FRATE, 2, buf);
     volume_flow = modbus_get_float_badc(buf);
     printf("Current measurements: MASS: %f, VOLUME: %f\n", mass_flow, volume_flow);
-    return 0;
+    return ret;
 }
 
 int rts_gpio_fd = -1;
 
 void rts_gpio_init()
 {
-    rts_gpio_fd = open("/sys/class/gpio/gpio128/value", O_WRONLY | O_SYNC);
+    rts_gpio_fd = open("/sys/class/gpio/gpio136/value", O_WRONLY | O_SYNC);
 }
 
 void csetrts(modbus_t *ctx, int on)
@@ -135,15 +127,19 @@ void csetrts(modbus_t *ctx, int on)
     }
 }
 
-int gs_init(char *port)
+modbus_t* gs_init(gs_conninfo_t *conninfo)
 {
+    modbus_t *ctx;
     rts_gpio_init();
     int ret;
-    ctx = modbus_new_rtu(port, 9600, 'N', 8, 1);
+    char port[16];
+    sprintf(&port, "/dev/ttymxc%d", conninfo->port);
+    printf("Connecting to %s...\n", port);
+    ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
     if (ctx == NULL)
     {
         fprintf(stderr, "Unable to create the libmodbus context\n");
-        return -1;
+        return ctx;
     }
     modbus_set_slave(ctx, DEF_ADDR);
     modbus_set_response_timeout(ctx, 0, 100000);
@@ -153,20 +149,21 @@ int gs_init(char *port)
     if (!ret)
     {
         fprintf(stderr, "Error setting mode to RS485!");
-        return ret;
+        modbus_free(ctx);
+        return NULL;
     }
 
     if (modbus_connect(ctx) == -1)
     {
         fprintf(stderr, "Connection failed: %s\n", modbus_strerror(errno));
         modbus_free(ctx);
-        return -1;
+        return NULL;
     }
-    return 0;
+    return ctx;
 }
 
-void gs_close(void)
+void gs_close(modbus_t *ctx)
 {
-    modbus_close(ctx); // does we need it woth RS485 connection?
+    modbus_close(ctx); // does we need it with RS485 connection?
     modbus_free(ctx);
 }
