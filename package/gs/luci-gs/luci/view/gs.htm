@@ -35,16 +35,22 @@ function get_show_data(){
                 // gpio_cnt = 0
                 generateGpioHead(table);
 
-                 for(const gpio of j.gpios) {
-                        XHR.get('/cgi-bin/luci/admin/gs/value_get', { token: '<%=token%>', controller_number: gpio.controller_number, pad_number: gpio.pad_number }, function(xhr, j) {
-                                 generateGpio(gpio.controller_number,
-                                         gpio.pad_number,
-                                         gpio.direction,
-                                         parseInt(j.value),
-                                         gpio.alias
+                XHR.get('/cgi-bin/luci/admin/gs/state_get', { token: '<%=token%>' }, function(xhr, resp) {
+                        let gpios = resp.gpios
+                        let len = gpios.length
+                        for (let k = 0; k < len; k++) {
+                                const idd = gpios[k].controller_number + '.' + gpios[k].pad_number
+                                const valuee = gpios[k].value
+
+                                 generateGpio(gpios[k].controller_number,
+                                         gpios[k].pad_number,
+                                         gpios[k].direction,
+                                         parseInt(valuee),
+                                         gpios[k].alias
                                  )
-                         });
-                 }
+
+                        }
+                })
          });
 }
 
