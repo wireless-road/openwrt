@@ -1,5 +1,6 @@
 -- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.84:/usr/lib/lua/luci/controller/gs.lua
 -- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.84:/usr/lib/lua/luci/view/gs.htm
+-- scp package/gs/luci-gs/styles/gs.css root@192.168.31.84:/www/luci-static/resources/gs.css
 -- scp package/gs/gs/files/gpio_conf.json root@192.168.31.84:/etc/gpio_conf.json
 
 module("luci.controller.gs", package.seeall)
@@ -36,7 +37,22 @@ function gs_state_get()
 	local json_out = { }
 	local result = {}
 	result.gpios = {}
+	result.telemetry = {}
 	local gpios = {}
+	result.telemetry = {
+	    {
+	        name = "temperature",
+	        value = nixio.fs.readfile("/sys/class/hwmon/hwmon1/temp1_input"):sub(1,-2)
+	    },
+	    {
+	        name = "input_4_20_channel_0",
+	        value = nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage0_raw"):sub(1,-2)
+	    },
+	    {
+	        name = "input_4_20_channel_1",
+	        value = nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage1_raw"):sub(1,-2)
+	    }
+	}
 	local tmp = {}
 
 	cfg = nixio.fs.readfile(dir .. "/gpio_conf.json", 524288)
@@ -53,9 +69,9 @@ function gs_state_get()
         table.insert(result.gpios, tmp)
     end
 	json_out["gpios"] = json_cfg.gpios
+	table.insert(result, telemetry)
 
 	luci.http.prepare_content("application/json")
--- 	luci.http.write_json(json_out or {})
     luci.http.write_json(result or {})
 end
 

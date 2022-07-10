@@ -35,6 +35,13 @@ function get_show_data(){
                 // gpio_cnt = 0
                 generateGpioHead(table);
 
+                let telemetry = document.getElementById("telemetry")
+                while(telemetry.firstChild)
+                {
+                        telemetry.removeChild(telemetry.lastChild)
+                }
+                generateTelemetryHead(telemetry)
+
                 XHR.get('/cgi-bin/luci/admin/gs/state_get', { token: '<%=token%>' }, function(xhr, resp) {
                         let gpios = resp.gpios
                         let len = gpios.length
@@ -48,8 +55,17 @@ function get_show_data(){
                                          parseInt(valuee),
                                          gpios[k].alias
                                  )
-
                         }
+
+                        let telemetry = resp.telemetry
+                        len = telemetry.length
+                        for (let k = 0; k < len; k++) {
+                                console.log('___ ', telemetry[k])
+                                 generateParam(telemetry[k].name,
+                                         telemetry[k].value
+                                 )
+                        }
+
                 })
          });
 }
@@ -59,6 +75,13 @@ function generateHeadField(class_name, text) {
         col.className = class_name
         let col_text = document.createTextNode(text)
         col.appendChild(col_text)
+        return col
+}
+
+function generateParamOption(class_name, text)  {
+        let col = document.createElement("div")
+        col.className = class_name
+        col.appendChild(text)
         return col
 }
 
@@ -77,6 +100,16 @@ function generateGpioValue(class_name, text)  {
 }
 
 function generateGpioAlias(value = '') {
+        text = document.createTextNode(value)
+        return text
+}
+
+function generateParamName(value = '') {
+        text = document.createTextNode(value)
+        return text
+}
+
+function generateParamValue(value = '') {
         text = document.createTextNode(value)
         return text
 }
@@ -130,6 +163,17 @@ function generateGpio(controller_number = 1, gpio_number = 1, direction = 'out',
         }
 }
 
+function generateParam(name, value) {
+        let table = document.getElementById("telemetry")
+        let trow = document.createElement("div")
+        trow.className = "tr"
+        trow.id = 'param.' + name
+
+        table.appendChild(trow)
+        trow.appendChild(generateParamOption("td", generateParamName(name)))
+        trow.appendChild(generateParamOption("td", generateParamValue(value)))
+}
+
 function generateGpioHead(table) {
         let thead = document.createElement("div")
         thead.className = "tr table-titles"
@@ -139,12 +183,22 @@ function generateGpioHead(table) {
         thead.appendChild(generateHeadField("th col-2 middle center", "Value"))
 }
 
+function generateTelemetryHead(table) {
+        let thead = document.createElement("div")
+        thead.className = "tr table-titles"
+        table.appendChild(thead)
+        thead.appendChild(generateHeadField("th col-1 middle center", "Parameter"))
+        thead.appendChild(generateHeadField("th col-2 middle center", "Raw value"))
+}
+
 window.requestAnimationFrame(function() {
         let table = document.getElementById("table")
         get_show_data();
 
         setInterval(function () {
                 let rows = document.getElementById("table").children
+                let telemetry_rows = document.getElementById("telemetry").children
+
                 XHR.get('/cgi-bin/luci/admin/gs/state_get', { token: '<%=token%>' }, function(xhr, resp) {
                         let gpios = resp.gpios
                         let len = gpios.length
@@ -162,6 +216,27 @@ window.requestAnimationFrame(function() {
                                         }
                                 }
                         }
+
+                        let telemetry = resp.telemetry
+                        len = telemetry.length
+                        for (let k = 0; k < len; k++) {
+                                const idd = 'param.' + telemetry[k].name
+                                const valuee = telemetry[k].value
+                                for (let i = 1; i < telemetry_rows.length; i++) {
+                                        let row = telemetry_rows[i]
+                                        if (idd === row.id) {
+                                                let node = row.childNodes[1]
+                                                console.log('__ Match!', valuee, typeof node, node)
+                                                node.textContent = valuee
+                                                // let value = document.getElementById("value." + idd)
+                                                // const new_val = (valuee === '1') ? true : false
+                                                // if (value.checked !== new_val) {
+                                                //         value.checked = new_val
+                                                // }
+                                        }
+                                }
+                        }
+
                 })
         },500)
 
@@ -170,12 +245,20 @@ window.requestAnimationFrame(function() {
 </script>
 
 <div style="display: flex; flex-direction: row; justify-content: space-between">
-        <h2 name="content"><%:GPIO Configuration%></h2>
+<!--        <h2 name="content"><%:GPIO Configuration%></h2>-->
+<!--        <h2 name="content2">Telemetry</h2>-->
 <!--        <button class="btn cbi-button cbi-button-action" onclick="generateGpioNew()"> <%:Add Gpio %> </button>-->
 </div>
-<div style="display: flex; flex-direction: row; justify-content: space-between">
+
+<div style="display: flex; flex-direction: row">
         <link rel="stylesheet" href="<%=resource%>/gs.css" type="text/css" />
-        <div id="table" class="table">
+        <div style="flex: 1; width: 100%">
+                <h2 name="content">GPIO Configuration</h2>
+                <div id="table" class="table"></div>
+        </div>
+        <div style="flex: 1; width: 100%; margin-left: 10px">
+                <h2 name="content">Telemetry</h2>
+                <div id="telemetry" class="table"></div>
         </div>
 </div>
 
