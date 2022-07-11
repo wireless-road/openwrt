@@ -25,6 +25,19 @@
 		reg = <0x80000000 0x20000000>;
 	};
 
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_vref_3v3: regulator@0 {
+			compatible = "regulator-fixed";
+			regulator-name = "vref-3v3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+		};
+	};
+
 	aliases {
 		cpu0 = &cpu0;
 		can1 = &can1;
@@ -141,7 +154,7 @@
 		pinctrl_adc1: adc1grp {
 			fsl,pins = <
 				MX6UL_PAD_GPIO1_IO08__GPIO1_IO08        0xb0
-				MX6UL_PAD_GPIO1_IO09__GPIO1_IO09        0xb0
+				MX6UL_PAD_GPIO1_IO09__GPIO1_IO09        0xb0 
 			>;
 		};
 
@@ -356,7 +369,9 @@
 &adc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_adc1>;
-/*	vref-supply = <&reg_vref_3v3>; */
+	vref-supply = <&reg_vref_3v3>; 
+/*	num-channels = <1>;*/
+	adc-ch-list = <8 9>;
 	status = "okay";
 };
 

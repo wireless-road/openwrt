@@ -93,6 +93,21 @@ endef
 
 $(eval $(call KernelPackage,iio-ads1015))
 
+define KernelPackage/iio-vf610-adc
+  SUBMENU:=$(IIO_MENU)
+  DEPENDS:=+kmod-iio-core kmod-industrialio-triggered-buffer
+  TITLE:= Freescale ADC driver
+  KCONFIG:= CONFIG_VF610_ADC
+  FILES:=$(LINUX_DIR)/drivers/iio/adc/vf610_adc.ko
+  AUTOLOAD:=$(call AutoLoad,56,vf610_adc)
+endef
+
+define KernelPackage/iio-vf610-adc/description
+ This driver adds support for Freescale GPIO ADC.
+endef
+
+$(eval $(call KernelPackage,iio-vf610-adc))
+
 define KernelPackage/iio-hmc5843
   SUBMENU:=$(IIO_MENU)
   DEPENDS:=+kmod-i2c-core +kmod-iio-core +kmod-regmap-i2c +kmod-industrialio-triggered-buffer
