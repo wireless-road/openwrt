@@ -57,20 +57,6 @@
 		},
 		{
 			"controller_number": "5",
-			"pad_number": "8",
-			"direction": "out",
-			"default_value": "1",
-			"alias": "RS-485 EN 5"
-		},
-		{
-			"controller_number": "5",
-			"pad_number": "0",
-			"direction": "out",
-			"default_value": "1",
-			"alias": "RS-485 EN 6"
-		},
-		{
-			"controller_number": "5",
 			"pad_number": "4",
 			"direction": "out",
 			"default_value": "1",
