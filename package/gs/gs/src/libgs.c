@@ -1,16 +1,9 @@
 #include "libgs.h"
 
-modbus_t *ctx_gs1;
-modbus_t *ctx_gs2;
-struct gpiod_chip *chip;
-struct gpiod_line *line_rts1;
-struct gpiod_line *line_rts2;
-
-
 static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 {
     int ret;
-    usleep(100000);
+    usleep(5000);
     ret = modbus_read_input_registers(ctx, reg, count, buffer);
     if (ret == -1)
         fprintf(stderr, "Read reg %d failed: %s\n", reg, modbus_strerror(errno));
@@ -20,8 +13,8 @@ static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 int gs_get_version(modbus_t *ctx)
 {
     int ret;
-    int device_mode;
-    int sw_revision;
+    int device_mode = 0;
+    int sw_revision = 0;
 
     if (gs_read_reg(ctx, R_MMI_MBUS_MAP, 1, &device_mode) == -1)
     {
@@ -32,7 +25,7 @@ int gs_get_version(modbus_t *ctx)
         return -1;
     }
     printf("Device mode: %s\n", device_mode ? "MMI" : "FLOMAC");
-    printf("Software varsion: %d\n", sw_revision);
+    printf("Software version: %d\n", sw_revision);
     return 0;
 }
 #ifdef METER_TYPE_FLOMAC
@@ -73,66 +66,86 @@ int gs_get_summator(int sum_num)
 }
 #endif
 
-int gs_get_total_values(modbus_t *ctx)
+int gs_get_all_units(modbus_t *ctx, measure_units_t *measure_units)
 {
-    int ret;
-    float mass_total;
-    float volume_total;
+    uint16_t *p;
 
-    uint16_t buf[2];
-    ret = gs_read_reg(ctx, R_MMI_MASS_TOTAL, 2, buf);
-    if (!ret)
-        mass_total = modbus_get_float_badc(buf);
+    uint16_t buf[8];
+    p = (uint16_t *)measure_units;
+    if (gs_read_reg(ctx, R_MMI_UNITS_BASE, 8, &buf) == -1)
+        return -1;
+    for (int i = 0; i < 8; i++)
+    {
+        *p = buf[i];
+        p++;
+    }
 
-    ret = gs_read_reg(ctx, R_MMI_VOL_TOTLAL, 2, buf);
-    if (!ret)
-        volume_total = modbus_get_float_badc(buf);
-
-    printf("TOTAL MASS: %f\nTOTAL VOLUME: %f\n", mass_total, volume_total);
     return 0;
 }
 
-int gs_get_current_values(modbus_t *ctx)
+int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
 {
-    int ret;
-    float mass_flow;
-    float volume_flow;
-    /* add more if needed, just test */
-
-    uint16_t buf[2];
-    ret = gs_read_reg(ctx, R_MMI_MASS_FRATE, 2, buf);
-    mass_flow = modbus_get_float_badc(buf);
-    ret = gs_read_reg(ctx, R_MMI_VOLUME_FRATE, 2, buf);
-    volume_flow = modbus_get_float_badc(buf);
-    printf("Current measurements: MASS: %f, VOLUME: %f\n", mass_flow, volume_flow);
-    return ret;
-}
-
-int rts_gpio_fd = -1;
-
-void rts_gpio_init()
-{
-    rts_gpio_fd = open("/sys/class/gpio/gpio136/value", O_WRONLY | O_SYNC);
-}
-
-void csetrts(modbus_t *ctx, int on)
-{
-    if (on)
+    float *p;
+    p = (float *)measurements;
+    uint16_t buf[20];
+    if (gs_read_reg(ctx, R_MMI_MEASUREMENTS_BASE, 20, &buf) == -1)
+        return -1;
+    for (int i = 0; i < 20; i += 2)
     {
-        write(rts_gpio_fd, "1", 1);
+        *p = modbus_get_float_badc(&buf[i]);
+        p++;
     }
+}
+
+int gs_set_mass_units(modbus_t *ctx, int mass_units)
+{
+    uint8_t ret;
+    uint16_t readback_value;
+    ret = modbus_write_and_read_registers(ctx, R_MMI_MASS_U, 1, &mass_units,
+                                          R_MMI_MASS_U, 1, &readback_value);
+    if ((mass_units == readback_value) || !ret)
+        return 0;
     else
-    {
-        write(rts_gpio_fd, "0", 1);
-    }
+        return -1;
+}
+int gs_set_volume_units(modbus_t *ctx, int volume_units)
+{
+    uint8_t ret;
+    uint16_t readback_value;
+    ret = modbus_write_and_read_registers(ctx, R_MMI_VOLUME_U, 1, &volume_units,
+                                          R_MMI_VOLUME_U, 1, &readback_value);
+    if ((volume_units == readback_value) || !ret)
+        return 0;
+    else
+        return -1;
 }
 
-modbus_t* gs_init(gs_conninfo_t *conninfo)
+
+int gs_start_count(modbus_t *ctx){
+    return modbus_write_bit(ctx, C_MMI_STARTSTOP, 1);
+}
+int gs_stop_cunt(modbus_t *ctx){
+    return modbus_write_bit(ctx, C_MMI_STARTSTOP, 0);
+}
+
+
+int gs_reset_total_counters(modbus_t *ctx){
+    int ret;
+    if(modbus_write_bit(ctx, C_MMI_RESET_TOTALS, 1) == -1){
+        return -1;
+    }
+    if(modbus_write_bit(ctx, C_MMI_RESET_TOTALS, 0) == -1){
+        return -1;
+    }
+    return 0;
+}
+
+modbus_t *gs_init(gs_conninfo_t *conninfo)
 {
     modbus_t *ctx;
-    rts_gpio_init();
     int ret;
     char port[16];
+
     sprintf(&port, "/dev/ttymxc%d", conninfo->port);
     printf("Connecting to %s...\n", port);
     ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
@@ -141,14 +154,14 @@ modbus_t* gs_init(gs_conninfo_t *conninfo)
         fprintf(stderr, "Unable to create the libmodbus context\n");
         return ctx;
     }
-    modbus_set_slave(ctx, DEF_ADDR);
+    modbus_set_slave(ctx, conninfo->devaddr);
     modbus_set_response_timeout(ctx, 0, 100000);
-    modbus_rtu_set_custom_rts(ctx, csetrts);
+    // modbus_set_debug(ctx, TRUE);
     modbus_rtu_set_rts(ctx, MODBUS_RTU_RTS_UP);
     ret = modbus_rtu_set_serial_mode(ctx, MODBUS_RTU_RS485);
     if (!ret)
     {
-        fprintf(stderr, "Error setting mode to RS485!");
+        fprintf(stderr, "Error setting mode to RS485!\n");
         modbus_free(ctx);
         return NULL;
     }

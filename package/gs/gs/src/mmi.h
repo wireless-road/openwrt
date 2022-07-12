@@ -28,17 +28,17 @@
 #define R_MMI_MBUS_MAP 436
 #define R_MMI_FPBO 520
 
-#define R_MMI_BASIC_BASE 246 /* main parameters */
-#define R_MMI_MASS_FRATE (R_MMI_BASIC_BASE)
-#define R_MMI_DENSITY (R_MMI_BASIC_BASE + 2)
-#define R_MMI_TEMPERATURE (R_MMI_BASIC_BASE + 4)
-#define R_MMI_VOLUME_FRATE (R_MMI_BASIC_BASE + 6)
-#define R_MMI_DUMMY01 (R_MMI_BASIC_BASE + 8)
-#define R_MMI_PRESSURE (R_MMI_BASIC_BASE + 10)
-#define R_MMI_MASS_TOTAL (R_MMI_BASIC_BASE + 12)
-#define R_MMI_VOL_TOTLAL (R_MMI_BASIC_BASE + 14)
-#define R_MMI_MASS_INVENT (R_MMI_BASIC_BASE + 16)
-#define R_MMI_VOL_INVENT (R_MMI_BASIC_BASE + 18)
+#define R_MMI_MEASUREMENTS_BASE 246 /* main parameters */
+#define R_MMI_MASS_FRATE (R_MMI_MEASUREMENTS_BASE)
+#define R_MMI_DENSITY (R_MMI_MEASUREMENTS_BASE + 2)
+#define R_MMI_TEMPERATURE (R_MMI_MEASUREMENTS_BASE + 4)
+#define R_MMI_VOLUME_FRATE (R_MMI_MEASUREMENTS_BASE + 6)
+#define R_MMI_DUMMY01 (R_MMI_MEASUREMENTS_BASE + 8)
+#define R_MMI_PRESSURE (R_MMI_MEASUREMENTS_BASE + 10)
+#define R_MMI_MASS_TOTAL (R_MMI_MEASUREMENTS_BASE + 12)
+#define R_MMI_VOL_TOTLAL (R_MMI_MEASUREMENTS_BASE + 14)
+#define R_MMI_MASS_INVENT (R_MMI_MEASUREMENTS_BASE + 16)
+#define R_MMI_VOL_INVENT (R_MMI_MEASUREMENTS_BASE + 18)
 
 #define R_MMI_UNITS_BASE 38 /* measure units setting registers */
 #define R_MMI_MASSFLOW_U (R_MMI_UNITS_BASE)
@@ -101,23 +101,23 @@ enum VolumeFlowUnit {
 };
 
 enum PressureUnit {
-    psi = 6,
-    bar,
+    PRESSURE_UNIT_PSI = 6,
+    PRESSURE_UNIT_BAR,
     kg_cm2 = 10,
     kPa = 12,
     MPa = 237
 };
 
 enum SummMassUnit {
-    g = 60,
-    kg,
-    tonn
+    MASS_UNIT_GRAMM = 60,
+    MASS_UNIT_KG,
+    MASS_UNIT_TONN
 };
 
 enum SummVolumeUnit {
-    cm3 = 244,
-    l = 41,
-    m3 = 43
+    VOL_UNIT_CM3 = 244,
+    VOL_UNIT_LITERS = 41,
+    VOL_UNIT_M3 = 43
 };
 
 #endif
