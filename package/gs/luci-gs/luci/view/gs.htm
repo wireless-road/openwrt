@@ -19,7 +19,7 @@ function handleSubmit(ev){
         }
 
         xhr.post("/cgi-bin/luci/admin/gs/configuration_set", data, function(xhr,j){
-                                setTimeout(get_show_data, 500)
+                                setTimeout(get_show_data, 1500)
                         }
                 )
  }
@@ -60,7 +60,6 @@ function get_show_data(){
                         let telemetry = resp.telemetry
                         len = telemetry.length
                         for (let k = 0; k < len; k++) {
-                                console.log('___ ', telemetry[k])
                                  generateParam(telemetry[k].name,
                                          telemetry[k].value
                                  )
@@ -116,12 +115,11 @@ function generateParamValue(value = '') {
 
 function gpioToggled(e) {
         const cnt = e.target.id.split('.')[1]
-        let controller = document.getElementById("controller." + cnt).value
-        let pad = document.getElementById("pad." + cnt).value
+        console.log(e.target.id, e.target.checked)
         let data = { token: '<%=token%>', gpio: {} };
         var xhr = new XHR();
-        data.gpio.controller_number = controller
-        data.gpio.pad_number = pad
+        data.gpio.controller_number = e.target.id.split('.')[1] // controller
+        data.gpio.pad_number = e.target.id.split('.')[2]  // pad
         data.gpio.value = e.target.checked ? 1 : 0
 
         xhr.post("/cgi-bin/luci/admin/gs/value_set", data, function(xhr,j) {
@@ -226,19 +224,13 @@ window.requestAnimationFrame(function() {
                                         let row = telemetry_rows[i]
                                         if (idd === row.id) {
                                                 let node = row.childNodes[1]
-                                                console.log('__ Match!', valuee, typeof node, node)
                                                 node.textContent = valuee
-                                                // let value = document.getElementById("value." + idd)
-                                                // const new_val = (valuee === '1') ? true : false
-                                                // if (value.checked !== new_val) {
-                                                //         value.checked = new_val
-                                                // }
                                         }
                                 }
                         }
 
                 })
-        },500)
+        },1500)
 
 });
 

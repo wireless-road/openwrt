@@ -1,7 +1,13 @@
 #include <stdio.h>
+#include <string.h>
+
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
+#include <termios.h>
+
 #include "libgs.h"
+#include "libazt.h"
 
 // 1st inst
 gs_conninfo_t gs1_conninfo =
@@ -82,9 +88,20 @@ void test(modbus_t *ctx)
 
 int main(int argc, char* argv[])
 {
-	int ret;
+	int ret = azt_init();
+	if (ret == -1) {
+		return 1;
+	}
+
+	while(1) {
+        azt_handler();
+	}
+    azt_deinit();
+
+	return 0;
+
 	modbus_t *ctx;
-	ctx = gs_init(&gs1_conninfo);
+	ctx = gs_init(&gs2_conninfo);
 	if (ctx != NULL)
 	{
 		test(ctx);

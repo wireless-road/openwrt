@@ -101,10 +101,14 @@ function gs_value_set()
 	local value = gpio_data.value
 
 	local gpio_number = (controller_number - 1)*32 + pad_number
-	luci.sys.exec('echo "' .. value .. '" > /sys/class/gpio/gpio' .. gpio_number .. '/value')
-
-	luci.http.prepare_content("text/plain; charset=utf-8")
-	luci.http.write("ok");
+	if nixio.fs.readfile('/sys/class/gpio/gpio' .. gpio_number .. '/direction'):sub(1,-2) == 'out' then
+	    luci.sys.exec('echo "' .. value .. '" > /sys/class/gpio/gpio' .. gpio_number .. '/value')
+    	luci.http.prepare_content("text/plain; charset=utf-8")
+    	luci.http.write("ok");
+    else
+    	luci.http.prepare_content("text/plain; charset=utf-8")
+	    luci.http.write("input");
+    end
 end
 
 -- function gs_configuration_set()
