@@ -8,6 +8,7 @@
 
 #include "libgs.h"
 #include "libazt.h"
+#include "rk.h"
 
 // 1st inst
 gs_conninfo_t gs1_conninfo =
@@ -93,8 +94,13 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+    rk_t left_rk, right_rk;
+    rk_init(1, &left_rk);
+    rk_init(2, &right_rk);
+
+    int azt_req_flag = 0;
 	while(1) {
-        azt_handler();
+        azt_req_flag = azt_handler();
 	}
     azt_deinit();
 

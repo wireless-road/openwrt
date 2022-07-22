@@ -16,12 +16,12 @@
 
 #define COMPLIMENTARY(a)(0x7F & (~a))
 
-#ifdef AZTLIB
-
 #define AZT_RQST_DEL_SYMBOL             0x7F
 #define AZT_RQST_ENDING_SYMBOL          0x03
 
 #define AZT_REQUEST_PARAMS_MAX_AMOUNT   10
+
+#ifdef AZTLIB
 
 #define AZT_STARTING_SYMBOLS_AMOUNT     15
 const char AZT_STARTING_SYMBOLS[] = {0x02, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
@@ -37,8 +37,15 @@ const int AZT_RELATED_ADDRESS[] = {0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x2
 
 #endif  // AZTLIB
 
+typedef struct {
+    int address;
+    int cmd;
+    char params[AZT_REQUEST_PARAMS_MAX_AMOUNT];
+    int params_cnt;
+} azt_request_t;
+
 int azt_init(void);
-void azt_handler(void);
+int azt_handler(void);
 void azt_deinit();
 
 #endif //SRC_LIBAZT_H
