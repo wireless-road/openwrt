@@ -33,6 +33,11 @@ define Package/gs/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/gs $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DATA) ./files/gpio_conf.json $(1)/etc/gpio_conf.json
+	$(INSTALL_DIR) $(1)/etc/gs
+	$(INSTALL_DIR) $(1)/etc/gs/1
+	$(INSTALL_DIR) $(1)/etc/gs/2
+	$(INSTALL_DATA) ./files/gs/1/* $(1)/etc/gs/1
+	$(INSTALL_DATA) ./files/gs/2/* $(1)/etc/gs/2
 endef
 
 $(eval $(call BuildPackage,gs))
