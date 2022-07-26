@@ -50,13 +50,6 @@
 		},
 		{
 			"controller_number": "5",
-			"pad_number": "1",
-			"direction": "out",
-			"default_value": "1",
-			"alias": "RS-485 EN 3"
-		},
-		{
-			"controller_number": "5",
 			"pad_number": "4",
 			"direction": "out",
 			"default_value": "1",

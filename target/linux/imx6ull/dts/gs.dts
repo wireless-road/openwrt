@@ -411,6 +411,8 @@
 &uart3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart3>;
+	rts-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
+	linux,rs485-enabled-at-boot-time;
 	status = "okay";
 };
 

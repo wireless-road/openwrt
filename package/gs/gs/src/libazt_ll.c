@@ -18,8 +18,8 @@ int azt_port_init(void (*f)(char* rx_buf, int rx_buf_len)) {
 
     request_parser = f;
 
-    azt_rts_fd = open(DEF_AZT_RTS_GPIO, O_WRONLY | O_SYNC);
-    write(azt_rts_fd, "0", 1);  // Low by default to enable reading from RS-485
+//    azt_rts_fd = open(DEF_AZT_RTS_GPIO, O_WRONLY | O_SYNC);
+//    write(azt_rts_fd, "0", 1);  // Low by default to enable reading from RS-485
     usleep(100000);
 
     azt_port_fd = open(DEF_AZT_PORT, O_RDWR);
@@ -101,8 +101,8 @@ int azt_port_read(void) {
 }
 
 int azt_port_write(char* tx_buf, int tx_buf_len) {
-    write(azt_rts_fd, "1", 1);
-    usleep(20000);
+//    write(azt_rts_fd, "1", 1);
+//    usleep(20000);
 
     int ret = write(azt_port_fd, tx_buf, tx_buf_len);
     if(ret<0) {
@@ -112,8 +112,8 @@ int azt_port_write(char* tx_buf, int tx_buf_len) {
     } else if(ret != tx_buf_len) {
         printf("Error. Writen %d bytes instead of %d\n", ret, tx_buf_len);
     }
-    usleep(60000);
-    write(azt_rts_fd, "0", 1);
+//    usleep(60000);
+//    write(azt_rts_fd, "0", 1);
     return 0;
 }
 
