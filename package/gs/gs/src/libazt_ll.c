@@ -4,6 +4,7 @@
 #include "libazt_ll.h"
 
 static int azt_port_fd = 0;
+static int azt_rts_fd = 0;
 
 char read_buf[256];
 int read_buf_len = 0;
@@ -16,6 +17,10 @@ void (*request_parser)(char*, int);
 int azt_port_init(void (*f)(char* rx_buf, int rx_buf_len)) {
 
     request_parser = f;
+
+    azt_rts_fd = open(DEF_AZT_RTS_GPIO, O_WRONLY | O_SYNC);
+    write(azt_rts_fd, "0", 1);  // Low by default to enable reading from RS-485
+    usleep(100000);
 
     azt_port_fd = open(DEF_AZT_PORT, O_RDWR);
     if (azt_port_fd < 0) {
@@ -75,8 +80,12 @@ int azt_port_read(void) {
         if( packet_buf_len > 0) {
 
             (*request_parser)(packet_buf, packet_buf_len);
-//            char test_buf[11] = {0x7F, 0x02, 0x21, 0x5E, 0x4E, 0x31, 0x32, 0x4D, 0x03, 0x03, 0x5E};
-//            char test_buf_len = 11;
+//            char test_buf[11] = {0x7F, 0x02, 0x21, 0x5E, 0x4E, 0x31, 0x32, 0x4D, 0x03, 0x03, 0x5E};  // request param trk type
+//            char test_buf[9] = {0x7F, 0x02, 0x23, 0x5C, 0x4E, 0x31, 0x03, 0x03, 0x6E};  // request params
+//            char test_buf[9] = {0x7F, 0x02, 0x23, 0x5C, 0x50, 0x2F, 0x03, 0x03, 0x70};  // protocol version request
+//            char test_buf[9] = {0x7F, 0x02, 0x23, 0x5C, 0x31, 0x4E, 0x03, 0x03, 0x51};  // trk status request
+//            char test_buf[9] = {0x7F, 0x02, 0x23, 0x5C, 0x37, 0x48, 0x03, 0x03, 0x57};  // trk type
+//            char test_buf_len = sizeof(test_buf);
 //            (*request_parser)(test_buf, test_buf_len);
 
             memset(&packet_buf, 0, sizeof(packet_buf));
@@ -88,6 +97,23 @@ int azt_port_read(void) {
         memcpy(packet_buf+packet_buf_len, read_buf, read_buf_len);
         packet_buf_len += read_buf_len;
     }
+    return 0;
+}
+
+int azt_port_write(char* tx_buf, int tx_buf_len) {
+    write(azt_rts_fd, "1", 1);
+    usleep(20000);
+
+    int ret = write(azt_port_fd, tx_buf, tx_buf_len);
+    if(ret<0) {
+        printf("Error writing: %s\n", strerror(errno));
+        write(azt_rts_fd, "0", 1);
+        return -1;
+    } else if(ret != tx_buf_len) {
+        printf("Error. Writen %d bytes instead of %d\n", ret, tx_buf_len);
+    }
+    usleep(60000);
+    write(azt_rts_fd, "0", 1);
     return 0;
 }
 

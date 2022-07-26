@@ -100,7 +100,11 @@ int main(int argc, char* argv[])
 
     int azt_req_flag = 0;
 	while(1) {
-        azt_req_flag = azt_handler();
+        azt_req_flag = azt_rx_handler();
+        if(azt_req_flag) {
+            left_rk.azt_req_hndl(azt_request(), &left_rk);
+            right_rk.azt_req_hndl(azt_request(), &right_rk);
+        }
 	}
     azt_deinit();
 
