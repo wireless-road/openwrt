@@ -70,6 +70,7 @@
 
 #define AZT_TRK_TYPE                        0x3B  // 6 digits of liters, 6 digits of price per liter, 8 digits of total price
 
+#define ASCII_ZERO                          0x30
 #ifdef AZTLIB
 
 #define AZT_STARTING_SYMBOLS_AMOUNT     15

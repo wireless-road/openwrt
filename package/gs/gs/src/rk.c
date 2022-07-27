@@ -9,7 +9,11 @@
 
 static int parse_true_false_config(char* filename);
 static int parse_integer_config(char* filename);
+static int parse_float_config(char* filename, float* res);
 static int azt_req_handler(azt_request_t* req, rk_t* self);
+static void int_to_string_azt(int val, char* res, int* cnt);
+
+char tmp[RX_BUF_SIZE] = {0};
 
 int rk_init(int idx, rk_t* rk) {
 //    printf("RK %d. init\n", idx);
@@ -64,6 +68,30 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->local_control_allowed = ret;
 
+    // summator_price
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, "/etc/gs/%d/summatorPrice", idx);
+
+    float sum;
+    ret = parse_float_config(filename, &sum);
+    if(ret == -1) {
+        return -1;
+    }
+//    printf("sum price: %f\n", sum);
+    rk->summator_price = sum;
+
+    // summator_volume
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, "/etc/gs/%d/summatorVolume", idx);
+
+    sum;
+    ret = parse_float_config(filename, &sum);
+    if(ret == -1) {
+        return -1;
+    }
+//    printf("sum volume: %f\n", sum);
+    rk->summator_volume = sum;
+
     return 0;
 }
 
@@ -79,6 +107,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
     int higher_bits = 0;
     int lower_bits = 0;
 
+    int tmp;
     switch (req->cmd) {
         case AZT_REQUEST_TRK_STATUS_REQUEST:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_STATUS_REQUEST\n", self->side == left ? "Left" : "Right", self->address);
@@ -107,6 +136,20 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_SUMMATORS_VALUE:
             printf("%s RK. Address %d. AZT_REQUEST_SUMMATORS_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+            cnt = 0;
+            memset(responce, 0, sizeof(responce));
+
+            tmp = (int)roundf(self->summator_volume * 100.0);
+//            printf("volume: %d\n", tmp);
+            int_to_string_azt(tmp, responce, &cnt);
+
+            tmp = (int)roundf(self->summator_price * 100.0);
+//            printf("price: %d\n", tmp);
+            int_to_string_azt(tmp, responce, &cnt);
+
+//            printf("responce: %s. cnt: %d\n", responce, cnt);
+            azt_tx(responce, cnt);
+//            responce[cnt]
             break;
         case AZT_REQUEST_TRK_TYPE:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
@@ -125,7 +168,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             cnt = 0;
             memset(responce, 0, sizeof(responce));
 
-            int tmp = AZT_PROTOCOL_VERSION / 10000000 + 0x30;
+            tmp = AZT_PROTOCOL_VERSION / 10000000 + 0x30;
             responce[cnt] = tmp;
             cnt++;
 
@@ -298,8 +341,43 @@ static int parse_integer_config(char* filename) {
         return -1;
     }
 
-    char* ptr;
-    int res = strtol(rx_buf, &ptr, 10);
-
+    int res = strtol(rx_buf, NULL, 10);
     return res;
+}
+
+static int parse_float_config(char* filename, float* res) {
+    int fd;
+    char rx_buf[RX_BUF_SIZE];
+    memset(rx_buf, 0, RX_BUF_SIZE);
+
+    fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        printf("Error %i trying to open RK config file %s: %s\n", errno, filename, strerror(errno));
+        return -1;
+    }
+
+    int ret = read(fd, rx_buf, RX_BUF_SIZE);
+    close(fd);
+    if(ret == -1) {
+        printf("Error %i trying to read RK config file %s: %s\n", errno, filename, strerror(errno));
+        return -1;
+    }
+
+    *res = strtof(rx_buf, NULL);
+//    printf("float: %.2f\n", res);
+
+    return 0;
+}
+
+static void int_to_string_azt(int val, char* res, int* cnt) {
+    int div = 1000000000;
+    for(int i=0; i<10; i++) {
+        res[*cnt] = val / div + ASCII_ZERO;
+//        printf("%d / %d -> %c. cnt: %d\n", val, div, res[*cnt], *cnt);
+        if(res[*cnt] > ASCII_ZERO) {
+            val = val % div;
+        }
+        div /= 10;
+        (*cnt)++;
+    }
 }

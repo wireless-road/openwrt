@@ -6,6 +6,8 @@
 #define SRC_RK_H
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -41,6 +43,8 @@ struct rk_t {
     trk_state_issue_t state_issue;
     int address;
     int local_control_allowed;
+    float summator_volume;
+    float summator_price;
     int (*azt_req_hndl)(azt_request_t* req, rk_t* self);
 };
 
