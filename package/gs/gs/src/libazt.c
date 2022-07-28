@@ -156,7 +156,32 @@ int azt_tx_old(char* data, int cnt) {
 
     azt_port_write(tx_buf, cur_pos);
 //    azt_port_write("hello\r\n", 7);
+}
 
+int azt_tx_can(void) {
+    int cur_pos = 0;
+    memset(tx_buf, 0, sizeof(tx_buf));
+    tx_buf_len = 0;
+
+    tx_buf[cur_pos] = AZT_RQST_DEL_SYMBOL;
+    cur_pos++;
+    tx_buf[cur_pos] = AZT_CAN_SYMBOL;
+    cur_pos++;
+    tx_buf_len = cur_pos;
+    azt_port_write(tx_buf, tx_buf_len);
+}
+
+int azt_tx_ack(void) {
+    int cur_pos = 0;
+    memset(tx_buf, 0, sizeof(tx_buf));
+    tx_buf_len = 0;
+
+    tx_buf[cur_pos] = AZT_RQST_DEL_SYMBOL;
+    cur_pos++;
+    tx_buf[cur_pos] = AZT_ACK_SYMBOL;
+    cur_pos++;
+    tx_buf_len = cur_pos;
+    azt_port_write(tx_buf, tx_buf_len);
 }
 
 int azt_tx_nak(void) {

@@ -35,6 +35,8 @@ typedef enum {
 #define TRUE    1
 #define FALSE   0
 
+#define CONFIG_FILENAME_MAX_LENGTH      64
+
 typedef struct rk_t rk_t;
 struct rk_t {
     int enabled;
@@ -45,8 +47,12 @@ struct rk_t {
     int local_control_allowed;
     float summator_volume;
     float summator_price;
+    float price_per_liter;
     int (*azt_req_hndl)(azt_request_t* req, rk_t* self);
+    char config_filename_price_per_liter[CONFIG_FILENAME_MAX_LENGTH];
 };
+
+#define CONFIG_FILE_PRICE_PER_LITER_MASK    "/etc/gs/%d/pricePerLiter"
 
 int rk_init(int idx, rk_t* rk);
 

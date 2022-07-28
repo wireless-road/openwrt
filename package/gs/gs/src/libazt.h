@@ -22,6 +22,8 @@
 #define AZT_RQST_STX_SYMBOL             0x02
 #define AZT_RQST_ENDING_SYMBOL          0x03
 
+#define AZT_ACK_SYMBOL                  0x06
+#define AZT_CAN_SYMBOL                  0x18
 #define AZT_NAK_SYMBOL                  0x15
 
 #define AZT_REQUEST_PARAMS_MAX_AMOUNT   10
@@ -98,6 +100,8 @@ int azt_init(void);
 int azt_rx_handler(void);
 int azt_tx(char* data, int cnt);
 int azt_tx_nak(void);
+int azt_tx_ack(void);
+int azt_tx_can(void);
 azt_request_t* azt_request(void);
 void azt_deinit();
 

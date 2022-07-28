@@ -12,56 +12,52 @@ static int parse_integer_config(char* filename);
 static int parse_float_config(char* filename, float* res);
 static int azt_req_handler(azt_request_t* req, rk_t* self);
 static void int_to_string_azt(int val, char* res, int* cnt);
+static int set_config(char* filename, char* data, int len);
 
 char tmp[RX_BUF_SIZE] = {0};
 
 int rk_init(int idx, rk_t* rk) {
-//    printf("RK %d. init\n", idx);
-
     char filename[FILENAME_MAX_SIZE];
+
 
     // isEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, "/etc/gs/%d/isEnabled", idx);
-
     int ret = parse_true_false_config(filename);
     if(ret == -1) {
         return -1;
     }
     rk->enabled = ret;
-//    printf("RK enabled: %d\n", rk->enabled);
+
 
     // isLeft
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, "/etc/gs/%d/isLeft", idx);
-
     ret = parse_true_false_config(filename);
     if(ret == -1) {
         return -1;
     }
     rk->side = ret;
-//    printf("RK on left side: %d\n", rk->side);
+
 
     // address
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, "/etc/gs/%d/address", idx);
-
     ret = parse_integer_config(filename);
     if((ret == -1) || (ret == 0)){
         return -1;
     }
     rk->address = ret;
-//    printf("RK address: %d\n", rk->address);
+
 
     rk->azt_req_hndl = azt_req_handler;
-
     rk->state = trk_disabled_rk_installed;
     rk->state_issue = trk_state_issue_less_or_equal_dose;
+
 
     // isLeft
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, "/etc/gs/%d/isLocalControlEnabled", idx);
-
     ret = parse_true_false_config(filename);
     if(ret == -1) {
         return -1;
@@ -71,26 +67,34 @@ int rk_init(int idx, rk_t* rk) {
     // summator_price
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, "/etc/gs/%d/summatorPrice", idx);
-
-    float sum;
-    ret = parse_float_config(filename, &sum);
+    float tmp;
+    ret = parse_float_config(filename, &tmp);
     if(ret == -1) {
         return -1;
     }
-//    printf("sum price: %f\n", sum);
-    rk->summator_price = sum;
+    rk->summator_price = tmp;
+
 
     // summator_volume
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, "/etc/gs/%d/summatorVolume", idx);
-
-    sum;
-    ret = parse_float_config(filename, &sum);
+    ret = parse_float_config(filename, &tmp);
     if(ret == -1) {
         return -1;
     }
-//    printf("sum volume: %f\n", sum);
-    rk->summator_volume = sum;
+    rk->summator_volume = tmp;
+
+
+    // price_per_liter
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_FILE_PRICE_PER_LITER_MASK, idx);
+    memset(rk->config_filename_price_per_liter, 0, sizeof(rk->config_filename_price_per_liter));
+    strcpy(rk->config_filename_price_per_liter, filename);
+    ret = parse_float_config(filename, &tmp);
+    if(ret == -1) {
+        return -1;
+    }
+    rk->price_per_liter = tmp;
 
     return 0;
 }
@@ -204,6 +208,24 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_PRICE_PER_LITER_SETUP:
             printf("%s RK. Address %d. AZT_REQUEST_PRICE_PER_LITER_SETUP\n", self->side == left ? "Left" : "Right", self->address);
+
+            char price[6] = {0};
+            price[0] = req->params[0];
+            price[1] = req->params[1];
+            price[2] = '.';
+            price[3] = req->params[2];
+            price[4] = req->params[3];
+//            printf("price: %s\n", price);
+            float price_per_liter = strtof(price, NULL);
+//            printf("price per liter: %f\n", price_per_liter);
+            self->price_per_liter = price_per_liter;
+            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
+            if(tmp == 0) {
+                azt_tx_ack();
+            } else {
+                azt_tx_can();
+            }
+
             break;
         case AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP:
             printf("%s RK. Address %d. AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP\n", self->side == left ? "Left" : "Right", self->address);
@@ -380,4 +402,20 @@ static void int_to_string_azt(int val, char* res, int* cnt) {
         div /= 10;
         (*cnt)++;
     }
+}
+
+static int set_config(char* filename, char* data, int len) {
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
+    if (fd < 0) {
+        printf("Error %i trying to open RK config file (to overwrite it) %s: %s\n", errno, filename, strerror(errno));
+        return -1;
+    }
+
+    int ret = write(fd, data, len);
+    if (ret == -1) {
+        printf("Error %i trying to write to RK config file %s: %s\n", errno, filename, strerror(errno));
+        return -1;
+    }
+    close(fd);
+    return 0;
 }
