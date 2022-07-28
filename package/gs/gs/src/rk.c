@@ -22,7 +22,9 @@ int rk_init(int idx, rk_t* rk) {
 
     // isEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, "/etc/gs/%d/isEnabled", idx);
+    sprintf(filename, DEF_CONFIG_FILE_IS_ENABLED, idx);
+    memset(rk->config_filename_is_enabled, 0, sizeof(rk->config_filename_is_enabled));
+    strcpy(rk->config_filename_is_enabled, filename);
     int ret = parse_true_false_config(filename);
     if(ret == -1) {
         return -1;
@@ -32,7 +34,9 @@ int rk_init(int idx, rk_t* rk) {
 
     // isLeft
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, "/etc/gs/%d/isLeft", idx);
+    sprintf(filename, DEF_CONFIG_FILE_IS_LEFT, idx);
+    memset(rk->config_filename_is_left, 0, sizeof(rk->config_filename_is_left));
+    strcpy(rk->config_filename_is_left, filename);
     ret = parse_true_false_config(filename);
     if(ret == -1) {
         return -1;
@@ -42,7 +46,9 @@ int rk_init(int idx, rk_t* rk) {
 
     // address
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, "/etc/gs/%d/address", idx);
+    sprintf(filename, DEF_CONFIG_FILE_ADDRESS, idx);
+    memset(rk->config_filename_address, 0, sizeof(rk->config_filename_address));
+    strcpy(rk->config_filename_address, filename);
     ret = parse_integer_config(filename);
     if((ret == -1) || (ret == 0)){
         return -1;
@@ -55,18 +61,23 @@ int rk_init(int idx, rk_t* rk) {
     rk->state_issue = trk_state_issue_less_or_equal_dose;
 
 
-    // isLeft
+    // isLocalControlEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, "/etc/gs/%d/isLocalControlEnabled", idx);
+    sprintf(filename, DEF_CONFIG_FILE_IS_LOCAL_CONTROL_ENABLED, idx);
+    memset(rk->config_filename_summator_price, 0, sizeof(rk->config_filename_is_local_control_enabled));
+    strcpy(rk->config_filename_is_local_control_enabled, filename);
     ret = parse_true_false_config(filename);
     if(ret == -1) {
         return -1;
     }
     rk->local_control_allowed = ret;
 
+
     // summator_price
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, "/etc/gs/%d/summatorPrice", idx);
+    sprintf(filename, DEF_CONFIG_FILE_SUMMATOR_PRICE, idx);
+    memset(rk->config_filename_summator_price, 0, sizeof(rk->config_filename_summator_price));
+    strcpy(rk->config_filename_summator_price, filename);
     float tmp;
     ret = parse_float_config(filename, &tmp);
     if(ret == -1) {
@@ -77,7 +88,9 @@ int rk_init(int idx, rk_t* rk) {
 
     // summator_volume
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, "/etc/gs/%d/summatorVolume", idx);
+    sprintf(filename, DEF_CONFIG_FILE_SUMMATOR_VOLUME, idx);
+    memset(rk->config_filename_summator_volume, 0, sizeof(rk->config_filename_summator_volume));
+    strcpy(rk->config_filename_summator_volume, filename);
     ret = parse_float_config(filename, &tmp);
     if(ret == -1) {
         return -1;
@@ -87,7 +100,7 @@ int rk_init(int idx, rk_t* rk) {
 
     // price_per_liter
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, CONFIG_FILE_PRICE_PER_LITER_MASK, idx);
+    sprintf(filename, DEF_CONFIG_FILE_PRICE_PER_LITER_MASK, idx);
     memset(rk->config_filename_price_per_liter, 0, sizeof(rk->config_filename_price_per_liter));
     strcpy(rk->config_filename_price_per_liter, filename);
     ret = parse_float_config(filename, &tmp);

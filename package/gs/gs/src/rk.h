@@ -49,10 +49,38 @@ struct rk_t {
     float summator_price;
     float price_per_liter;
     int (*azt_req_hndl)(azt_request_t* req, rk_t* self);
+    char config_filename_is_enabled[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_is_left[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_address[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_is_local_control_enabled[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_summator_price[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_summator_volume[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_price_per_liter[CONFIG_FILENAME_MAX_LENGTH];
 };
 
-#define CONFIG_FILE_PRICE_PER_LITER_MASK    "/etc/gs/%d/pricePerLiter"
+#define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
+#define DEF_CONFIG_FILE_IS_LEFT                     "/etc/gs/%d/isLeft"
+#define DEF_CONFIG_FILE_ADDRESS                     "/etc/gs/%d/address"
+#define DEF_CONFIG_FILE_IS_LOCAL_CONTROL_ENABLED    "/etc/gs/%d/isLocalControlEnabled"
+#define DEF_CONFIG_FILE_SUMMATOR_PRICE              "/etc/gs/%d/summatorPrice"
+#define DEF_CONFIG_FILE_SUMMATOR_VOLUME             "/etc/gs/%d/summatorVolume"
+#define DEF_CONFIG_FILE_PRICE_PER_LITER_MASK        "/etc/gs/%d/pricePerLiter"
+
+// To-Do:
+// implement usage of microSD based files to:
+// 1. keep SPI NOR flash writing/erasing resource
+// 2. prevent device bricking by supply power loosing on writing to SPI NOR
+// E.g. on start application should check whether following (listed below) microSD files exists.
+// If no it should created them by copying default files (listed above) from SPI NOR to microSD.
+// Do not copy file in reverse from microSD to SPI NOR never!
+
+#define CONFIG_FILE_IS_ENABLED                  "/mnt/gs/%d/isEnabled"
+#define CONFIG_FILE_IS_LEFT                     "/mnt/gs/%d/isLeft"
+#define CONFIG_FILE_ADDRESS                     "/mnt/gs/%d/address"
+#define CONFIG_FILE_IS_LOCAL_CONTROL_ENABLED    "/mnt/gs/%d/isLocalControlEnabled"
+#define CONFIG_FILE_SUMMATOR_PRICE              "/mnt/gs/%d/summatorPrice"
+#define CONFIG_FILE_SUMMATOR_VOLUME             "/mnt/gs/%d/summatorVolume"
+#define CONFIG_FILE_PRICE_PER_LITER_MASK        "/mnt/gs/%d/pricePerLiter"
 
 int rk_init(int idx, rk_t* rk);
 
