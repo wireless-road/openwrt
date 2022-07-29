@@ -125,6 +125,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
     int lower_bits = 0;
 
     int tmp;
+    int ret;
+
     switch (req->cmd) {
         case AZT_REQUEST_TRK_STATUS_REQUEST:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_STATUS_REQUEST\n", self->side == left ? "Left" : "Right", self->address);
@@ -141,6 +143,13 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_TRK_AUTHORIZATION:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_AUTHORIZATION\n", self->side == left ? "Left" : "Right", self->address);
+            ret = 0;  // To-Do: implement checkout whether we can start discharging
+            if(tmp == 0) {
+                self->state = trk_authorization_cmd;
+                azt_tx_ack();
+            } else {
+                azt_tx_can();
+            }
             break;
         case AZT_REQUEST_TRK_RESET:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_RESET\n", self->side == left ? "Left" : "Right", self->address);
@@ -245,7 +254,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             self->fuel_volume = fuel_volume;
 
 //            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
-            int ret = 0;  // To-Do: implement checkout whether we can start fueling process
+            ret = 0;  // To-Do: implement checkout whether we can start fueling process
             if(ret == 0) {
                 azt_tx_ack();
             } else {
