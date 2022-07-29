@@ -155,18 +155,12 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("%s RK. Address %d. AZT_REQUEST_SUMMATORS_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
-
             tmp = (int)roundf(self->summator_volume * 100.0);
-//            printf("volume: %d\n", tmp);
             int_to_string_azt(tmp, responce, &cnt);
-
             tmp = (int)roundf(self->summator_price * 100.0);
-//            printf("price: %d\n", tmp);
             int_to_string_azt(tmp, responce, &cnt);
-
-//            printf("responce: %s. cnt: %d\n", responce, cnt);
             azt_tx(responce, cnt);
-//            responce[cnt]
+
             break;
         case AZT_REQUEST_TRK_TYPE:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
@@ -188,31 +182,24 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             tmp = AZT_PROTOCOL_VERSION / 10000000 + 0x30;
             responce[cnt] = tmp;
             cnt++;
-
             tmp = AZT_PROTOCOL_VERSION / 1000000 % 10 + 0x30;
             responce[cnt] = tmp;
             cnt++;
-
             tmp = AZT_PROTOCOL_VERSION / 100000 % 10 + 0x30;
             responce[cnt] = tmp;
             cnt++;
-
             tmp = AZT_PROTOCOL_VERSION / 10000 % 10 + 0x30;
             responce[cnt] = tmp;
             cnt++;
-
             tmp = AZT_PROTOCOL_VERSION / 1000 % 10 + 0x30;
             responce[cnt] = tmp;
             cnt++;
-
             tmp = AZT_PROTOCOL_VERSION / 100 % 10 + 0x30;
             responce[cnt] = tmp;
             cnt++;
-
             tmp = AZT_PROTOCOL_VERSION / 10 % 10 + 0x30;
             responce[cnt] = tmp;
             cnt++;
-
             tmp = AZT_PROTOCOL_VERSION  % 10 + 0x30;
             responce[cnt] = tmp;
             cnt++;
@@ -228,9 +215,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             price[2] = '.';
             price[3] = req->params[2];
             price[4] = req->params[3];
-//            printf("price: %s\n", price);
             float price_per_liter = strtof(price, NULL);
-//            printf("price per liter: %f\n", price_per_liter);
             self->price_per_liter = price_per_liter;
             tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             if(tmp == 0) {
@@ -248,6 +233,24 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_FUEL_DISCHARGE_DOSE_IN_LITERS:
             printf("%s RK. Address %d. AZT_REQUEST_FUEL_DISCHARGE_DOSE_IN_LITERS\n", self->side == left ? "Left" : "Right", self->address);
+            char volume[7] = {0};
+
+            volume[0] = req->params[0];
+            volume[1] = req->params[1];
+            volume[2] = req->params[2];
+            volume[3] = '.';
+            volume[4] = req->params[3];
+            volume[5] = req->params[4];
+            float fuel_volume = strtof(volume, NULL);
+            self->fuel_volume = fuel_volume;
+
+//            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
+            int ret = 0;  // To-Do: implement checkout whether we can start fueling process
+            if(ret == 0) {
+                azt_tx_ack();
+            } else {
+                azt_tx_can();
+            }
             break;
         case AZT_REQUEST_UNCONDITIONAL_START:
             printf("%s RK. Address %d. AZT_REQUEST_UNCONDITIONAL_START\n", self->side == left ? "Left" : "Right", self->address);

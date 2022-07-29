@@ -16,7 +16,7 @@
 
 #define COMPLIMENTARY(a)(0x7F & (~a))
 
-#define AZT_PROTOCOL_VERSION            0x01
+#define AZT_PROTOCOL_VERSION            0x02
 
 #define AZT_RQST_DEL_SYMBOL             0x7F
 #define AZT_RQST_STX_SYMBOL             0x02
