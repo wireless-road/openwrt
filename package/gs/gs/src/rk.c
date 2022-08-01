@@ -172,7 +172,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("%s RK. Address %d. AZT_REQUEST_FULL_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
-            self->fuel_current_charging_volume = 23.5;
             printf("fuel_charge_price_per_liter %f\n", self->fuel_charge_price_per_liter);
             self->fuel_current_charging_price = self->fuel_current_charging_volume * self->fuel_charge_price_per_liter;
 
@@ -223,6 +222,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_RECORD_CONFIRMATION:
             printf("%s RK. Address %d. AZT_REQUEST_RECORD_CONFIRMATION\n", self->side == left ? "Left" : "Right", self->address);
+            azt_tx_ack();
+            self->state = trk_disabled_rk_installed;
+//            self->state_issue = trk_state_issue_less_or_equal_dose;  // To-Do: implement state issue setup
+//            azt_tx_can();  // To-Do: when it might responce as not ACK?
             break;
         case AZT_REQUEST_PROTOCOL_VERSION:
             printf("%s RK. Address %d. AZT_REQUEST_PROTOCOL_VERSION\n", self->side == left ? "Left" : "Right", self->address);
