@@ -248,11 +248,11 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         case AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP:
             printf("%s RK. Address %d. AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP\n", self->side == left ? "Left" : "Right", self->address);
             break;
-        case AZT_REQUEST_FUEL_DISCHARGE_DOSE_IN_RUBLES:
-            printf("%s RK. Address %d. AZT_REQUEST_FUEL_DISCHARGE_DOSE_IN_RUBLES\n", self->side == left ? "Left" : "Right", self->address);
+        case AZT_REQUEST_FUEL_CHARGE_DOSE_IN_RUBLES:
+            printf("%s RK. Address %d. AZT_REQUEST_FUEL_CHARGE_DOSE_IN_RUBLES\n", self->side == left ? "Left" : "Right", self->address);
             break;
-        case AZT_REQUEST_FUEL_DISCHARGE_DOSE_IN_LITERS:
-            printf("%s RK. Address %d. AZT_REQUEST_FUEL_DISCHARGE_DOSE_IN_LITERS\n", self->side == left ? "Left" : "Right", self->address);
+        case AZT_REQUEST_FUEL_CHARGE_DOSE_IN_LITERS:
+            printf("%s RK. Address %d. AZT_REQUEST_FUEL_CHARGE_DOSE_IN_LITERS\n", self->side == left ? "Left" : "Right", self->address);
             char volume[7] = {0};
 
             volume[0] = req->params[0];
@@ -261,8 +261,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             volume[3] = '.';
             volume[4] = req->params[3];
             volume[5] = req->params[4];
-            float fuel_volume = strtof(volume, NULL);
-            self->fuel_volume = fuel_volume;
+            float fuel_dose_to_charge = strtof(volume, NULL);
+            self->fuel_dose_to_charge = fuel_dose_to_charge;
 
 //            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             ret = 0;  // To-Do: implement checkout whether we can start fueling process

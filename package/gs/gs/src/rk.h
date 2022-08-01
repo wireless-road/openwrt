@@ -56,7 +56,7 @@ struct rk_t {
     char config_filename_summator_price[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_summator_volume[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_price_per_liter[CONFIG_FILENAME_MAX_LENGTH];
-    float fuel_volume;
+    float fuel_dose_to_charge;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
