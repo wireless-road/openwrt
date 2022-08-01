@@ -32,8 +32,8 @@
 #define AZT_REQUEST_TRK_STATUS_REQUEST              0x31
 #define AZT_REQUEST_TRK_AUTHORIZATION               0x32
 #define AZT_REQUEST_TRK_RESET                       0x33
-#define AZT_REQUEST_CURRENT_FUEL_DISCHARGE_VALUE    0x34
-#define AZT_REQUEST_FULL_FUEL_DISCHARGE_VALUE       0x35
+#define AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE       0x34
+#define AZT_REQUEST_FULL_FUEL_CHARGE_VALUE          0x35
 #define AZT_REQUEST_SUMMATORS_VALUE                 0x36
 #define AZT_REQUEST_TRK_TYPE                        0x37
 #define AZT_REQUEST_RECORD_CONFIRMATION             0x38
@@ -71,6 +71,8 @@
 //#define AZT_STATUS_TRK_
 
 #define AZT_TRK_TYPE                        0x3B  // 6 digits of liters, 6 digits of price per liter, 8 digits of total price
+
+#define AZT_BYTE_SHIFT                      0x30
 
 #define ASCII_ZERO                          0x30
 #ifdef AZTLIB

@@ -37,6 +37,10 @@ typedef enum {
 
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
+#define PRICE_PER_LITER_DIGITS      6
+#define VOLUME_DIGITS               6
+#define PRICE_DIGITS                8
+
 typedef struct rk_t rk_t;
 struct rk_t {
     int enabled;
@@ -47,7 +51,6 @@ struct rk_t {
     int local_control_allowed;
     float summator_volume;
     float summator_price;
-    float price_per_liter;
     int (*azt_req_hndl)(azt_request_t* req, rk_t* self);
     char config_filename_is_enabled[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_is_left[CONFIG_FILENAME_MAX_LENGTH];
@@ -57,6 +60,9 @@ struct rk_t {
     char config_filename_summator_volume[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_price_per_liter[CONFIG_FILENAME_MAX_LENGTH];
     float fuel_dose_to_charge;
+    float fuel_charge_price_per_liter;
+    float fuel_current_charging_volume;
+    float fuel_current_charging_price;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"

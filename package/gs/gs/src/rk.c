@@ -107,7 +107,7 @@ int rk_init(int idx, rk_t* rk) {
     if(ret == -1) {
         return -1;
     }
-    rk->price_per_liter = tmp;
+    rk->fuel_charge_price_per_liter = tmp;
 
     return 0;
 }
@@ -129,7 +129,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
     switch (req->cmd) {
         case AZT_REQUEST_TRK_STATUS_REQUEST:
-            printf("%s RK. Address %d. AZT_REQUEST_TRK_STATUS_REQUEST\n", self->side == left ? "Left" : "Right", self->address);
+//            printf("%s RK. Address %d. AZT_REQUEST_TRK_STATUS_REQUEST\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
 
@@ -165,11 +165,42 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
                 azt_tx_can();
             }
             break;
-        case AZT_REQUEST_CURRENT_FUEL_DISCHARGE_VALUE:
-            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_DISCHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+        case AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE:
+            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             break;
-        case AZT_REQUEST_FULL_FUEL_DISCHARGE_VALUE:
-            printf("%s RK. Address %d. AZT_REQUEST_FULL_FUEL_DISCHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+        case AZT_REQUEST_FULL_FUEL_CHARGE_VALUE:
+            printf("%s RK. Address %d. AZT_REQUEST_FULL_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+            cnt = 0;
+            memset(responce, 0, sizeof(responce));
+            self->fuel_current_charging_volume = 23.5;
+            printf("fuel_charge_price_per_liter %f\n", self->fuel_charge_price_per_liter);
+            self->fuel_current_charging_price = self->fuel_current_charging_volume * self->fuel_charge_price_per_liter;
+
+            char fuel_current_charging_volume[VOLUME_DIGITS+1] = {0};
+            sprintf(fuel_current_charging_volume, "%07.2f", self->fuel_current_charging_volume);
+            fuel_current_charging_volume[4] = fuel_current_charging_volume[5];
+            fuel_current_charging_volume[5] = fuel_current_charging_volume[6];
+            fuel_current_charging_volume[6] = 0x00;
+
+            char fuel_current_charging_price[PRICE_DIGITS+1] = {0};
+            sprintf(fuel_current_charging_price, "%09.2f", self->fuel_current_charging_price);
+            fuel_current_charging_price[6] = fuel_current_charging_price[7];
+            fuel_current_charging_price[7] = fuel_current_charging_price[8];
+            fuel_current_charging_price[8] = 0x00;
+
+            char fuel_charge_price_per_liter_str[PRICE_PER_LITER_DIGITS+1] = {0};
+            sprintf(fuel_charge_price_per_liter_str, "%07.2f", self->fuel_charge_price_per_liter);
+            printf("fuel_charge_price_per_liter_str %s\n", fuel_charge_price_per_liter_str);
+            fuel_charge_price_per_liter_str[4] = fuel_charge_price_per_liter_str[5];
+            fuel_charge_price_per_liter_str[5] = fuel_charge_price_per_liter_str[6];
+            fuel_charge_price_per_liter_str[6] = 0x00;
+
+            strcpy(responce, fuel_current_charging_volume);
+            strcpy(responce + VOLUME_DIGITS, fuel_current_charging_price);
+            strcpy(responce + VOLUME_DIGITS + PRICE_DIGITS, fuel_charge_price_per_liter_str );
+            cnt = VOLUME_DIGITS + PRICE_DIGITS + PRICE_PER_LITER_DIGITS;
+
+            azt_tx(responce, cnt);
             break;
         case AZT_REQUEST_SUMMATORS_VALUE:
             printf("%s RK. Address %d. AZT_REQUEST_SUMMATORS_VALUE\n", self->side == left ? "Left" : "Right", self->address);
@@ -235,8 +266,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             price[2] = '.';
             price[3] = req->params[2];
             price[4] = req->params[3];
-            float price_per_liter = strtof(price, NULL);
-            self->price_per_liter = price_per_liter;
+            float fuel_charge_price_per_liter = strtof(price, NULL);
+            self->fuel_charge_price_per_liter = fuel_charge_price_per_liter;
             tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             if(tmp == 0) {
                 azt_tx_ack();
