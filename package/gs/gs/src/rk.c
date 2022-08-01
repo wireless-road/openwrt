@@ -153,6 +153,17 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_TRK_RESET:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_RESET\n", self->side == left ? "Left" : "Right", self->address);
+            ret = 0;  // To-Do: implement checkout whether we can start discharging
+            // Возможные статусы ТРК до запроса: ‘2’ ,‘3’ или ‘8’
+            // Возможные статусы ТРК после запроса: ‘4’ + ‘0’  или  ‘4’+’1’
+            //									    ‘1’ или ‘0’
+            if(tmp == 0) {
+                self->state = trk_disabled_fuel_discharging_finished;
+                self->state_issue = trk_state_issue_less_or_equal_dose; // To-Do: implement correct issue setup
+                azt_tx_ack();
+            } else {
+                azt_tx_can();
+            }
             break;
         case AZT_REQUEST_CURRENT_FUEL_DISCHARGE_VALUE:
             printf("%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_DISCHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
@@ -263,6 +274,15 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_UNCONDITIONAL_START:
             printf("%s RK. Address %d. AZT_REQUEST_UNCONDITIONAL_START\n", self->side == left ? "Left" : "Right", self->address);
+            ret = 0;  // To-Do: implement checkout whether we can start discharging
+//            Возможные статусы ТРК до запроса:     ‘2’  // trk_authorization_cmd
+//            Возможные статусы ТРК после запроса:  ‘3’  // trk_enabled_fuel_dischargning_process
+            if(tmp == 0) {
+                self->state = trk_enabled_fuel_dischargning_process;
+                azt_tx_ack();
+            } else {
+                azt_tx_can();
+            }
             break;
         case AZT_REQUEST_TRK_ADDRESS_CHANGE:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_ADDRESS_CHANGE\n", self->side == left ? "Left" : "Right", self->address);
