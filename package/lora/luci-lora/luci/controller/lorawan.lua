@@ -49,10 +49,10 @@ function set_data()
 		json_cfg.gateway_conf.server_address = srv_addr
 	end
 	if srv_pup ~= nil and srv_pup.len ~= nil then
-		json_cfg.gateway_conf.serv_port_up = srv_pup
+		json_cfg.gateway_conf.serv_port_up = tonumber(srv_pup)
 	end
 	if srv_pdn ~= nil and srv_pdn.len ~= nil then
-		json_cfg.gateway_conf.serv_port_down = srv_pdn
+		json_cfg.gateway_conf.serv_port_down = tonumber(srv_pdn)
 	end
 		
 	json_str = luci.jsonc.stringify(json_cfg, true)
