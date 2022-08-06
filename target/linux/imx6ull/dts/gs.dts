@@ -43,7 +43,7 @@
 
 		stop_2 {
 			label = "Stop 2";
-			linux,code = <BTN_4>;
+			linux,code = <BTN_3>;
 			gpios = <&gpio4 4 GPIO_ACTIVE_LOW>;
 		};
 	};
