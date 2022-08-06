@@ -38,6 +38,9 @@ define Package/gs/install
 	$(INSTALL_DIR) $(1)/etc/gs/2
 	$(INSTALL_DATA) ./files/gs/1/* $(1)/etc/gs/1
 	$(INSTALL_DATA) ./files/gs/2/* $(1)/etc/gs/2
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_CONF) ./files/init.d/gs $(1)/etc/init.d/gs
+	chmod 0750 $(1)/etc/init.d/gs
 endef
 
 $(eval $(call BuildPackage,gs))
