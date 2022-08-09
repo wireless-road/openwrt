@@ -9,6 +9,7 @@
 #include "libgs.h"
 #include "libazt.h"
 #include "rk.h"
+#include "buttons.h"
 
 // 1st inst
 gs_conninfo_t gs1_conninfo =
@@ -87,8 +88,17 @@ void test(modbus_t *ctx)
 }
 /* end testing code */
 
+/*
+* Example button handler
+* Define won handlers for all keycodes from button.c
+*/
+void button_handler(int code){
+	printf("Handled button: 0x%04x (%d)\n", (int)code, (int)code);
+}
+
 int main(int argc, char* argv[])
 {
+	int buttons_fd;
 	int ret = azt_init();
 	if (ret == -1) {
 		return 1;
@@ -97,9 +107,11 @@ int main(int argc, char* argv[])
     rk_t left_rk, right_rk;
     rk_init(1, &left_rk);
     rk_init(2, &right_rk);
+	buttons_fd = buttons_init();
 
     int azt_req_flag = 0;
 	while(1) {
+		buttons_handler(&buttons_fd);
         azt_req_flag = azt_rx_handler();
         if(azt_req_flag) {
             left_rk.azt_req_hndl(azt_request(), &left_rk);

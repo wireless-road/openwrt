@@ -1,0 +1,74 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2022 Wireless-Road
+
+START=19
+STOP=21
+
+USE_PROCD=1
+NAME=gs
+PROG=/usr/bin/gs
+
+SD="/dev/mmcblk0p1"
+TGT="/mnt/gs"
+
+init_storage() {
+    echo -n "Mounting SD..."
+    if [ -b "/dev/mmcblk0p1" ]; then
+        mkdir -p ${TGT}
+        mount -t vfat ${SD} ${TGT}
+        [ "$?" -eq 0 ] && {
+            echo "OK"
+            check_config
+        }|| {
+            echo "FAIL"
+            return 1
+        }
+    else
+        echo "SD Card not found"
+        return 1
+    fi
+}
+deinit_storage() {
+    echo -n "Syncing and unmounting..."
+    sync
+    sleep 1
+    umount ${TGT}
+    [ "$?" -eq 0 ] && echo "OK" || {
+        echo "FAIL"
+        return 1
+    }
+}
+
+check_config() {
+    echo "Cheking config files..."
+    for inst in "1" "2"; do
+        mkdir -p "${TGT}"/"${inst}"
+        dir="/etc/gs/"${inst}""
+        for file in "${dir}"/* ; do
+            cfg_f="${TGT}"/"${inst}"/$(basename "${file}")
+            echo -n "$cfg_f"...
+            [ -f "${cfg_f}" ] && {
+                echo "OK"
+            } || {
+                cp "$file" "$TGT"/"$inst"
+                echo "Restored"
+            }
+        done
+    done
+}
+
+run_gs() {
+    :
+}
+stop_gs() {
+    :
+}
+start_service() {
+    init_storage
+    run_gs
+}
+
+stop_service() {
+    stop_gs
+    deinit_storage
+}
