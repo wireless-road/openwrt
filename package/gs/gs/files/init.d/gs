@@ -58,17 +58,17 @@ check_config() {
 }
 
 run_gs() {
-    :
+    procd_open_instance
+    procd_set_param command "$PROG"
+    procd_set_prarm respawn
+    procd_close_instance
 }
-stop_gs() {
-    :
-}
+
 start_service() {
     init_storage
     run_gs
 }
 
-stop_service() {
-    stop_gs
+service_stopped() {
     deinit_storage
 }
