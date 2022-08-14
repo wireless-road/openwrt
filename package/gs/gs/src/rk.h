@@ -13,6 +13,8 @@
 #include <fcntl.h>
 
 #include "libazt.h"
+#include "settings.h"
+#include "can.h"
 
 typedef enum { right, left } rk_side;
 
@@ -29,11 +31,6 @@ typedef enum {
     trk_state_issue_less_or_equal_dose = 0x30,
     trk_state_issue_overdose = 0x31
 } trk_state_issue_t;
-
-#define DIGIT_CHAR_TO_NUM(a)(a -= 0x30)
-
-#define TRUE    1
-#define FALSE   0
 
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
@@ -63,6 +60,7 @@ struct rk_t {
     float fuel_charge_price_per_liter;
     float fuel_current_charging_volume;
     float fuel_current_charging_price;
+    can_t can_bus;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
