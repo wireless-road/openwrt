@@ -109,6 +109,10 @@ int main(int argc, char* argv[])
     rk_init(2, &right_rk);
 	buttons_fd = buttons_init();
 
+//    left_rk.state = trk_enabled_fueling_process;
+//    left_rk.fueling_current_price = 10.0;
+//    left_rk.fueling_dose_in_liters = 3;
+
     int azt_req_flag = 0;
 	while(1) {
 		buttons_handler(&buttons_fd);
@@ -117,7 +121,16 @@ int main(int argc, char* argv[])
             left_rk.azt_req_hndl(azt_request(), &left_rk);
             right_rk.azt_req_hndl(azt_request(), &right_rk);
         }
-	}
+
+        if(left_rk.is_not_fault(&left_rk)) {
+            left_rk.process(&left_rk);
+        }
+
+        if(right_rk.is_not_fault(&right_rk)) {
+            right_rk.process(&right_rk);
+        }
+
+    }
     azt_deinit();
 
 	return 0;

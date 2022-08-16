@@ -8,6 +8,9 @@
 #define RX_BUF_SIZE         64
 
 static int azt_req_handler(azt_request_t* req, rk_t* self);
+static int rk_is_not_fault();
+static int rk_process();
+static int rk_fueling_simulation(rk_t* self);
 static void int_to_string_azt(int val, char* res, int* cnt);
 //static int set_config(char* filename, char* data, int len);
 
@@ -53,6 +56,8 @@ int rk_init(int idx, rk_t* rk) {
     rk->address = ret;
 
 
+    rk->is_not_fault = rk_is_not_fault;
+    rk->process = rk_process;
     rk->azt_req_hndl = azt_req_handler;
     rk->state = trk_disabled_rk_installed;
     rk->state_issue = trk_state_issue_less_or_equal_dose;
@@ -104,11 +109,70 @@ int rk_init(int idx, rk_t* rk) {
     if(ret == -1) {
         return -1;
     }
-    rk->fuel_charge_price_per_liter = tmp;
+    rk->fueling_price_per_liter = tmp;
 
     CAN_init(idx, &rk->can_bus);
 //    rk->can_bus.transmit(&rk->can_bus, 15.0+idx, 10.0, (15.0 + idx)* 10.0);
     return 0;
+}
+
+static int rk_is_not_fault(rk_t* self) {
+    // To-Do: implement errors checkout
+    return TRUE;
+}
+
+static int rk_process(rk_t* self) {
+    switch (self->state) {
+        case trk_disabled_rk_installed:
+            break;
+        case trk_disabled_rk_taken_off:
+            break;
+        case trk_authorization_cmd:
+            break;
+        case trk_enabled_fueling_process:
+            rk_fueling_simulation(self);
+            break;
+        case trk_disabled_fueling_finished:
+            break;
+        case trk_disabled_local_control_unit_dose:
+            break;
+        default:
+            break;
+    }
+}
+
+static int rk_fueling_simulation(rk_t* self) {
+    usleep(100000);
+
+    float prev_fueling_current_volume = self->fueling_current_volume;
+    float prev_fueling_current_price = self->fueling_current_price;
+    float volume_delta = 0.00;
+    float price_delta = 0.00;
+
+    if(self->fueling_dose_in_liters > 0.00) {
+
+        // Simulation of fueling process 0.5 liters per second
+        if(self->fueling_current_volume < self->fueling_dose_in_liters) {
+            self->fueling_current_volume += 0.05;
+            if(self->fueling_current_volume > self->fueling_dose_in_liters) {
+                self->fueling_current_volume = self->fueling_dose_in_liters;
+            }
+        }
+        // Simulation ends here
+
+        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.01) {
+            self->state = trk_disabled_fueling_finished;
+            self->state_issue = trk_state_issue_less_or_equal_dose;
+        }
+
+        volume_delta = self->fueling_current_volume - prev_fueling_current_volume;
+        price_delta = self->fueling_current_price - prev_fueling_current_price;
+        self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
+        self->summator_volume += volume_delta;
+        self->summator_price += price_delta;
+
+        printf("currently fueled volume: %.2f of %.2f dose\r\n", self->fueling_current_volume, self->fueling_dose_in_liters);
+    }
 }
 
 static int azt_req_handler(azt_request_t* req, rk_t* self)
@@ -157,7 +221,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             // Возможные статусы ТРК после запроса: ‘4’ + ‘0’  или  ‘4’+’1’
             //									    ‘1’ или ‘0’
             if(tmp == 0) {
-                self->state = trk_disabled_fuel_discharging_finished;
+                self->state = trk_disabled_fueling_finished;
                 self->state_issue = trk_state_issue_less_or_equal_dose; // To-Do: implement correct issue setup
                 azt_tx_ack();
             } else {
@@ -171,31 +235,31 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("%s RK. Address %d. AZT_REQUEST_FULL_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
-            printf("fuel_charge_price_per_liter %f\n", self->fuel_charge_price_per_liter);
-            self->fuel_current_charging_price = self->fuel_current_charging_volume * self->fuel_charge_price_per_liter;
+            printf("fueling_price_per_liter %f\n", self->fueling_price_per_liter);
+            self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
 
-            char fuel_current_charging_volume[VOLUME_DIGITS+1] = {0};
-            sprintf(fuel_current_charging_volume, "%07.2f", self->fuel_current_charging_volume);
-            fuel_current_charging_volume[4] = fuel_current_charging_volume[5];
-            fuel_current_charging_volume[5] = fuel_current_charging_volume[6];
-            fuel_current_charging_volume[6] = 0x00;
+            char fueling_current_volume[VOLUME_DIGITS+1] = {0};
+            sprintf(fueling_current_volume, "%07.2f", self->fueling_current_volume);
+            fueling_current_volume[4] = fueling_current_volume[5];
+            fueling_current_volume[5] = fueling_current_volume[6];
+            fueling_current_volume[6] = 0x00;
 
-            char fuel_current_charging_price[PRICE_DIGITS+1] = {0};
-            sprintf(fuel_current_charging_price, "%09.2f", self->fuel_current_charging_price);
-            fuel_current_charging_price[6] = fuel_current_charging_price[7];
-            fuel_current_charging_price[7] = fuel_current_charging_price[8];
-            fuel_current_charging_price[8] = 0x00;
+            char fueling_current_price[PRICE_DIGITS+1] = {0};
+            sprintf(fueling_current_price, "%09.2f", self->fueling_current_price);
+            fueling_current_price[6] = fueling_current_price[7];
+            fueling_current_price[7] = fueling_current_price[8];
+            fueling_current_price[8] = 0x00;
 
-            char fuel_charge_price_per_liter_str[PRICE_PER_LITER_DIGITS+1] = {0};
-            sprintf(fuel_charge_price_per_liter_str, "%07.2f", self->fuel_charge_price_per_liter);
-            printf("fuel_charge_price_per_liter_str %s\n", fuel_charge_price_per_liter_str);
-            fuel_charge_price_per_liter_str[4] = fuel_charge_price_per_liter_str[5];
-            fuel_charge_price_per_liter_str[5] = fuel_charge_price_per_liter_str[6];
-            fuel_charge_price_per_liter_str[6] = 0x00;
+            char fueling_price_per_liter_str[PRICE_PER_LITER_DIGITS+1] = {0};
+            sprintf(fueling_price_per_liter_str, "%07.2f", self->fueling_price_per_liter);
+            printf("fueling_price_per_liter_str %s\n", fueling_price_per_liter_str);
+            fueling_price_per_liter_str[4] = fueling_price_per_liter_str[5];
+            fueling_price_per_liter_str[5] = fueling_price_per_liter_str[6];
+            fueling_price_per_liter_str[6] = 0x00;
 
-            strcpy(responce, fuel_current_charging_volume);
-            strcpy(responce + VOLUME_DIGITS, fuel_current_charging_price);
-            strcpy(responce + VOLUME_DIGITS + PRICE_DIGITS, fuel_charge_price_per_liter_str );
+            strcpy(responce, fueling_current_volume);
+            strcpy(responce + VOLUME_DIGITS, fueling_current_price);
+            strcpy(responce + VOLUME_DIGITS + PRICE_DIGITS, fueling_price_per_liter_str );
             cnt = VOLUME_DIGITS + PRICE_DIGITS + PRICE_PER_LITER_DIGITS;
 
             azt_tx(responce, cnt);
@@ -268,8 +332,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             price[2] = '.';
             price[3] = req->params[2];
             price[4] = req->params[3];
-            float fuel_charge_price_per_liter = strtof(price, NULL);
-            self->fuel_charge_price_per_liter = fuel_charge_price_per_liter;
+            float fueling_price_per_liter = strtof(price, NULL);
+            self->fueling_price_per_liter = fueling_price_per_liter;
             tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             if(tmp == 0) {
                 azt_tx_ack();
@@ -281,11 +345,11 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         case AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP:
             printf("%s RK. Address %d. AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP\n", self->side == left ? "Left" : "Right", self->address);
             break;
-        case AZT_REQUEST_FUEL_CHARGE_DOSE_IN_RUBLES:
-            printf("%s RK. Address %d. AZT_REQUEST_FUEL_CHARGE_DOSE_IN_RUBLES\n", self->side == left ? "Left" : "Right", self->address);
+        case AZT_REQUEST_FUELING_DOSE_IN_RUBLES:
+            printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_RUBLES\n", self->side == left ? "Left" : "Right", self->address);
             break;
-        case AZT_REQUEST_FUEL_CHARGE_DOSE_IN_LITERS:
-            printf("%s RK. Address %d. AZT_REQUEST_FUEL_CHARGE_DOSE_IN_LITERS\n", self->side == left ? "Left" : "Right", self->address);
+        case AZT_REQUEST_FUELING_DOSE_IN_LITERS:
+            printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_LITERS\n", self->side == left ? "Left" : "Right", self->address);
             char volume[7] = {0};
 
             volume[0] = req->params[0];
@@ -294,8 +358,9 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             volume[3] = '.';
             volume[4] = req->params[3];
             volume[5] = req->params[4];
-            float fuel_dose_to_charge = strtof(volume, NULL);
-            self->fuel_dose_to_charge = fuel_dose_to_charge;
+            float fueling_dose_in_liters = strtof(volume, NULL);
+            self->fueling_dose_in_liters = fueling_dose_in_liters;
+            self->fueling_dose_in_rubles = 0.00; // when workstation sets fuel dose volume we reset fuel dose in rubles
 
 //            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             ret = 0;  // To-Do: implement checkout whether we can start fueling process
@@ -309,9 +374,9 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("%s RK. Address %d. AZT_REQUEST_UNCONDITIONAL_START\n", self->side == left ? "Left" : "Right", self->address);
             ret = 0;  // To-Do: implement checkout whether we can start discharging
 //            Возможные статусы ТРК до запроса:     ‘2’  // trk_authorization_cmd
-//            Возможные статусы ТРК после запроса:  ‘3’  // trk_enabled_fuel_dischargning_process
+//            Возможные статусы ТРК после запроса:  ‘3’  // trk_enabled_fueling_process
             if(tmp == 0) {
-                self->state = trk_enabled_fuel_dischargning_process;
+                self->state = trk_enabled_fueling_process;
                 azt_tx_ack();
             } else {
                 azt_tx_can();
