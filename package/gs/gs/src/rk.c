@@ -151,9 +151,9 @@ static int rk_fueling_simulation(rk_t* self) {
 
     if(self->fueling_dose_in_liters > 0.00) {
 
-        // Simulation of fueling process 0.5 liters per second
+        // Simulation of fueling process 0.1 liters per second
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
-            self->fueling_current_volume += 0.05;
+            self->fueling_current_volume += 0.01;
             if(self->fueling_current_volume > self->fueling_dose_in_liters) {
                 self->fueling_current_volume = self->fueling_dose_in_liters;
             }
