@@ -22,8 +22,8 @@ typedef enum {
     trk_disabled_rk_installed = 0x30,
     trk_disabled_rk_taken_off = 0x31,
     trk_authorization_cmd = 0x32,
-    trk_enabled_fuel_dischargning_process = 0x33,
-    trk_disabled_fuel_discharging_finished = 0x34,
+    trk_enabled_fueling_process = 0x33,
+    trk_disabled_fueling_finished = 0x34,
     trk_disabled_local_control_unit_dose = 0x38
 } trk_state_t;
 
@@ -49,6 +49,8 @@ struct rk_t {
     float summator_volume;
     float summator_price;
     int (*azt_req_hndl)(azt_request_t* req, rk_t* self);
+    int (*is_not_fault)(rk_t* self);
+    int (*process)(rk_t* self);
     char config_filename_is_enabled[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_is_left[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_address[CONFIG_FILENAME_MAX_LENGTH];
@@ -56,10 +58,11 @@ struct rk_t {
     char config_filename_summator_price[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_summator_volume[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_price_per_liter[CONFIG_FILENAME_MAX_LENGTH];
-    float fuel_dose_to_charge;
-    float fuel_charge_price_per_liter;
-    float fuel_current_charging_volume;
-    float fuel_current_charging_price;
+    float fueling_dose_in_liters;  // Заданная с АРМ доза к заправке в литрах
+    float fueling_dose_in_rubles;  // Заданная с АРМ доза к заправке в рублях
+    float fueling_price_per_liter;  // Заданная с АРМ стоимость топлива за литр
+    float fueling_current_volume;   // Текущий объем заправленного топлива в текущем цикле заправки
+    float fueling_current_price;    // Текущая стоимость заправленного топлива в текущем цикле заправки
     can_t can_bus;
 };
 
