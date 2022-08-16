@@ -109,8 +109,9 @@ int main(int argc, char* argv[])
     rk_init(2, &right_rk);
 	buttons_fd = buttons_init();
 
+    // simulation of fueling process
 //    left_rk.state = trk_enabled_fueling_process;
-//    left_rk.fueling_current_price = 10.0;
+//    left_rk.fueling_price_per_liter = 30.0;
 //    left_rk.fueling_dose_in_liters = 3;
 
     int azt_req_flag = 0;
