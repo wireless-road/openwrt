@@ -33,7 +33,7 @@
 #define AZT_REQUEST_TRK_AUTHORIZATION               0x32
 #define AZT_REQUEST_TRK_RESET                       0x33
 #define AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE       0x34
-#define AZT_REQUEST_FULL_FUEL_CHARGE_VALUE          0x35
+#define AZT_REQUEST_FULL_FUELING_VALUE              0x35
 #define AZT_REQUEST_SUMMATORS_VALUE                 0x36
 #define AZT_REQUEST_TRK_TYPE                        0x37
 #define AZT_REQUEST_RECORD_CONFIRMATION             0x38

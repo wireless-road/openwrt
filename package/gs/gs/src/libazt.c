@@ -16,11 +16,11 @@ int azt_request_params_cnt = 0;
 azt_request_t azt_req;
 
 void azt_request_parser(char* rx_buf, int rx_buf_len) {
-    printf("\n");
-    for(int i = 0; i<rx_buf_len; i++) {
-        printf("%02X ", rx_buf[i]);
-    }
-    printf("\n");
+//    printf("\n");
+//    for(int i = 0; i<rx_buf_len; i++) {
+//        printf("%02X ", rx_buf[i]);
+//    }
+//    printf("\n");
 
     // Check for starting byte idx
     int starting_symbol_idx = -1;
@@ -101,12 +101,6 @@ void azt_deinit(void) {
 int azt_rx_handler(void) {
     int ret = azt_port_read();
     if(ret == 1) {
-//        printf("AZT req address: %d\n", azt_req.address);
-//        printf("AZT req cmd: %02X. params: ", azt_req.cmd);
-//        for(int i=0; i<azt_req.params_cnt; i++) {
-//            printf("%02X ", azt_req.params[i]);
-//        }
-//        printf("\n");
         return 1;
     }
     return 0;
@@ -119,44 +113,6 @@ azt_request_t* azt_request(void) {
 
 char tx_buf[256];
 int tx_buf_len = 0;
-
-int azt_tx_old(char* data, int cnt) {
-    int cur_pos = 0;
-    memset(tx_buf, 0, sizeof(tx_buf));
-    tx_buf_len = 0;
-
-    tx_buf[cur_pos] = AZT_RQST_DEL_SYMBOL;
-    cur_pos++;
-    int starting_symbol_idx = cur_pos;
-
-    tx_buf[cur_pos] = AZT_RQST_STX_SYMBOL;
-    cur_pos++;
-
-    if(cnt > AZT_RESPONCE_MAX_LENGTH) {
-        return -1;
-    }
-
-    memcpy(tx_buf+2, data, cnt);
-    cur_pos += cnt;
-
-    tx_buf[cur_pos] = AZT_RQST_ENDING_SYMBOL;
-    int ending_symbol_idx = cur_pos;
-    cur_pos++;
-
-    tx_buf[cur_pos] = AZT_RQST_ENDING_SYMBOL;
-    cur_pos++;
-
-    tx_buf[cur_pos] = azt_calculate_crc(tx_buf, starting_symbol_idx, ending_symbol_idx);
-    cur_pos++;
-
-    for(int i=0; i<cur_pos; i++) {
-        printf("%02X ", tx_buf[i]);
-    }
-    printf("\n");
-
-    azt_port_write(tx_buf, cur_pos);
-//    azt_port_write("hello\r\n", 7);
-}
 
 int azt_tx_can(void) {
     int cur_pos = 0;
@@ -231,10 +187,10 @@ int azt_tx(char* data, int cnt) {
     cur_pos++;
     tx_buf_len = cur_pos;
 
-    for(int i=0; i<tx_buf_len; i++) {
-        printf("%02X ", tx_buf[i]);
-    }
-    printf("\n");
+//    for(int i=0; i<tx_buf_len; i++) {
+//        printf("%02X ", tx_buf[i]);
+//    }
+//    printf("\n");
 
     azt_port_write(tx_buf, tx_buf_len);
 //    azt_port_write("hello\r\n", 7);
@@ -295,7 +251,6 @@ static int azt_calculate_address(char* rx_buf, int address_shift_byte_idx)
 static int azt_validate_complimentary_bytes(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx)
 {
     for(int i=starting_symbol_idx+1; i<ending_symbol_idx; i+=2) {
-//        printf("%02X ---> %02X\n", rx_buf[i], rx_buf[i+1] );
         if(rx_buf[i+1] != COMPLIMENTARY(rx_buf[i])) {
             printf("AZT. Complimentary error. %02X != %02X\n", rx_buf[i+1], COMPLIMENTARY(rx_buf[i]));
             return -1;
@@ -307,7 +262,6 @@ static int azt_validate_complimentary_bytes(char* rx_buf, int starting_symbol_id
 static azt_validate_crc(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx, int crc_symbol_idx) {
     int res = 0;
     for(int i=starting_symbol_idx+1; i<=ending_symbol_idx; i+=2) {
-//        printf("%02X ---> %02X\n", rx_buf[i], rx_buf[i+1] );
         res ^= rx_buf[i];
     }
     res = res | 0x40;
@@ -323,10 +277,8 @@ static int azt_calculate_crc(char* buf, int starting_symbol_idx, int ending_symb
     int res = 0;
     for(int i=starting_symbol_idx+1; i<=ending_symbol_idx; i+=2) {
         res ^= buf[i];
-//        printf("%02X ---> %02X. res %02X\n", buf[i], buf[i+1], res );
     }
     res = res | 0x40;
-//    printf("res %02X\n", res );
 
     return res;
 }

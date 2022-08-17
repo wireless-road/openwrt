@@ -48,6 +48,8 @@ struct rk_t {
     int local_control_allowed;
     float summator_volume;
     float summator_price;
+    float prev_summator_volume;
+    float prev_summator_price;
     int (*azt_req_hndl)(azt_request_t* req, rk_t* self);
     int (*is_not_fault)(rk_t* self);
     int (*process)(rk_t* self);
@@ -61,8 +63,11 @@ struct rk_t {
     float fueling_dose_in_liters;  // Заданная с АРМ доза к заправке в литрах
     float fueling_dose_in_rubles;  // Заданная с АРМ доза к заправке в рублях
     float fueling_price_per_liter;  // Заданная с АРМ стоимость топлива за литр
+    float fueling_interrupted_volume;
+    float fueling_interrupted_price;
     float fueling_current_volume;   // Текущий объем заправленного топлива в текущем цикле заправки
     float fueling_current_price;    // Текущая стоимость заправленного топлива в текущем цикле заправки
+    int fueling_current_finished_flag;
     can_t can_bus;
 };
 
