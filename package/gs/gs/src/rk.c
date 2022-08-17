@@ -173,7 +173,10 @@ static int rk_fueling_simulation(rk_t* self) {
         self->summator_volume = self->prev_summator_volume + self->fueling_current_volume;
         self->summator_price = self->prev_summator_price + self->fueling_current_price;
 
-        self->can_bus.transmit(&self->can_bus, self->fueling_current_volume, self->fueling_price_per_liter, self->fueling_current_price);
+        self->can_bus.transmit(&self->can_bus,
+                               self->fueling_current_volume + self->fueling_interrupted_volume,
+                               self->fueling_price_per_liter,
+                               (self->fueling_current_volume + self->fueling_interrupted_volume) * self->fueling_price_per_liter);
         printf("currently fueled volume: %.2f of %.2f dose. summator volume: %f, summator price: %f\r\n", self->fueling_current_volume,
                self->fueling_dose_in_liters,
                self->summator_volume,
