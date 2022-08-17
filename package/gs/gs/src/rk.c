@@ -143,17 +143,13 @@ static int rk_process(rk_t* self) {
 
 static int rk_fueling_simulation(rk_t* self) {
     static int store_prev_summators_flag = 0;
-    static float prev_summator_volume = 0.00;
-    static float prev_summator_price = 0.00;
     usleep(100000);
 
     if(!store_prev_summators_flag) {
-        prev_summator_volume = self->summator_volume;
-        prev_summator_price = self->summator_price;
+        self->prev_summator_volume = self->summator_volume;
+        self->prev_summator_price = self->summator_price;
         store_prev_summators_flag = 1;
-
-        self->fueling_current_volume = 0.00;
-        self->fueling_current_price = 0.00;
+        self->fueling_current_finished_flag = FALSE;
     }
 
     if(self->fueling_dose_in_liters > 0.00) {
@@ -167,15 +163,15 @@ static int rk_fueling_simulation(rk_t* self) {
         }
         // Simulation ends here
 
-        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.01) {
+        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.001) {
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
         }
 
         self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
-        self->summator_volume = prev_summator_volume + self->fueling_current_volume;
-        self->summator_price = prev_summator_price + self->fueling_current_price;
+        self->summator_volume = self->prev_summator_volume + self->fueling_current_volume;
+        self->summator_price = self->prev_summator_price + self->fueling_current_price;
 
         self->can_bus.transmit(&self->can_bus, self->fueling_current_volume, self->fueling_price_per_liter, self->fueling_current_price);
         printf("currently fueled volume: %.2f of %.2f dose. summator volume: %f, summator price: %f\r\n", self->fueling_current_volume,
@@ -185,8 +181,13 @@ static int rk_fueling_simulation(rk_t* self) {
 
         if(self->state == trk_disabled_fueling_finished) {
             char volume_summator[8] = {0};
+            self->summator_volume += self->fueling_interrupted_volume;
+            self->summator_price += self->fueling_interrupted_price;
             sprintf(volume_summator, "%.2f", self->summator_volume);
             set_config(self->config_filename_summator_volume, volume_summator, strlen(volume_summator));
+            self->fueling_interrupted_volume = 0.00;
+            self->fueling_interrupted_price = 0.00;
+            self->fueling_current_finished_flag = TRUE;
 
             char price_summator[10] = {0};
             sprintf(price_summator, "%.2f", self->summator_price);
@@ -197,6 +198,7 @@ static int rk_fueling_simulation(rk_t* self) {
 
 static int azt_req_handler(azt_request_t* req, rk_t* self)
 {
+    static reset_current_fueling_values_flag = FALSE;
     if(req->address != self->address) {
         return 0;
     }
@@ -240,7 +242,12 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             // Возможные статусы ТРК до запроса: ‘2’ ,‘3’ или ‘8’
             // Возможные статусы ТРК после запроса: ‘4’ + ‘0’  или  ‘4’+’1’
             //									    ‘1’ или ‘0’
-            if(tmp == 0) {
+
+            if(self->state == trk_enabled_fueling_process) {
+                self->fueling_interrupted_volume = self->summator_volume - self->prev_summator_volume;
+                self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
+            }
+            if(ret == 0) {
                 self->state = trk_disabled_fueling_finished;
                 self->state_issue = trk_state_issue_less_or_equal_dose; // To-Do: implement correct issue setup
                 azt_tx_ack();
@@ -251,8 +258,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         case AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE:
             printf("%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             break;
-        case AZT_REQUEST_FULL_FUEL_CHARGE_VALUE:
-            printf("%s RK. Address %d. AZT_REQUEST_FULL_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+        case AZT_REQUEST_FULL_FUELING_VALUE:
+            printf("%s RK. Address %d. AZT_REQUEST_FULL_FUELING_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
             self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
@@ -281,6 +288,16 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             cnt = VOLUME_DIGITS + PRICE_DIGITS + PRICE_PER_LITER_DIGITS;
 
             azt_tx(responce, cnt);
+
+            printf("\tfueling_current_volume: %.2f. fueling_current_price: %.2f\r\n", self->fueling_current_volume, self->fueling_current_price);
+            if(reset_current_fueling_values_flag == TRUE) {
+                reset_current_fueling_values_flag = FALSE;
+//                printf("\treset_current_fueling_values_flag = %d\r\n", reset_current_fueling_values_flag);
+                if(self->fueling_current_finished_flag == TRUE) {
+                    self->fueling_current_volume = 0.00;
+                    self->fueling_current_price = 0.00;
+                }
+            }
             break;
         case AZT_REQUEST_SUMMATORS_VALUE:
             printf("%s RK. Address %d. AZT_REQUEST_SUMMATORS_VALUE\n", self->side == left ? "Left" : "Right", self->address);
@@ -291,7 +308,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             tmp = (int)roundf(self->summator_price * 100.0);
             int_to_string_azt(tmp, responce, &cnt);
             azt_tx(responce, cnt);
-
+            printf("\tsummator_volume: %.2f. summator_price: %.2f\r\n", self->summator_volume, self->summator_price);
             break;
         case AZT_REQUEST_TRK_TYPE:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
@@ -307,6 +324,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             self->state = trk_disabled_rk_installed;
 //            self->state_issue = trk_state_issue_less_or_equal_dose;  // To-Do: implement state issue setup
 //            azt_tx_can();  // To-Do: when it might responce as not ACK?
+            reset_current_fueling_values_flag = TRUE;
+//            printf("\treset_current_fueling_values_flag = %d\r\n", reset_current_fueling_values_flag);
             break;
         case AZT_REQUEST_PROTOCOL_VERSION:
             printf("%s RK. Address %d. AZT_REQUEST_PROTOCOL_VERSION\n", self->side == left ? "Left" : "Right", self->address);
@@ -395,6 +414,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 //            Возможные статусы ТРК после запроса:  ‘3’  // trk_enabled_fueling_process
             if(tmp == 0) {
                 self->state = trk_enabled_fueling_process;
+                self->fueling_current_volume = 0.00;
+                self->fueling_current_price = 0.00;
                 azt_tx_ack();
             } else {
                 azt_tx_can();
