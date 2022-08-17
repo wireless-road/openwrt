@@ -142,12 +142,16 @@ static int rk_process(rk_t* self) {
 }
 
 static int rk_fueling_simulation(rk_t* self) {
+    static int store_prev_summators_flag = 0;
+    static float prev_summator_volume = 0.00;
+    static float prev_summator_price = 0.00;
     usleep(100000);
 
-    float prev_fueling_current_volume = self->fueling_current_volume;
-    float prev_fueling_current_price = self->fueling_current_price;
-    float volume_delta = 0.00;
-    float price_delta = 0.00;
+    if(!store_prev_summators_flag) {
+        prev_summator_volume = self->summator_volume;
+        prev_summator_price = self->summator_price;
+        store_prev_summators_flag = 1;
+    }
 
     if(self->fueling_dose_in_liters > 0.00) {
 
@@ -165,13 +169,25 @@ static int rk_fueling_simulation(rk_t* self) {
             self->state_issue = trk_state_issue_less_or_equal_dose;
         }
 
-        volume_delta = self->fueling_current_volume - prev_fueling_current_volume;
-        price_delta = self->fueling_current_price - prev_fueling_current_price;
         self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
-        self->summator_volume += volume_delta;
-        self->summator_price += price_delta;
+        self->summator_volume = prev_summator_volume + self->fueling_current_volume;
+        self->summator_price = prev_summator_price + self->fueling_current_price;
 
-        printf("currently fueled volume: %.2f of %.2f dose\r\n", self->fueling_current_volume, self->fueling_dose_in_liters);
+        self->can_bus.transmit(&self->can_bus, self->fueling_current_volume, self->fueling_price_per_liter, self->fueling_current_price);
+        printf("currently fueled volume: %.2f of %.2f dose. summator volume: %f, summator price: %f\r\n", self->fueling_current_volume,
+               self->fueling_dose_in_liters,
+               self->summator_volume,
+               self->summator_price);
+
+        if(self->state == trk_disabled_fueling_finished) {
+            char volume_summator[8] = {0};
+            sprintf(volume_summator, "%.2f", self->summator_volume);
+            set_config(self->config_filename_summator_volume, volume_summator, strlen(volume_summator));
+
+            char price_summator[10] = {0};
+            sprintf(price_summator, "%.2f", self->summator_price);
+            set_config(self->config_filename_summator_price, price_summator, strlen(price_summator));
+        }
     }
 }
 
