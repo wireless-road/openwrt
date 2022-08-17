@@ -112,7 +112,8 @@ int rk_init(int idx, rk_t* rk) {
     rk->fueling_price_per_liter = tmp;
 
     CAN_init(idx, &rk->can_bus);
-//    rk->can_bus.transmit(&rk->can_bus, 15.0+idx, 10.0, (15.0 + idx)* 10.0);
+
+    in_4_20_ma_init(idx, &rk->in_4_20);
     return 0;
 }
 
