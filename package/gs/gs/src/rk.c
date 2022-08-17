@@ -151,6 +151,9 @@ static int rk_fueling_simulation(rk_t* self) {
         prev_summator_volume = self->summator_volume;
         prev_summator_price = self->summator_price;
         store_prev_summators_flag = 1;
+
+        self->fueling_current_volume = 0.00;
+        self->fueling_current_price = 0.00;
     }
 
     if(self->fueling_dose_in_liters > 0.00) {
@@ -167,6 +170,7 @@ static int rk_fueling_simulation(rk_t* self) {
         if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.01) {
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
+            store_prev_summators_flag = 0;
         }
 
         self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
@@ -251,7 +255,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("%s RK. Address %d. AZT_REQUEST_FULL_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
-            printf("fueling_price_per_liter %f\n", self->fueling_price_per_liter);
             self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
 
             char fueling_current_volume[VOLUME_DIGITS+1] = {0};
@@ -268,7 +271,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
             char fueling_price_per_liter_str[PRICE_PER_LITER_DIGITS+1] = {0};
             sprintf(fueling_price_per_liter_str, "%07.2f", self->fueling_price_per_liter);
-            printf("fueling_price_per_liter_str %s\n", fueling_price_per_liter_str);
             fueling_price_per_liter_str[4] = fueling_price_per_liter_str[5];
             fueling_price_per_liter_str[5] = fueling_price_per_liter_str[6];
             fueling_price_per_liter_str[6] = 0x00;
