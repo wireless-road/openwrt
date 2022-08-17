@@ -15,6 +15,7 @@
 #include "libazt.h"
 #include "settings.h"
 #include "can.h"
+#include "in_4_20_ma.h"
 
 typedef enum { right, left } rk_side;
 
@@ -69,6 +70,7 @@ struct rk_t {
     float fueling_current_price;    // Текущая стоимость заправленного топлива в текущем цикле заправки
     int fueling_current_finished_flag;
     can_t can_bus;
+    in_4_20_t in_4_20;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
