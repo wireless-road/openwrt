@@ -175,6 +175,52 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
     return ctx;
 }
 
+int gs_scan(gs_conninfo_t *conninfo)
+{
+    modbus_t *ctx;
+    int ret;
+    char port[16];
+
+    sprintf(&port, "/dev/ttymxc%d", conninfo->port);
+    printf("Connecting to %s...\n", port);
+    ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
+    if (ctx == NULL)
+    {
+        fprintf(stderr, "Unable to create the libmodbus context\n");
+        return ctx;
+    }
+
+    modbus_set_response_timeout(ctx, 0, 100000);
+    // modbus_set_debug(ctx, TRUE);
+    modbus_rtu_set_rts(ctx, MODBUS_RTU_RTS_UP);
+    ret = modbus_rtu_set_serial_mode(ctx, MODBUS_RTU_RS485);
+    if (!ret)
+    {
+        fprintf(stderr, "Error setting mode to RS485!\n");
+        modbus_free(ctx);
+        return NULL;
+    }
+
+    if (modbus_connect(ctx) == -1)
+    {
+        fprintf(stderr, "Connection failed: %s\n", modbus_strerror(errno));
+        modbus_free(ctx);
+        return NULL;
+    }
+
+    for(int i=0; i<247; i++) {
+        modbus_set_slave(ctx, i);
+        ret = gs_get_version(ctx);
+        printf("Slave address %d responce: %d\r\n", i, ret);
+        if(!ret) {
+            // slave device responded
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 void gs_close(modbus_t *ctx)
 {
     modbus_close(ctx); // does we need it with RS485 connection?
