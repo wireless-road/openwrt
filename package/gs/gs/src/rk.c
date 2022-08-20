@@ -62,8 +62,8 @@ int rk_init(int idx, rk_t* rk) {
     rk->address = ret;
 
 
-    rk->is_not_fault = rk_is_not_fault;
-//    rk->is_not_fault = rk_check_state;
+//    rk->is_not_fault = rk_is_not_fault;
+    rk->is_not_fault = rk_check_state;
     rk->process = rk_process;
     rk->azt_req_hndl = azt_req_handler;
     rk->state = trk_disabled_rk_installed;
@@ -130,17 +130,17 @@ int rk_init(int idx, rk_t* rk) {
 }
 
 static int rk_is_not_fault(rk_t* self) {
-    if(self->error_state.code != 0) {
-        if(error_is_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED)) {
+//    if(self->error_state.code != 0) {
+//        if(error_is_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED)) {
 //            int ret = in_4_20_ma_read(&self->in_4_20);
 //            if(ret != -1) {
 //                error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
 //                rk_indicate_error_message(self);
 //            }
-        }
-    }
-    return self->error_state.code == 0;
-//    return TRUE;
+//        }
+//    }
+//    return self->error_state.code == 0;
+    return TRUE;
 }
 
 static int rk_check_state(rk_t* self) {

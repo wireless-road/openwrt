@@ -28,6 +28,7 @@
 typedef struct in_4_20_t in_4_20_t;
 
 struct in_4_20_t {
+    int fd;
     int channel_idx;
     int value;
     float value_converted;
