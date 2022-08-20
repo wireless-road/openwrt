@@ -43,6 +43,7 @@ typedef struct measurements {
 
 /* port handling */
 modbus_t* gs_init(gs_conninfo_t *conninfo);
+int gs_scan(gs_conninfo_t *conninfo);
 void gs_close(modbus_t *ctx);
 
 
