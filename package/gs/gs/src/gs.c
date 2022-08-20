@@ -125,10 +125,14 @@ int main(int argc, char* argv[])
 
         if(left_rk.is_not_fault(&left_rk)) {
             left_rk.process(&left_rk);
+        } else {
+//            printf("errorL\r\n");
         }
 
         if(right_rk.is_not_fault(&right_rk)) {
             right_rk.process(&right_rk);
+        } else {
+//            printf("errorR\r\n");
         }
 
     }
