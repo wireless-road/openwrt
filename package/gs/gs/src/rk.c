@@ -12,13 +12,19 @@ static int rk_is_not_fault();
 static int rk_process();
 static int rk_fueling_simulation(rk_t* self);
 static void int_to_string_azt(int val, char* res, int* cnt);
-//static int set_config(char* filename, char* data, int len);
+static void rk_indicate_error_message(rk_t* self);
+static int rk_check_state(rk_t* self);
 
 char tmp[RX_BUF_SIZE] = {0};
 
 int rk_init(int idx, rk_t* rk) {
     char filename[FILENAME_MAX_SIZE];
 
+    rk->fueling_current_volume = 0.00;
+    rk->fueling_interrupted_volume = 0.00;
+    rk->fueling_current_price = 0.00;
+    rk->fueling_interrupted_price = 0.00;
+    error_init(&rk->error_state);
 
     // isEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -57,6 +63,7 @@ int rk_init(int idx, rk_t* rk) {
 
 
     rk->is_not_fault = rk_is_not_fault;
+//    rk->is_not_fault = rk_check_state;
     rk->process = rk_process;
     rk->azt_req_hndl = azt_req_handler;
     rk->state = trk_disabled_rk_installed;
@@ -113,13 +120,43 @@ int rk_init(int idx, rk_t* rk) {
 
     CAN_init(idx, &rk->can_bus);
 
-    in_4_20_ma_init(idx, &rk->in_4_20);
+    ret = in_4_20_ma_init(idx, &rk->in_4_20);
+    if(ret == -1) {
+        printf("ERROR. Input 4-20ma not connected\r\n");
+        error_set(&rk->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
+        rk_indicate_error_message(rk);
+    }
     return 0;
 }
 
 static int rk_is_not_fault(rk_t* self) {
-    // To-Do: implement errors checkout
-    return TRUE;
+    if(self->error_state.code != 0) {
+        if(error_is_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED)) {
+//            int ret = in_4_20_ma_read(&self->in_4_20);
+//            if(ret != -1) {
+//                error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
+//                rk_indicate_error_message(self);
+//            }
+        }
+    }
+    return self->error_state.code == 0;
+//    return TRUE;
+}
+
+static int rk_check_state(rk_t* self) {
+    int ret = in_4_20_ma_read(&self->in_4_20);
+    if( (ret == -1) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) ) {
+        error_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
+        rk_indicate_error_message(self);
+    } else if( (ret != -1) && error_is_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED)) {
+        error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
+        rk_indicate_error_message(self);
+    }
+    return self->error_state.code == 0;
+}
+
+static void rk_indicate_error_message(rk_t* self) {
+    self->can_bus.transmit(&self->can_bus, self->error_state.message, 0.00, 0.00);
 }
 
 static int rk_process(rk_t* self) {

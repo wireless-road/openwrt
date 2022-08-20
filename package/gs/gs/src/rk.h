@@ -16,6 +16,7 @@
 #include "settings.h"
 #include "can.h"
 #include "in_4_20_ma.h"
+#include "error.h"
 
 typedef enum { right, left } rk_side;
 
@@ -71,6 +72,7 @@ struct rk_t {
     int fueling_current_finished_flag;
     can_t can_bus;
     in_4_20_t in_4_20;
+    error_t error_state;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"

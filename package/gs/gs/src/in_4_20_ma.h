@@ -23,6 +23,8 @@
 
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
+#define INPUT_NOT_CONNECTED_THRESHOLD_VALUE     100
+
 typedef struct in_4_20_t in_4_20_t;
 
 struct in_4_20_t {
@@ -40,6 +42,7 @@ struct in_4_20_t {
 #define CONFIG_FILE_CHANNEL_IDX              "/mnt/gs/%d/in_4_20_channel_idx"
 
 int in_4_20_ma_init(int idx, in_4_20_t* in_4_20);
+int in_4_20_ma_read(in_4_20_t* in_4_20);
 
 #endif  // IN_4_20_MA_H
 

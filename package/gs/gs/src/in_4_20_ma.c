@@ -31,5 +31,22 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     }
     in_4_20->value = ret;
 
-    printf("in_4_20_value: %d\r\n", in_4_20->value);
+    if(ret < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
+        return -1;
+    }
+}
+
+int in_4_20_ma_read(in_4_20_t* in_4_20) {
+
+    int ret = parse_integer_config(in_4_20->value_filename);
+    if(ret == -1) {
+        return -1;
+    }
+    in_4_20->value = ret;
+
+    if(ret < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
+        return -1;
+    }
+//    return 0;
+    return in_4_20->value;
 }
