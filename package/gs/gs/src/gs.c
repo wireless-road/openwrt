@@ -98,7 +98,6 @@ void button_handler(int code){
 
 int main(int argc, char* argv[])
 {
-	int buttons_fd;
 	int ret = azt_init();
 	if (ret == -1) {
 		return 1;
@@ -107,7 +106,8 @@ int main(int argc, char* argv[])
     rk_t left_rk, right_rk;
     rk_init(1, &left_rk);
     rk_init(2, &right_rk);
-	buttons_fd = buttons_init();
+	buttons_init(&left_rk,
+                 &right_rk);
 
     // simulation of fueling process
 //    left_rk.state = trk_enabled_fueling_process;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
     int azt_req_flag = 0;
 	while(1) {
-		buttons_handler(&buttons_fd);
+		buttons_handler(&left_rk, &right_rk);
         azt_req_flag = azt_rx_handler();
         if(azt_req_flag) {
             left_rk.azt_req_hndl(azt_request(), &left_rk);

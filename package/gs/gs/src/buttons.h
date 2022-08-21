@@ -7,10 +7,11 @@
 #include <string.h>
 #include <linux/input.h>
 
+#include "rk.h"
+
 #define INPUT_DEV "/dev/input/event0"
 
-int buttons_init(void);
-int buttons_handler(int *fd);
-extern void button_handler(int code);
+void buttons_init(rk_t* left, rk_t* right);
+int buttons_handler(rk_t* left, rk_t* right);
 
 #endif

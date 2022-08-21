@@ -14,11 +14,16 @@ static int rk_fueling_simulation(rk_t* self);
 static void int_to_string_azt(int val, char* res, int* cnt);
 static void rk_indicate_error_message(rk_t* self);
 static int rk_check_state(rk_t* self);
+static void button_start_callback(rk_t* self, int code);
+static void button_stop_callback(rk_t* self, int code);
 
 char tmp[RX_BUF_SIZE] = {0};
 
 int rk_init(int idx, rk_t* rk) {
     char filename[FILENAME_MAX_SIZE];
+
+    rk->btn_clbk_start = button_start_callback;
+    rk->btn_clbk_stop = button_stop_callback;
 
     rk->fueling_current_volume = 0.00;
     rk->fueling_interrupted_volume = 0.00;
@@ -541,6 +546,16 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         default:
             break;
     }
+}
+
+static void button_start_callback(rk_t* self, int code)
+{
+    printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
+}
+
+static void button_stop_callback(rk_t* self, int code)
+{
+    printf("%s RK. stop btn clbk\r\n", self->side == left ? "Left" : "Right");
 }
 
 static void int_to_string_azt(int val, char* res, int* cnt) {

@@ -1,5 +1,6 @@
 #include "buttons.h"
 
+static int buttons_fd;
 
 static const char *const evval[3] = {
     "RELEASED",
@@ -7,8 +8,12 @@ static const char *const evval[3] = {
     "REPEATED"
 };
 
+void (*callback0)(rk_t*, int);
+void (*callback1)(rk_t*, int);
+void (*callback2)(rk_t*, int);
+void (*callback3)(rk_t*, int);
 
-int buttons_init(void){
+void buttons_init(rk_t* left, rk_t* right){
     int fd = -1;
     fd = open(INPUT_DEV, O_RDONLY);
     if (fd < 0)
@@ -18,15 +23,21 @@ int buttons_init(void){
         int flags = fcntl(fd, F_GETFL, 0);
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
     }
-    return fd;
+    buttons_fd = fd;
+
+    callback0 = left->btn_clbk_start;
+    callback1 = left->btn_clbk_stop;
+    callback2 = right->btn_clbk_start;
+    callback3 = right->btn_clbk_stop;
+    return 0;
 }
 
-int buttons_handler(int *fd){
+int buttons_handler(rk_t* left, rk_t* right){
     int ret = -1;
     struct input_event ev;
     memset(&ev, 0, sizeof(struct input_event));
 
-    ret = read( *fd,
+    ret = read( buttons_fd,
                 &ev,
                 sizeof(struct input_event));
 
@@ -44,16 +55,16 @@ int buttons_handler(int *fd){
             switch (ev.code)
             {
                 case BTN_0: // start 1
-                    button_handler(ev.code);
+                    callback0(left, ev.code);
                     break;
                 case BTN_1:// stop 1
-                    button_handler(ev.code);
+                    callback1(left, ev.code);
                     break;
                 case BTN_2: //start 2
-                    button_handler(ev.code);
+                    callback2(right, ev.code);
                     break;
                 case BTN_3: // stop 2
-                    button_handler(ev.code);
+                    callback3(right, ev.code);
                     break;
                 default: // non-keyboard event
                     break;

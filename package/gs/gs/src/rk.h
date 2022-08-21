@@ -75,6 +75,8 @@ struct rk_t {
     in_4_20_t in_4_20;
     error_t error_state;
     gs_conninfo_t modbus;
+    void (*btn_clbk_start)(int);
+    void (*btn_clbk_stop)(int);
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
