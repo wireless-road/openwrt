@@ -3,6 +3,8 @@
 #define FILENAME_MAX_SIZE   64
 #define RX_BUF_SIZE         64
 
+int in_4_20_ma_read_thread(in_4_20_t* in_4_20);
+
 int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
 
     char filename[FILENAME_MAX_SIZE];
@@ -26,61 +28,29 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     memset(in_4_20->value_filename, 0, sizeof(in_4_20->value_filename));
     strcpy(in_4_20->value_filename, filename);
 
-//    ret = parse_integer_config(filename);
-//    if(ret == -1) {
-//        return -1;
-//    }
+    ret = parse_integer_config(in_4_20->value_filename);
 
-    in_4_20->fd = open(in_4_20->value_filename, O_RDONLY | O_NONBLOCK);
-    if (in_4_20->fd < 0) {
-        printf("Error %i trying to open RK config file %s: %s\n", errno, in_4_20->value_filename, strerror(errno));
-        return -1;
-    }
-
-    char rx_buf[RX_BUF_SIZE];
-    memset(rx_buf, 0, RX_BUF_SIZE);
-
-    ret = read(in_4_20->fd, rx_buf, RX_BUF_SIZE);
-    printf("4-20ma VALUE: %s\r\n", rx_buf);
-
-    if(ret == -1) {
-        printf("Error %i trying to read RK config file %s: %s\n", errno, in_4_20->value_filename, strerror(errno));
-        return -1;
-    }
-
-    ret = strtol(rx_buf, NULL, 10);
-
-    in_4_20->value = ret;
+    pthread_create(&in_4_20->thread_id, NULL, in_4_20_ma_read_thread, in_4_20);
 
     if(ret < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
         return -1;
     }
+    return 0;
 }
 
 int in_4_20_ma_read(in_4_20_t* in_4_20) {
-
-//    int ret = parse_integer_config(in_4_20->value_filename);
-
-    char rx_buf[RX_BUF_SIZE];
-    memset(rx_buf, 0, RX_BUF_SIZE);
-
-    int ret = read(in_4_20->fd, rx_buf, RX_BUF_SIZE);
-    printf("4-20ma value: %s\r\n", rx_buf);
-    if(ret == -1) {
-        printf("Error %i trying to read RK config file %s: %s\n", errno, in_4_20->value_filename, strerror(errno));
+    if(in_4_20->value < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
         return -1;
+    } else {
+        return in_4_20->value;
     }
+}
 
-    ret = strtol(rx_buf, NULL, 10);
-
-    if(ret == -1) {
-        return -1;
+int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {
+    while(1) {
+        int ret = parse_integer_config(in_4_20->value_filename);
+        in_4_20->value = ret;
+//        printf("in_4_20_ma thread: %d\r\n", ret);
+        usleep(300000);
     }
-    in_4_20->value = ret;
-
-    if(ret < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
-        return -1;
-    }
-//    return 0;
-    return in_4_20->value;
 }

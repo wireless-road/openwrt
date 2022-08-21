@@ -21,6 +21,8 @@
 
 #include "settings.h"
 
+#include <pthread.h>
+
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
 #define INPUT_NOT_CONNECTED_THRESHOLD_VALUE     100
@@ -34,6 +36,7 @@ struct in_4_20_t {
     float value_converted;
     char channel_idx_filename[CONFIG_FILENAME_MAX_LENGTH];
     char value_filename[CONFIG_FILENAME_MAX_LENGTH];
+    pthread_t thread_id;
 };
 
 #define VALUE_FILENAME                  "/sys/bus/iio/devices/iio:device0/in_voltage%d_raw"
