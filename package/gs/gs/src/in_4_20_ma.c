@@ -29,6 +29,7 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     strcpy(in_4_20->value_filename, filename);
 
     ret = parse_integer_config(in_4_20->value_filename);
+    in_4_20->value = ret;
 
     pthread_create(&in_4_20->thread_id, NULL, in_4_20_ma_read_thread, in_4_20);
 

@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <termios.h>
 
-#include "libgs.h"
+//#include "libgs.h"
 #include "libazt.h"
 #include "rk.h"
 #include "buttons.h"

@@ -5,16 +5,15 @@
 #include <gpiod.h>
 #include <modbus/modbus.h>
 #include <modbus/modbus-rtu.h>
+#include <pthread.h>
 
 #include "mmi.h"
 #include "flomac.h"
 
+#include "settings.h"
+
+#define DEF_BAUDRATE    9600
 #define DEF_ADDR 2
-typedef struct gs_conninfo {
-    uint8_t port;
-    uint16_t baudrate;
-    uint8_t devaddr;
-} gs_conninfo_t;
 
 typedef struct measure_units {
     uint16_t massflow_unit;
@@ -41,10 +40,23 @@ typedef struct measurements {
     float volume_inventory;
 } measurements_t;
 
+typedef struct gs_conninfo {
+    uint8_t port;
+    uint16_t baudrate;
+    uint8_t devaddr;
+    pthread_t thread_id;
+    modbus_t *ctx;
+    measure_units_t measure_units;
+    measurements_t measurements;
+    int connection_lost_flag;
+} gs_conninfo_t;
+
 /* port handling */
+//int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo);
 modbus_t* gs_init(gs_conninfo_t *conninfo);
 int gs_scan(gs_conninfo_t *conninfo);
 void gs_close(modbus_t *ctx);
+int gs_check_state(gs_conninfo_t* conninfo);
 
 
 /*common functions */
@@ -65,3 +77,9 @@ int gs_reset_total_counters(modbus_t *ctx);
 
 /* Reset total counters */
 int gs_reset_inventory_counters(modbus_t *ctx); // Reset total counters
+
+#define DEF_CONFIG_MODBUS_PORT              "/etc/gs/%d/modbus_port"
+#define DEF_CONFIG_MODBUS_DEVICE_ADDRESS    "/etc/gs/%d/modbus_address"
+
+#define CONFIG_MODBUS_PORT                  "/mnt/gs/%d/modbus_port"
+#define CONFIG_MODBUS_DEVICE_ADDRESS        "/mnt/gs/%d/modbus_address"

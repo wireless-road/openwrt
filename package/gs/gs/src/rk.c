@@ -24,6 +24,8 @@ int rk_init(int idx, rk_t* rk) {
     rk->fueling_interrupted_volume = 0.00;
     rk->fueling_current_price = 0.00;
     rk->fueling_interrupted_price = 0.00;
+
+    CAN_init(idx, &rk->can_bus);
     error_init(&rk->error_state);
 
     // isEnabled
@@ -118,32 +120,23 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->fueling_price_per_liter = tmp;
 
-    CAN_init(idx, &rk->can_bus);
-
     ret = in_4_20_ma_init(idx, &rk->in_4_20);
     if(ret == -1) {
-        printf("ERROR. Input 4-20ma not connected\r\n");
+        printf("ERROR. %s RK. Input 4-20ma not connected\r\n", rk->side == left ? "Left" : "Right");
         error_set(&rk->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         rk_indicate_error_message(rk);
     }
+
+    ret = gs_init_pthreaded(idx, &rk->modbus);
     return 0;
 }
 
 static int rk_is_not_fault(rk_t* self) {
-//    if(self->error_state.code != 0) {
-//        if(error_is_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED)) {
-//            int ret = in_4_20_ma_read(&self->in_4_20);
-//            if(ret != -1) {
-//                error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
-//                rk_indicate_error_message(self);
-//            }
-//        }
-//    }
-//    return self->error_state.code == 0;
     return TRUE;
 }
 
 static int rk_check_state(rk_t* self) {
+    // 4-20ma checkout
     int ret = in_4_20_ma_read(&self->in_4_20);
     if( (ret == -1) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) ) {
         error_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
@@ -152,10 +145,22 @@ static int rk_check_state(rk_t* self) {
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
+
+    // modbus checkout
+    ret = gs_check_state(&self->modbus);
+    if( (ret == -1) && error_is_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED) ) {
+        error_set(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
+        rk_indicate_error_message(self);
+    } else if( (ret != -1) && error_is_set(&self->error_state, ERROR_MODBUS_NOT_CONNECTED)) {
+        error_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
+        rk_indicate_error_message(self);
+    }
+
     return self->error_state.code == 0;
 }
 
 static void rk_indicate_error_message(rk_t* self) {
+//    printf("%s RK indicate %f\r\n", self->side == left ? "Left" : "Right", self->error_state.message);
     self->can_bus.transmit(&self->can_bus, self->error_state.message, 0.00, 0.00);
 }
 

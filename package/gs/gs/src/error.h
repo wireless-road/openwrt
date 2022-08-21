@@ -27,7 +27,8 @@ struct error_t {
 };
 
 typedef enum {
-    ERROR_INPUT_4_20_NOT_CONNECTED = 0
+    ERROR_INPUT_4_20_NOT_CONNECTED = 0,
+    ERROR_MODBUS_NOT_CONNECTED = 1
 }errorCodes;
 
 #define ERROR_SET(p,n) ((p) |= ((1) << (n)))

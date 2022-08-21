@@ -17,6 +17,7 @@
 #include "can.h"
 #include "in_4_20_ma.h"
 #include "error.h"
+#include "libgs.h"
 
 typedef enum { right, left } rk_side;
 
@@ -73,6 +74,7 @@ struct rk_t {
     can_t can_bus;
     in_4_20_t in_4_20;
     error_t error_state;
+    gs_conninfo_t modbus;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"

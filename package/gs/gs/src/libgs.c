@@ -1,12 +1,18 @@
 #include "libgs.h"
 
+#define FILENAME_MAX_SIZE   64
+#define RX_BUF_SIZE         64
+
+static void gs_thread(gs_conninfo_t* conninfo);
+
 static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 {
     int ret;
     usleep(5000);
     ret = modbus_read_input_registers(ctx, reg, count, buffer);
-    if (ret == -1)
-        fprintf(stderr, "Read reg %d failed: %s\n", reg, modbus_strerror(errno));
+    if (ret == -1) {
+//        fprintf(stderr, "Read reg %d failed: %s\n", reg, modbus_strerror(errno));
+    }
     return ret;
 }
 
@@ -140,6 +146,63 @@ int gs_reset_total_counters(modbus_t *ctx){
     return 0;
 }
 
+int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
+{
+    char filename[FILENAME_MAX_SIZE];
+
+    // modbus_port
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, DEF_CONFIG_MODBUS_PORT, idx);
+
+    int ret = parse_integer_config(filename);
+    if(ret == -1) {
+        return -1;
+    }
+    conninfo->port = ret;
+
+    // modbus_address
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, DEF_CONFIG_MODBUS_DEVICE_ADDRESS, idx);
+
+    ret = parse_integer_config(filename);
+    if(ret == -1) {
+        return -1;
+    }
+    conninfo->devaddr = ret;
+
+    conninfo->baudrate = DEF_BAUDRATE;
+    conninfo->connection_lost_flag = 0;
+
+    pthread_create(&conninfo->thread_id, NULL, gs_thread, conninfo);
+}
+
+static void gs_thread(gs_conninfo_t* conninfo) {
+    int ret;
+    conninfo->ctx = gs_init(conninfo);
+    ret = gs_get_version(conninfo->ctx);
+    if(ret == -1) {
+        conninfo->connection_lost_flag = -1;
+    }
+    
+    gs_get_all_units(conninfo->ctx, &conninfo->measure_units);
+    gs_reset_total_counters(conninfo->ctx);
+    gs_start_count(conninfo->ctx);
+
+    while(1) {
+        ret = gs_get_all_measurements(conninfo->ctx, &conninfo->measurements);
+        if(ret == -1) {
+            conninfo->connection_lost_flag = -1;
+        } else {
+            conninfo->connection_lost_flag = 0;
+        }
+        usleep(300000);
+    }
+}
+
+int gs_check_state(gs_conninfo_t* conninfo) {
+    return conninfo->connection_lost_flag;
+}
+
 modbus_t *gs_init(gs_conninfo_t *conninfo)
 {
     modbus_t *ctx;
@@ -147,7 +210,7 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
     char port[16];
 
     sprintf(&port, "/dev/ttymxc%d", conninfo->port);
-    printf("Connecting to %s...\n", port);
+//    printf("Connecting to %s...\n", port);
     ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
     if (ctx == NULL)
     {
