@@ -87,13 +87,6 @@ struct rk_t {
 #define DEF_CONFIG_FILE_SUMMATOR_VOLUME             "/etc/gs/%d/summatorVolume"
 #define DEF_CONFIG_FILE_PRICE_PER_LITER_MASK        "/etc/gs/%d/pricePerLiter"
 
-// To-Do:
-// implement usage of microSD based files to:
-// 1. keep SPI NOR flash writing/erasing resource
-// 2. prevent device bricking by supply power loosing on writing to SPI NOR
-// E.g. on start application should check whether following (listed below) microSD files exists.
-// If no it should created them by copying default files (listed above) from SPI NOR to microSD.
-// Do not copy file in reverse from microSD to SPI NOR never!
 
 #define CONFIG_FILE_IS_ENABLED                  "/mnt/gs/%d/isEnabled"
 #define CONFIG_FILE_IS_LEFT                     "/mnt/gs/%d/isLeft"

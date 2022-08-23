@@ -11,7 +11,7 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
 
     // channel_idx
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, DEF_CONFIG_FILE_CHANNEL_IDX, idx);
+    sprintf(filename, CONFIG_FILE_CHANNEL_IDX, idx);
 
     memset(in_4_20->channel_idx_filename, 0, sizeof(in_4_20->channel_idx_filename));
     strcpy(in_4_20->channel_idx_filename, filename);

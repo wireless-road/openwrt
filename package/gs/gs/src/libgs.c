@@ -152,7 +152,7 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
 
     // modbus_port
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, DEF_CONFIG_MODBUS_PORT, idx);
+    sprintf(filename, CONFIG_MODBUS_PORT, idx);
 
     int ret = parse_integer_config(filename);
     if(ret == -1) {
@@ -162,7 +162,7 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
 
     // modbus_address
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, DEF_CONFIG_MODBUS_DEVICE_ADDRESS, idx);
+    sprintf(filename, CONFIG_MODBUS_DEVICE_ADDRESS, idx);
 
     ret = parse_integer_config(filename);
     if(ret == -1) {

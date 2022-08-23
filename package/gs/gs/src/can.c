@@ -11,7 +11,7 @@ int CAN_init(int idx, can_t* can) {
 
     // busNumber
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, DEF_CONFIG_FILE_CAN_BUS_NUMBER, idx);
+    sprintf(filename, CONFIG_FILE_CAN_BUS_NUMBER, idx);
     memset(can->config_filename_bus_number, 0, sizeof(can->config_filename_bus_number));
     strcpy(can->config_filename_bus_number, filename);
     int ret = parse_integer_config(filename);
@@ -30,7 +30,7 @@ int CAN_init(int idx, can_t* can) {
 
     // deviceBaseAddress
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, DEF_CONFIG_FILE_CAN_DEVICE_ADDRESS, idx);
+    sprintf(filename, CONFIG_FILE_CAN_DEVICE_ADDRESS, idx);
     memset(can->config_filename_device_address, 0, sizeof(can->config_filename_device_address));
     strcpy(can->config_filename_device_address, filename);
     ret = parse_integer_config(filename);
