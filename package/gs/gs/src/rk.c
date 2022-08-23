@@ -218,22 +218,23 @@ static int rk_fueling_simulation(rk_t* self) {
         }
 
         self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
-        self->summator_volume = self->prev_summator_volume + self->fueling_current_volume;
-        self->summator_price = self->prev_summator_price + self->fueling_current_price;
+        self->summator_volume = self->prev_summator_volume + self->fueling_current_volume + self->fueling_interrupted_volume;
+        self->summator_price = self->prev_summator_price + self->fueling_current_price + self->fueling_interrupted_price;
 
         self->can_bus.transmit(&self->can_bus,
                                self->fueling_current_volume + self->fueling_interrupted_volume,
                                self->fueling_price_per_liter,
                                (self->fueling_current_volume + self->fueling_interrupted_volume) * self->fueling_price_per_liter);
-        printf("currently fueled volume: %.2f of %.2f dose. summator volume: %f, summator price: %f\r\n", self->fueling_current_volume,
+        printf("currently fueled volume: %.2f of %.2f dose. summator volume: %.2f, interrupted volume: %.2f\r\n",
+               self->fueling_current_volume,
                self->fueling_dose_in_liters,
                self->summator_volume,
-               self->summator_price);
+               self->fueling_interrupted_volume);
 
         if(self->state == trk_disabled_fueling_finished) {
             char volume_summator[8] = {0};
-            self->summator_volume += self->fueling_interrupted_volume;
-            self->summator_price += self->fueling_interrupted_price;
+//            self->summator_volume += self->fueling_interrupted_volume;
+//            self->summator_price += self->fueling_interrupted_price;
             sprintf(volume_summator, "%.2f", self->summator_volume);
             set_config(self->config_filename_summator_volume, volume_summator, strlen(volume_summator));
             self->fueling_interrupted_volume = 0.00;
