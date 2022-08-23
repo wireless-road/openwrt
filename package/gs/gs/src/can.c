@@ -86,9 +86,11 @@ static int CAN_send(can_t* self, float volume, float price, float totalPrice) {
     self->frame.can_dlc = sizeof (frame_data);
 
     memcpy(&self->frame.data, frame_data, sizeof(frame_data));
-
-    if (write(self->fd, &self->frame, sizeof(self->frame)) != sizeof(self->frame))
+    // To-Do: handle case of write() hangs if no devices on the bus
+    int res = write(self->fd, &self->frame, sizeof(self->frame));
+    if (res != sizeof(self->frame)) {
         fprintf(stderr, "CAN write error: %s\n", strerror(errno));
+    }
 
     // send frame for lower row data
     self->frame.can_id = self->deviceAddress + 1;
