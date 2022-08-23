@@ -435,6 +435,24 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_FUELING_DOSE_IN_RUBLES:
             printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_RUBLES\n", self->side == left ? "Left" : "Right", self->address);
+            // Unused as GasKit converts price to dose and requests AZT_REQUEST_FUELING_DOSE_IN_LITERS
+            char price_[8] = {0};
+            price_[0] = req->params[0];
+            price_[1] = req->params[1];
+            price_[2] = req->params[2];
+            price_[3] = req->params[3];
+            price_[4] = '.';
+            price_[5] = req->params[4];
+            price_[6] = req->params[5];
+            float fueling_dose_in_rubles = strtof(price_, NULL);
+            self->fueling_dose_in_liters = fueling_dose_in_rubles / self->fueling_price_per_liter;
+            self->fueling_dose_in_rubles = 0.00;
+            ret = 0;  // To-Do: implement checkout whether we can start fueling process
+            if(ret == 0) {
+                azt_tx_ack();
+            } else {
+                azt_tx_can();
+            }
             break;
         case AZT_REQUEST_FUELING_DOSE_IN_LITERS:
             printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_LITERS\n", self->side == left ? "Left" : "Right", self->address);
