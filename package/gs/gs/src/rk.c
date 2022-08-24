@@ -197,7 +197,6 @@ static int rk_fueling_simulation(rk_t* self) {
         self->prev_summator_volume = self->summator_volume;
         self->prev_summator_price = self->summator_price;
         store_prev_summators_flag = 1;
-        self->fueling_current_finished_flag = FALSE;
     }
 
     if(self->fueling_dose_in_liters > 0.00) {
@@ -212,6 +211,12 @@ static int rk_fueling_simulation(rk_t* self) {
         // Simulation ends here
 
         if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.001) {
+            self->state = trk_disabled_fueling_finished;
+            self->state_issue = trk_state_issue_less_or_equal_dose;
+            store_prev_summators_flag = 0;
+        }
+
+        if(fabs(self->fueling_current_volume - SIMULATION_FUELING_FULL_TANK_VOLUME) <= 0.001) {
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
@@ -233,13 +238,10 @@ static int rk_fueling_simulation(rk_t* self) {
 
         if(self->state == trk_disabled_fueling_finished) {
             char volume_summator[8] = {0};
-//            self->summator_volume += self->fueling_interrupted_volume;
-//            self->summator_price += self->fueling_interrupted_price;
             sprintf(volume_summator, "%.2f", self->summator_volume);
             set_config(self->config_filename_summator_volume, volume_summator, strlen(volume_summator));
             self->fueling_interrupted_volume = 0.00;
             self->fueling_interrupted_price = 0.00;
-            self->fueling_current_finished_flag = TRUE;
 
             char price_summator[10] = {0};
             sprintf(price_summator, "%.2f", self->summator_price);
@@ -308,7 +310,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE:
-            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+            printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_FULL_FUELING_VALUE:
             printf("%s RK. Address %d. AZT_REQUEST_FULL_FUELING_VALUE\n", self->side == left ? "Left" : "Right", self->address);
@@ -344,11 +346,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("\tfueling_current_volume: %.2f. fueling_current_price: %.2f\r\n", self->fueling_current_volume, self->fueling_current_price);
             if(reset_current_fueling_values_flag == TRUE) {
                 reset_current_fueling_values_flag = FALSE;
-//                printf("\treset_current_fueling_values_flag = %d\r\n", reset_current_fueling_values_flag);
-                if(self->fueling_current_finished_flag == TRUE) {
-                    self->fueling_current_volume = 0.00;
-                    self->fueling_current_price = 0.00;
-                }
             }
             break;
         case AZT_REQUEST_SUMMATORS_VALUE:
@@ -492,13 +489,13 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_TRK_ADDRESS_CHANGE:
-            printf("%s RK. Address %d. AZT_REQUEST_TRK_ADDRESS_CHANGE\n", self->side == left ? "Left" : "Right", self->address);
+            printf("!!!%s RK. Address %d. AZT_REQUEST_TRK_ADDRESS_CHANGE\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_COMMON_PARAMETERS_SETUP:
-            printf("%s RK. Address %d. AZT_REQUEST_COMMON_PARAMETERS_SETUP\n", self->side == left ? "Left" : "Right", self->address);
+            printf("!!!%s RK. Address %d. AZT_REQUEST_COMMON_PARAMETERS_SETUP\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_CURRENT_TRANSACTION:
-            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_TRANSACTION\n", self->side == left ? "Left" : "Right", self->address);
+            printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_TRANSACTION\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_READ_PARAMS:
             printf("%s RK. Address %d. AZT_REQUEST_READ_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
@@ -557,10 +554,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_WRITE_PARAMS:
-            printf("%s RK. Address %d. AZT_REQUEST_WRITE_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
+            printf("!!!%s RK. Address %d. AZT_REQUEST_WRITE_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_CURRENT_DOSE_READING:
-            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_DOSE_READING\n", self->side == left ? "Left" : "Right", self->address);
+            printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_DOSE_READING\n", self->side == left ? "Left" : "Right", self->address);
             break;
         default:
             break;

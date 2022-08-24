@@ -35,6 +35,7 @@ typedef enum {
     trk_state_issue_overdose = 0x31
 } trk_state_issue_t;
 
+#define SIMULATION_FUELING_FULL_TANK_VOLUME	6.0f
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
 #define PRICE_PER_LITER_DIGITS      6
