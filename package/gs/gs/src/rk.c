@@ -132,6 +132,8 @@ int rk_init(int idx, rk_t* rk) {
         rk_indicate_error_message(rk);
     }
 
+    rk->fueling_process_flag = 0;
+    led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);
     ret = gs_init_pthreaded(idx, &rk->modbus);
     return 0;
 }
@@ -172,15 +174,20 @@ static void rk_indicate_error_message(rk_t* self) {
 static int rk_process(rk_t* self) {
     switch (self->state) {
         case trk_disabled_rk_installed:
+        	self->fueling_process_flag = 0;
             break;
         case trk_disabled_rk_taken_off:
+        	self->fueling_process_flag = 0;
             break;
         case trk_authorization_cmd:
+        	self->fueling_process_flag = 0;
             break;
         case trk_enabled_fueling_process:
+        	self->fueling_process_flag = 1;
             rk_fueling_simulation(self);
             break;
         case trk_disabled_fueling_finished:
+        	self->fueling_process_flag = 0;
             break;
         case trk_disabled_local_control_unit_dose:
             break;

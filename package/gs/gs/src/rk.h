@@ -18,6 +18,7 @@
 #include "in_4_20_ma.h"
 #include "error.h"
 #include "libgs.h"
+#include "led.h"
 
 typedef enum { right, left } rk_side;
 
@@ -35,7 +36,7 @@ typedef enum {
     trk_state_issue_overdose = 0x31
 } trk_state_issue_t;
 
-#define SIMULATION_FUELING_FULL_TANK_VOLUME	6.0f
+#define SIMULATION_FUELING_FULL_TANK_VOLUME	1.2f
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
 #define PRICE_PER_LITER_DIGITS      6
@@ -47,6 +48,7 @@ struct rk_t {
     int enabled;
     rk_side side;
     trk_state_t state;
+    int fueling_process_flag;
     trk_state_issue_t state_issue;
     int address;
     int local_control_allowed;
@@ -78,6 +80,7 @@ struct rk_t {
     gs_conninfo_t modbus;
     void (*btn_clbk_start)(int);
     void (*btn_clbk_stop)(int);
+    led_t led;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
