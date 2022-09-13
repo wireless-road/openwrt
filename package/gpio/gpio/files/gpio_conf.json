@@ -1,8 +1,23 @@
 {
 	"gpios": [
 		{
-			"controller_number": "4",
-			"pad_number": "10",
+			"controller_number": "3",
+			"pad_number": "1",
+			"direction": "in"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "7",
+			"direction": "in"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "0",
+			"direction": "out"
+		},
+		{
+			"controller_number": "5",
+			"pad_number": "3",
 			"direction": "out"
 		}
 	]

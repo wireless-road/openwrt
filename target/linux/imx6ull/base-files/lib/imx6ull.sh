@@ -64,16 +64,19 @@ imx6ull_board_detect() {
 	"Amazon Voice Service WiFi")
 		name="amazon_voice_service_wifi";
 		;;
+	"ICPCON")
+		name="icpcon";
+		;;
 	*)
 
 		name="generic"
 		;;
 	esac
-	
+
 	if [ "$name" != "generic" ];then
 		model="$name";
 	fi;
-	
+
 	[ -z "$IMX6_BOARD_NAME" ] && IMX6_BOARD_NAME="$name"
 	[ -z "$IMX6_MODEL" ] && IMX6_MODEL="$machine"
 

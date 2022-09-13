@@ -59,22 +59,22 @@ define Build/imx6ull-ubootimg
 	rm -f $@.preamble
 	dd if=/dev/zero of=$@.preamble bs=1024 count=1
 	cat $@.preamble $(STAGING_DIR_IMAGE)/wirelessroad_ecspi3-u-boot.imx >$@
-	
+
 	$(eval IMX6ULL_UBOOTIMG := $@)
 endef
 
 define Build/imx6ull-mtd-factory
-	
+
 	mv $@ $@.fw
-	
+
 	$(call Build/imx6ull-ubootimg)
 	dd if=/dev/zero of=$@.new bs=1M count=1
 	dd if=$@ of=$@.new conv=notrunc
-	
+
 	echo "ARGUMENT NAME: $@";
-	
+
 	cat $@.fw >>$@.new
-	
+
 	mv $@.new $@
 	rm -f $@.new
 endef
@@ -407,5 +407,23 @@ define Device/amazon_voice_service_wifi
 endef
 TARGET_DEVICES += amazon_voice_service_wifi
 
+define Device/icpcon
+        DEVICE_TITLE := ICPCON
+        DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-spi-dev kmod-can-flexcan
+        DEVICE_NAME := icpcon
+        DEVICE_DTS := icpcon
+        BOARDNAME := WIRELESSROAD_ICPCON_IMX6ULL
+        SUPPORTED_DEVICES := icpcon
+        IMAGE_SIZE := 31m
+        IMAGE_SIZE_FACTORY := 32m
+        CONSOLE := ttymxc0,115200
+        KERNEL := kernel-bin | buildDtb | append-dtb | uImage none | imx6ull-bootscript
+        IMAGES := u-boot.bin sdcard.bin mtd-sysupgrade.bin mtd-factory.bin
+        IMAGE/u-boot.bin := imx6ull-ubootimg
+        IMAGE/sdcard.bin := imx6ull-sdcard | append-metadata
+        IMAGE/mtd-sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
+        IMAGE/mtd-factory.bin := append-kernel | append-rootfs | pad-rootfs | imx6ull-mtd-factory | append-metadata | check-size $$$$(IMAGE_SIZE_FACTORY)
+endef
+TARGET_DEVICES += icpcon
 
 endif
