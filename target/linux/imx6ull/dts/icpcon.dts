@@ -282,14 +282,6 @@
 	};
 };
 
-&fec1 {
-	mac-address = [de ad be ef 00 77];
-};
-
-&fec2 {
-	mac-address = [de ad be ef 00 66];
-};
-
 &adc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_adc1>;
