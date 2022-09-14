@@ -101,6 +101,7 @@ int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
         *p = modbus_get_float_badc(&buf[i]);
         p++;
     }
+    return 0;
 }
 
 int gs_set_mass_units(modbus_t *ctx, int mass_units)
@@ -138,11 +139,17 @@ int gs_stop_cunt(modbus_t *ctx){
 int gs_reset_total_counters(modbus_t *ctx){
     int ret;
     if(modbus_write_bit(ctx, C_MMI_RESET_TOTALS, 1) == -1){
-        return -1;
+        //return -1;
     }
     if(modbus_write_bit(ctx, C_MMI_RESET_TOTALS, 0) == -1){
-        return -1;
+        return -2;
     }
+    //if(modbus_write_bit(ctx, C_MMI_RESET_INVENT, 1) == -1){
+    //    //return -3;
+    //}
+    //if(modbus_write_bit(ctx, C_MMI_RESET_INVENT, 0) == -1){
+    //    return -4;
+    //}
     return 0;
 }
 
@@ -176,24 +183,48 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
     pthread_create(&conninfo->thread_id, NULL, gs_thread, conninfo);
 }
 
+static void print_measts(measurements_t *ms)
+{
+	printf("Meas: MFR: %.2f. DEN: %.2f. TEMP: %.2f. \
+VFR: %.2f. PRESS: %.2f. M_TOTAL: %.2f. \
+V_TOTAL: %.2f. M_INV: %.2f. V_INV: %.2f\r\n",
+				ms->mass_flowrate,
+				ms->density,
+				ms->temprature,
+				ms->volme_flowrate,
+				ms->pressure,
+				ms->mass_total,
+				ms->volume_total,
+				ms->mass_inventory,
+				ms->volume_inventory);
+
+}
+
+
 static void gs_thread(gs_conninfo_t* conninfo) {
     int ret;
     conninfo->ctx = gs_init(conninfo);
     ret = gs_get_version(conninfo->ctx);
+    printf("ret0 %d\r\n", ret);
+    
     if(ret == -1) {
         conninfo->connection_lost_flag = -1;
     }
     
-    gs_get_all_units(conninfo->ctx, &conninfo->measure_units);
-    gs_reset_total_counters(conninfo->ctx);
+    ret = gs_get_all_units(conninfo->ctx, &conninfo->measure_units);
+    printf("ret1 %d\r\n", ret);
+    ret = gs_reset_total_counters(conninfo->ctx);
+    printf("ret2 %d\r\n", ret);
     gs_start_count(conninfo->ctx);
-
+ 
     while(1) {
         ret = gs_get_all_measurements(conninfo->ctx, &conninfo->measurements);
-        if(ret == -1) {
+    	if(ret == -1) {
+	    printf("rett %d\r\n", ret);
             conninfo->connection_lost_flag = -1;
         } else {
             conninfo->connection_lost_flag = 0;
+            print_measts(&conninfo->measurements);
         }
         usleep(300000);
     }

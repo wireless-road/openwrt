@@ -13,7 +13,7 @@
 #include "settings.h"
 
 #define DEF_BAUDRATE    9600
-#define DEF_ADDR 2
+#define DEF_ADDR 1
 
 typedef struct measure_units {
     uint16_t massflow_unit;

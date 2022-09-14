@@ -78,18 +78,18 @@ static int led_indicate_thread(led_t* led) {
 //	printf("LED ERROR gpio filename: %s\r\n", led->error_led_filename);
     while(1) {
     	if(*led->error_flag) {
-    		printf("LED. Error: %d\r\n", *led->error_flag);
+    		//printf("LED. Error: %d\r\n", *led->error_flag);
     		if(led->normal_led_state == on) {
     			led->normal_led_state = off;
     			set_config(led->normal_led_filename, "0", 1);
     		}
 
     		if(led->error_led_state == off) {
-    			printf("LED. Error. ON.\r\n");
+    			//printf("LED. Error. ON.\r\n");
     			led->error_led_state = on;
     			set_config(led->error_led_filename, "1", 1);
     		} else {
-    			printf("LED. Error. OFF.\r\n");
+    			//printf("LED. Error. OFF.\r\n");
     			led->error_led_state = off;
     			set_config(led->error_led_filename, "0", 1);
     		}

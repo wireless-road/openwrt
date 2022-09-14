@@ -30,9 +30,6 @@ int rk_init(int idx, rk_t* rk) {
     rk->fueling_current_price = 0.00;
     rk->fueling_interrupted_price = 0.00;
 
-    CAN_init(idx, &rk->can_bus);
-    error_init(&rk->error_state);
-
     // isEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_IS_ENABLED, idx);
@@ -43,7 +40,6 @@ int rk_init(int idx, rk_t* rk) {
         return -1;
     }
     rk->enabled = ret;
-
 
     // isLeft
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -56,6 +52,15 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->side = ret;
 
+    rk->is_not_fault = rk_check_state;
+
+    if(!rk->enabled) {
+    	printf("INFO. %s RK disabled\r\n", rk->side == left ? "Left" : "Right");
+    	return 0;
+    }
+
+    CAN_init(idx, &rk->can_bus);
+    error_init(&rk->error_state);
 
     // address
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -69,8 +74,6 @@ int rk_init(int idx, rk_t* rk) {
     rk->address = ret;
 
 
-//    rk->is_not_fault = rk_is_not_fault;
-    rk->is_not_fault = rk_check_state;
     rk->process = rk_process;
     rk->azt_req_hndl = azt_req_handler;
     rk->state = trk_disabled_rk_installed;
@@ -143,6 +146,9 @@ static int rk_is_not_fault(rk_t* self) {
 }
 
 static int rk_check_state(rk_t* self) {
+    if(!self->enabled) {
+    	return 0;
+    }
     // 4-20ma checkout
     int ret = in_4_20_ma_read(&self->in_4_20);
     if( (ret == -1) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) ) {
@@ -156,9 +162,11 @@ static int rk_check_state(rk_t* self) {
     // modbus checkout
     ret = gs_check_state(&self->modbus);
     if( (ret == -1) && error_is_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED) ) {
+	printf("MB ERROR. mb state %d\r\n", ret);
         error_set(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
         rk_indicate_error_message(self);
     } else if( (ret != -1) && error_is_set(&self->error_state, ERROR_MODBUS_NOT_CONNECTED)) {
+	printf("MB NOT ERROR. mb state %d\r\n", ret);
         error_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
@@ -264,6 +272,9 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         return 0;
     }
 
+    if(!self->enabled) {
+    	return 0;
+    }
     char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
     int cnt = 0;
 
