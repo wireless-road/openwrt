@@ -7,7 +7,7 @@ board=$(board_name)
 board_config_update
 
 case "$board" in
-gs)
+gs | lorawan_gateway_3g)
     uci set network.wwan=interface
     uci set network.wwan.ifname='wwan0'
     uci set network.wwan.proto='qmi'
