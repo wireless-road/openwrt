@@ -39,18 +39,38 @@ function gs_state_get()
 	result.gpios = {}
 	result.telemetry = {}
 	local gpios = {}
+	local value_0 = tonumber(nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage0_raw"):sub(1,-2))
+	local value_1 = tonumber(nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage1_raw"):sub(1,-2))
+	local raw_value_0 = value_0
+	local raw_value_1 = value_1
+	if value_0 < 100 then
+	    value_0 = 'broken'
+	else
+	    value_0 = string.format( "%.1f mA", (value_0 - 2100) / 537.5 + 4.0)
+	end
+	if value_1 < 100 then
+	    value_1 = 'broken'
+	else
+	    value_1 = string.format( "%.1f mA", (value_1 - 2100) / 537.5 + 4.0)
+	end
+
+	local temperature_raw =  nixio.fs.readfile("/sys/class/hwmon/hwmon1/temp1_input"):sub(1,-2)
+    local temperature = string.format( "%.1f °C", tonumber(temperature_raw) / 1000)
 	result.telemetry = {
 	    {
 	        name = "temperature",
-	        value = nixio.fs.readfile("/sys/class/hwmon/hwmon1/temp1_input"):sub(1,-2)
+	        value = temperature,
+	        raw_value = temperature_raw
 	    },
 	    {
 	        name = "input_4_20_channel_0",
-	        value = nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage0_raw"):sub(1,-2)
+	        value = value_0,
+	        raw_value = raw_value_0
 	    },
 	    {
 	        name = "input_4_20_channel_1",
-	        value = nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage1_raw"):sub(1,-2)
+	        value = value_1,
+	        raw_value = raw_value_1
 	    }
 	}
 	local tmp = {}
