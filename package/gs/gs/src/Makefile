@@ -1,7 +1,7 @@
 all: gs test_modbus
 
 CC = gcc
-CFLAGS += -Wall -Wunused
+CFLAGS += -Wall -Wunused -std=c11
 LDFLAGS =
 
 DEPS = $(wildcard *.h)

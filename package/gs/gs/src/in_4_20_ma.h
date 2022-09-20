@@ -22,6 +22,7 @@
 #include "settings.h"
 
 #include <pthread.h>
+#include <stdatomic.h>
 
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
@@ -32,7 +33,7 @@ typedef struct in_4_20_t in_4_20_t;
 struct in_4_20_t {
     int fd;
     int channel_idx;
-    int value;
+    _Atomic int value;
     float value_converted;
     char channel_idx_filename[CONFIG_FILENAME_MAX_LENGTH];
     char value_filename[CONFIG_FILENAME_MAX_LENGTH];
