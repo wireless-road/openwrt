@@ -45,6 +45,7 @@ int CAN_init(int idx, can_t* can) {
 
 static int CAN_socket_init(char* interface) {
     int sc;
+    int flags;
     struct ifreq ifr;
     struct sockaddr_can caddr;
     socklen_t caddrlen = sizeof(caddr);
@@ -56,6 +57,8 @@ static int CAN_socket_init(char* interface) {
         fprintf(stderr, "CAN socket error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
+    flags = fcntl(sc, F_GETFL);
+    fcntl(sc, F_SETFL, flags | O_NONBLOCK);
 
     caddr.can_family = AF_CAN;
     if (ioctl(sc, SIOCGIFINDEX, &ifr) < 0) {
@@ -89,7 +92,8 @@ static int CAN_send(can_t* self, float volume, float price, float totalPrice) {
     // To-Do: handle case of write() hangs if no devices on the bus
     int res = write(self->fd, &self->frame, sizeof(self->frame));
     if (res != sizeof(self->frame)) {
-        fprintf(stderr, "CAN write error: %s\n", strerror(errno));
+        if (errno != EAGAIN)
+            fprintf(stderr, "CAN write error: %s\n", strerror(errno));
     }
 
     // send frame for lower row data
@@ -98,6 +102,7 @@ static int CAN_send(can_t* self, float volume, float price, float totalPrice) {
     memcpy(&self->frame.data, frame2_data, sizeof(frame2_data));
 
     if (write(self->fd, &self->frame, sizeof(self->frame)) != sizeof(self->frame))
-        fprintf(stderr, "CAN write error: %s\n", strerror(errno));
+        if (errno != EAGAIN)
+            fprintf(stderr, "CAN write error: %s\n", strerror(errno));
 
 }

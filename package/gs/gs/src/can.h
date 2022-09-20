@@ -8,6 +8,7 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -45,4 +46,3 @@ struct can_t {
 int CAN_init(int idx, can_t* can);
 
 #endif  // CAN_H
-
