@@ -192,6 +192,8 @@ static int rk_process(rk_t* self) {
             break;
         case trk_enabled_fueling_process:
         	self->fueling_process_flag = 1;
+        	float mass = atomic_load(&self->modbus.summator_mass);
+        	float volume = atomic_load(&self->modbus.summator_volume);
             rk_fueling_simulation(self);
             break;
         case trk_disabled_fueling_finished:

@@ -6,6 +6,7 @@
 #include <modbus/modbus.h>
 #include <modbus/modbus-rtu.h>
 #include <pthread.h>
+#include <stdatomic.h>
 
 #include "mmi.h"
 #include "flomac.h"
@@ -48,6 +49,8 @@ typedef struct gs_conninfo {
     modbus_t *ctx;
     measure_units_t measure_units;
     measurements_t measurements;
+    _Atomic float summator_volume;
+    _Atomic float summator_mass;
     int connection_lost_flag;
 } gs_conninfo_t;
 

@@ -180,6 +180,9 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
     conninfo->baudrate = DEF_BAUDRATE;
     conninfo->connection_lost_flag = 0;
 
+    atomic_init(&conninfo->summator_volume, 0.00);
+    atomic_init(&conninfo->summator_mass, 0.00);
+
     pthread_create(&conninfo->thread_id, NULL, gs_thread, conninfo);
 }
 
@@ -203,6 +206,8 @@ V_TOTAL: %.2f. M_INV: %.2f. V_INV: %.2f\r\n",
 
 static void gs_thread(gs_conninfo_t* conninfo) {
     int ret;
+    _Atomic float* mass = (_Atomic float*)&conninfo->summator_mass;
+    _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
     conninfo->ctx = gs_init(conninfo);
     ret = gs_get_version(conninfo->ctx);
     
@@ -221,6 +226,8 @@ static void gs_thread(gs_conninfo_t* conninfo) {
         } else {
             conninfo->connection_lost_flag = 0;
             print_measts(&conninfo->measurements);
+            atomic_store(mass, conninfo->measurements.mass_inventory);
+            atomic_store(volume, conninfo->measurements.volume_inventory);
         }
         usleep(300000);
     }

@@ -41,8 +41,8 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
 }
 
 int in_4_20_ma_read(in_4_20_t* in_4_20) {
-	atomic_load(&in_4_20->value);
-    if(in_4_20->value < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
+	int val = atomic_load(&in_4_20->value);
+    if(val < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
         return -1;
     } else {
         return in_4_20->value;
