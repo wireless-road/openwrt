@@ -205,22 +205,18 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     int ret;
     conninfo->ctx = gs_init(conninfo);
     ret = gs_get_version(conninfo->ctx);
-    printf("ret0 %d\r\n", ret);
     
     if(ret == -1) {
         conninfo->connection_lost_flag = -1;
     }
     
     ret = gs_get_all_units(conninfo->ctx, &conninfo->measure_units);
-    printf("ret1 %d\r\n", ret);
     ret = gs_reset_total_counters(conninfo->ctx);
-    printf("ret2 %d\r\n", ret);
     gs_start_count(conninfo->ctx);
  
     while(1) {
         ret = gs_get_all_measurements(conninfo->ctx, &conninfo->measurements);
     	if(ret == -1) {
-	    printf("rett %d\r\n", ret);
             conninfo->connection_lost_flag = -1;
         } else {
             conninfo->connection_lost_flag = 0;

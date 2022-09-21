@@ -53,6 +53,7 @@ int rk_init(int idx, rk_t* rk) {
     rk->side = ret;
 
     rk->is_not_fault = rk_check_state;
+    rk->azt_req_hndl = azt_req_handler;
 
     if(!rk->enabled) {
     	printf("INFO. %s RK disabled\r\n", rk->side == left ? "Left" : "Right");
@@ -75,7 +76,6 @@ int rk_init(int idx, rk_t* rk) {
 
 
     rk->process = rk_process;
-    rk->azt_req_hndl = azt_req_handler;
     rk->state = trk_disabled_rk_installed;
     rk->state_issue = trk_state_issue_less_or_equal_dose;
 
@@ -207,7 +207,6 @@ static int rk_process(rk_t* self) {
 static int rk_fueling_simulation(rk_t* self) {
     static int store_prev_summators_flag = 0;
     usleep(100000);
-
     if(!store_prev_summators_flag) {
         self->prev_summator_volume = self->summator_volume;
         self->prev_summator_price = self->summator_price;
@@ -267,14 +266,16 @@ static int rk_fueling_simulation(rk_t* self) {
 
 static int azt_req_handler(azt_request_t* req, rk_t* self)
 {
-    static reset_current_fueling_values_flag = FALSE;
-    if(req->address != self->address) {
-        return 0;
-    }
+	static reset_current_fueling_values_flag = FALSE;
 
     if(!self->enabled) {
     	return 0;
     }
+
+	if(req->address != self->address) {
+        return 0;
+    }
+
     char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
     int cnt = 0;
 

@@ -9,11 +9,21 @@ int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
 
     char filename[FILENAME_MAX_SIZE];
 
+    // enabled
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_FILE_LED_ENABLED, idx);
+
+    int ret = parse_integer_config(filename);
+    if(ret == -1) {
+        return -1;
+    }
+    led->enabled = ret;
+
     // normal led port
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_NORMAL_LED_PORT, idx);
 
-    int ret = parse_integer_config(filename);
+    ret = parse_integer_config(filename);
     if(ret == -1) {
         return -1;
     }
@@ -77,6 +87,10 @@ static int led_indicate_thread(led_t* led) {
 //	printf("LED NORMAL gpio filename: %s\r\n", led->normal_led_filename);
 //	printf("LED ERROR gpio filename: %s\r\n", led->error_led_filename);
     while(1) {
+    	if(!led->enabled) {
+    		sleep(1);
+    		continue;
+    	}
     	if(*led->error_flag) {
     		//printf("LED. Error: %d\r\n", *led->error_flag);
     		if(led->normal_led_state == on) {

@@ -35,6 +35,7 @@ typedef enum {
 } led_state_t;
 
 struct led_t {
+	int enabled;
     int normal_led_port;
     int normal_led_pin;
     int normal_led_number;
@@ -52,6 +53,7 @@ struct led_t {
 
 #define VALUE_FILENAME                  "/sys/bus/iio/devices/iio:device0/in_voltage%d_raw"
 
+#define CONFIG_FILE_LED_ENABLED              "/mnt/gs/%d/led_enabled"
 #define CONFIG_FILE_NORMAL_LED_PORT              "/mnt/gs/%d/led_normal_port"
 #define CONFIG_FILE_NORMAL_LED_PIN              "/mnt/gs/%d/led_normal_pin"
 #define CONFIG_FILE_ERROR_LED_PORT              "/mnt/gs/%d/led_error_port"
