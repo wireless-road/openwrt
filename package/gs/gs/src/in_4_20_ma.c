@@ -31,6 +31,7 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     ret = parse_integer_config(in_4_20->value_filename);
     in_4_20->value = ret;
 
+    atomic_init(&in_4_20->value, 0);
     pthread_create(&in_4_20->thread_id, NULL, in_4_20_ma_read_thread, in_4_20);
 
     if(ret < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
@@ -40,6 +41,7 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
 }
 
 int in_4_20_ma_read(in_4_20_t* in_4_20) {
+	atomic_load(&in_4_20->value);
     if(in_4_20->value < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
         return -1;
     } else {
@@ -48,10 +50,10 @@ int in_4_20_ma_read(in_4_20_t* in_4_20) {
 }
 
 int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {
+	_Atomic int* value = (_Atomic int*)&in_4_20->value;
     while(1) {
         int ret = parse_integer_config(in_4_20->value_filename);
-        in_4_20->value = ret;
-//        printf("in_4_20_ma thread: %d\r\n", ret);
+        atomic_store(value, ret);
         usleep(300000);
     }
 }
