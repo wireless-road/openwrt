@@ -19,6 +19,7 @@
 #include "error.h"
 #include "libgs.h"
 #include "led.h"
+#include "relay.h"
 
 typedef enum { right, left } rk_side;
 
@@ -81,6 +82,7 @@ struct rk_t {
     void (*btn_clbk_start)(int);
     void (*btn_clbk_stop)(int);
     led_t led;
+    relay_t relay;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"

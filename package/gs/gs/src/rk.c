@@ -138,6 +138,8 @@ int rk_init(int idx, rk_t* rk) {
     rk->fueling_process_flag = 0;
     led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);
     ret = gs_init_pthreaded(idx, &rk->modbus);
+
+    relay_init(idx, &rk->relay);
     return 0;
 }
 
@@ -194,6 +196,7 @@ static int rk_process(rk_t* self) {
         	self->fueling_process_flag = 1;
         	float mass = atomic_load(&self->modbus.summator_mass);
         	float volume = atomic_load(&self->modbus.summator_volume);
+//        	printf("mass: %.2f, volume: %.2f\r\n", mass, volume);
             rk_fueling_simulation(self);
             break;
         case trk_disabled_fueling_finished:

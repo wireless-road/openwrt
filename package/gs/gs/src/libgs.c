@@ -188,8 +188,8 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
 
 static void print_measts(measurements_t *ms)
 {
-	printf("Meas: MFR: %.2f. DEN: %.2f. TEMP: %.2f. \
-VFR: %.2f. PRESS: %.2f. M_TOTAL: %.2f. \
+	printf("MFR: %.2f. DEN: %.2f. TEMP: %.2f. \
+VFR: %.2f. PRESS: %.2f. M_TOT: %.2f. \
 V_TOTAL: %.2f. M_INV: %.2f. V_INV: %.2f\r\n",
 				ms->mass_flowrate,
 				ms->density,

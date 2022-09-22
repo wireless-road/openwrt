@@ -17,7 +17,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <linux/can.h>
 
 #include "settings.h"
 
