@@ -46,12 +46,12 @@ function gs_state_get()
 	if value_0 < 100 then
 	    value_0 = 'broken'
 	else
-	    value_0 = string.format( "%.1f mA", (value_0 - 2100) / 537.5 + 4.0)
+	    value_0 = string.format( "%.1f mA (%d)", (value_0 - 2100) / 537.5 + 4.0, value_0)
 	end
 	if value_1 < 100 then
 	    value_1 = 'broken'
 	else
-	    value_1 = string.format( "%.1f mA", (value_1 - 2100) / 537.5 + 4.0)
+	    value_1 = string.format( "%.1f mA (%d)", (value_1 - 2100) / 537.5 + 4.0, value_1)
 	end
 
 	local temperature_raw =  nixio.fs.readfile("/sys/class/hwmon/hwmon1/temp1_input"):sub(1,-2)
