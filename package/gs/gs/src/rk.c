@@ -194,8 +194,6 @@ static int rk_process(rk_t* self) {
             break;
         case trk_enabled_fueling_process:
         	self->fueling_process_flag = 1;
-        	float mass = atomic_load(&self->modbus.summator_mass);
-        	float volume = atomic_load(&self->modbus.summator_volume);
 //        	printf("mass: %.2f, volume: %.2f\r\n", mass, volume);
             rk_fueling_simulation(self);
             break;
@@ -222,7 +220,9 @@ static int rk_fueling_simulation(rk_t* self) {
 
         // Simulation of fueling process 0.1 liters per second
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
-            self->fueling_current_volume += 0.01;
+            self->flomac_inv_volume = atomic_load(&self->modbus.summator_volume);
+            self->fueling_current_volume = self->flomac_inv_volume - self->flomac_inv_volume_starting_value;
+//            self->fueling_current_volume += 0.01;
             if(self->fueling_current_volume > self->fueling_dose_in_liters) {
                 self->fueling_current_volume = self->fueling_dose_in_liters;
             }
@@ -249,9 +249,11 @@ static int rk_fueling_simulation(rk_t* self) {
                                self->fueling_current_volume + self->fueling_interrupted_volume,
                                self->fueling_price_per_liter,
                                (self->fueling_current_volume + self->fueling_interrupted_volume) * self->fueling_price_per_liter);
-        printf("currently fueled volume: %.2f of %.2f dose. summator volume: %.2f, interrupted volume: %.2f\r\n",
+        printf("currently fueled: %.2f of %.2f dose (%.2f --> %.2f). summator: %.2f, interrupted: %.2f\r\n",
                self->fueling_current_volume,
                self->fueling_dose_in_liters,
+			   self->flomac_inv_volume_starting_value,
+			   self->flomac_inv_volume,
                self->summator_volume,
                self->fueling_interrupted_volume);
 
@@ -289,6 +291,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
     int tmp;
     int ret;
+
+    char volume[7] = {0};
 
     switch (req->cmd) {
         case AZT_REQUEST_TRK_STATUS_REQUEST:
@@ -477,8 +481,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_FUELING_DOSE_IN_LITERS:
-            printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_LITERS\n", self->side == left ? "Left" : "Right", self->address);
-            char volume[7] = {0};
+            memset(volume, 0, sizeof(volume));
+//            char volume[7] = {0};
 
             volume[0] = req->params[0];
             volume[1] = req->params[1];
@@ -489,6 +493,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             float fueling_dose_in_liters = strtof(volume, NULL);
             self->fueling_dose_in_liters = fueling_dose_in_liters;
             self->fueling_dose_in_rubles = 0.00; // when workstation sets fuel dose volume we reset fuel dose in rubles
+            printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_LITERS: %.2f\n", self->side == left ? "Left" : "Right", self->address, self->fueling_dose_in_liters);
 
 //            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             ret = 0;  // To-Do: implement checkout whether we can start fueling process
@@ -506,6 +511,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             if(tmp == 0) {
                 self->state = trk_enabled_fueling_process;
                 self->fueling_current_volume = 0.00;
+                self->flomac_inv_volume_starting_value = atomic_load(&self->modbus.summator_volume);
+                printf("flomac inventory volume starting value: %f\r\n", self->flomac_inv_volume_starting_value);
                 self->fueling_current_price = 0.00;
                 azt_tx_ack();
             } else {

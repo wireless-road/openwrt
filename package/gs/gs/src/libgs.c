@@ -225,7 +225,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
             conninfo->connection_lost_flag = -1;
         } else {
             conninfo->connection_lost_flag = 0;
-            print_measts(&conninfo->measurements);
+//            print_measts(&conninfo->measurements);
             atomic_store(mass, conninfo->measurements.mass_inventory);
             atomic_store(volume, conninfo->measurements.volume_inventory);
         }

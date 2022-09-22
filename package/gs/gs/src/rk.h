@@ -74,6 +74,8 @@ struct rk_t {
     float fueling_interrupted_price;
     float fueling_current_volume;   // Текущий объем заправленного топлива в текущем цикле заправки
     float fueling_current_price;    // Текущая стоимость заправленного топлива в текущем цикле заправки
+    float flomac_inv_volume_starting_value;
+    float flomac_inv_volume;
     int fueling_current_finished_flag;
     can_t can_bus;
     in_4_20_t in_4_20;

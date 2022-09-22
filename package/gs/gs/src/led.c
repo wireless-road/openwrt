@@ -114,13 +114,13 @@ static int led_indicate_thread(led_t* led) {
     		}
 
     		if(*led->normal_flag) {
-        		printf("LED. Fueling: %d\r\n", *led->normal_flag);
+//        		printf("LED. Fueling: %d\r\n", *led->normal_flag);
 				if(led->normal_led_state == off) {
-					printf("LED. Fueling. ON.\r\n");
+//					printf("LED. Fueling. ON.\r\n");
 					led->normal_led_state = on;
 					set_config(led->normal_led_filename, "1", 1);
 				} else {
-					printf("LED. Fueling. OFF.\r\n");
+//					printf("LED. Fueling. OFF.\r\n");
 					led->normal_led_state = off;
 					set_config(led->normal_led_filename, "0", 1);
 				}
