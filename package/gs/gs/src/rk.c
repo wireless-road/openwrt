@@ -220,8 +220,8 @@ static int rk_fueling_simulation(rk_t* self) {
 
         // Simulation of fueling process 0.1 liters per second
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
-            self->flomac_inv_volume = atomic_load(&self->modbus.summator_volume);
-            self->fueling_current_volume = self->flomac_inv_volume - self->flomac_inv_volume_starting_value;
+            self->flomac_inv_volume = atomic_load(&self->modbus.summator_mass);
+            self->fueling_current_volume = (self->flomac_inv_volume - self->flomac_inv_volume_starting_value) / 1.0;
 //            self->fueling_current_volume += 0.01;
             if(self->fueling_current_volume > self->fueling_dose_in_liters) {
                 self->fueling_current_volume = self->fueling_dose_in_liters;
@@ -229,7 +229,9 @@ static int rk_fueling_simulation(rk_t* self) {
         }
         // Simulation ends here
 
-        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.001) {
+        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.25) {
+            relay_middle_off(&self->relay);
+            self->fueling_current_volume = self->fueling_dose_in_liters;
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
@@ -511,10 +513,11 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             if(tmp == 0) {
                 self->state = trk_enabled_fueling_process;
                 self->fueling_current_volume = 0.00;
-                self->flomac_inv_volume_starting_value = atomic_load(&self->modbus.summator_volume);
+                self->flomac_inv_volume_starting_value = atomic_load(&self->modbus.summator_mass);
                 printf("flomac inventory volume starting value: %f\r\n", self->flomac_inv_volume_starting_value);
                 self->fueling_current_price = 0.00;
                 azt_tx_ack();
+                relay_middle_on(&self->relay);
             } else {
                 azt_tx_can();
             }
