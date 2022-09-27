@@ -37,6 +37,7 @@ typedef enum {
     trk_state_issue_overdose = 0x31
 } trk_state_issue_t;
 
+
 #define SIMULATION_FUELING_FULL_TANK_VOLUME	1.2f
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
@@ -67,6 +68,8 @@ struct rk_t {
     char config_filename_summator_price[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_summator_volume[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_price_per_liter[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_gas_density[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_relay_cut_off_timing[CONFIG_FILENAME_MAX_LENGTH];
     float fueling_dose_in_liters;  // Заданная с АРМ доза к заправке в литрах
     float fueling_dose_in_rubles;  // Заданная с АРМ доза к заправке в рублях
     float fueling_price_per_liter;  // Заданная с АРМ стоимость топлива за литр
@@ -85,6 +88,8 @@ struct rk_t {
     void (*btn_clbk_stop)(int);
     led_t led;
     relay_t relay;
+    float gas_density;
+    float relay_cut_off_timing;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
@@ -94,6 +99,8 @@ struct rk_t {
 #define DEF_CONFIG_FILE_SUMMATOR_PRICE              "/etc/gs/%d/summatorPrice"
 #define DEF_CONFIG_FILE_SUMMATOR_VOLUME             "/etc/gs/%d/summatorVolume"
 #define DEF_CONFIG_FILE_PRICE_PER_LITER_MASK        "/etc/gs/%d/pricePerLiter"
+#define DEF_CONFIG_FILE_GAS_DENSITY		            "/etc/gs/%d/setting_gas_density"
+#define DEF_CONFIG_FILE_GAS_DENSITYRELAY_CUT_OFF_TIMING		"/etc/gs/%d/setting_relay_cut_off_timing"
 
 
 #define CONFIG_FILE_IS_ENABLED                  "/mnt/gs/%d/isEnabled"
@@ -103,6 +110,8 @@ struct rk_t {
 #define CONFIG_FILE_SUMMATOR_PRICE              "/mnt/gs/%d/summatorPrice"
 #define CONFIG_FILE_SUMMATOR_VOLUME             "/mnt/gs/%d/summatorVolume"
 #define CONFIG_FILE_PRICE_PER_LITER_MASK        "/mnt/gs/%d/pricePerLiter"
+#define CONFIG_FILE_GAS_DENSITY		            "/mnt/gs/%d/setting_gas_density"
+#define CONFIG_FILE_RELAY_CUT_OFF_TIMING        "/mnt/gs/%d/setting_relay_cut_off_timing"
 
 int rk_init(int idx, rk_t* rk);
 

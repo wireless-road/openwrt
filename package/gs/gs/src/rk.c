@@ -4,6 +4,8 @@
 
 #include "rk.h"
 
+//#define SIMULATION					1
+
 #define FILENAME_MAX_SIZE   64
 #define RX_BUF_SIZE         64
 
@@ -104,6 +106,28 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->summator_price = tmp;
 
+
+    // gas_density
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_FILE_GAS_DENSITY, idx);
+    memset(rk->config_filename_gas_density, 0, sizeof(rk->config_filename_gas_density));
+    strcpy(rk->config_filename_gas_density, filename);
+    ret = parse_float_config(filename, &tmp);
+    if(ret == -1) {
+        return -1;
+    }
+    rk->gas_density = tmp;
+
+    // relay_cut_off_timing
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_FILE_RELAY_CUT_OFF_TIMING, idx);
+    memset(rk->config_filename_relay_cut_off_timing, 0, sizeof(rk->config_filename_relay_cut_off_timing));
+    strcpy(rk->config_filename_relay_cut_off_timing, filename);
+    ret = parse_float_config(filename, &tmp);
+    if(ret == -1) {
+        return -1;
+    }
+    rk->relay_cut_off_timing = tmp;
 
     // summator_volume
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -221,15 +245,18 @@ static int rk_fueling_simulation(rk_t* self) {
         // Simulation of fueling process 0.1 liters per second
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
             self->flomac_inv_volume = atomic_load(&self->modbus.summator_mass);
-            self->fueling_current_volume = (self->flomac_inv_volume - self->flomac_inv_volume_starting_value) / 1.0;
-//            self->fueling_current_volume += 0.01;
+#ifdef SIMULATION
+            self->fueling_current_volume += 0.01;
+#else
+            self->fueling_current_volume = (self->flomac_inv_volume - self->flomac_inv_volume_starting_value) / self->gas_density;
+#endif
             if(self->fueling_current_volume > self->fueling_dose_in_liters) {
                 self->fueling_current_volume = self->fueling_dose_in_liters;
             }
         }
         // Simulation ends here
 
-        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= 0.25) {
+        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= self->relay_cut_off_timing) {
             relay_middle_off(&self->relay);
             self->fueling_current_volume = self->fueling_dose_in_liters;
             self->state = trk_disabled_fueling_finished;
@@ -237,12 +264,13 @@ static int rk_fueling_simulation(rk_t* self) {
             store_prev_summators_flag = 0;
         }
 
+#ifdef SIMULATION
         if(fabs(self->fueling_current_volume - SIMULATION_FUELING_FULL_TANK_VOLUME) <= 0.001) {
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
         }
-
+#endif
         self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
         self->summator_volume = self->prev_summator_volume + self->fueling_current_volume + self->fueling_interrupted_volume;
         self->summator_price = self->prev_summator_price + self->fueling_current_price + self->fueling_interrupted_price;
