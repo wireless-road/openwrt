@@ -42,6 +42,20 @@ function get_show_data(){
                 }
                 generateTelemetryHead(telemetry)
 
+                let settings_left = document.getElementById("settings_left")
+                while(settings_left.firstChild)
+                {
+                        settings_left.removeChild(settings_left.lastChild)
+                }
+                generateSettingsLeftHead(settings_left)
+
+                let settings_right = document.getElementById("settings_right")
+                while(settings_right.firstChild)
+                {
+                        settings_right.removeChild(settings_right.lastChild)
+                }
+                generateSettingsRightHead(settings_right)
+
                 XHR.get('/cgi-bin/luci/admin/gs/state_get', { token: '<%=token%>' }, function(xhr, resp) {
                         let gpios = resp.gpios
                         let len = gpios.length
@@ -65,6 +79,24 @@ function get_show_data(){
                                  )
                         }
 
+                        let settings_left = resp.settings_left
+                        len = settings_left.length
+                        for (let k = 0; k < len; k++) {
+                                 generateSettings("settings_left",
+                                         settings_left[k].name,
+                                         settings_left[k].value
+                                 )
+                        }
+
+                        let settings_right = resp.settings_right
+                        len = settings_right.length
+                        for (let k = 0; k < len; k++) {
+                                 generateSettings("settings_right",
+                                         settings_right[k].name,
+                                         settings_right[k].value
+                                 )
+                        }
+
                 })
          });
 }
@@ -81,6 +113,57 @@ function generateParamOption(class_name, text)  {
         let col = document.createElement("div")
         col.className = class_name
         col.appendChild(text)
+        return col
+}
+
+function generateSettingsOption(class_name, text)  {
+        // let col = document.createElement("div")
+        // col.className = class_name
+        // col.appendChild(text)
+        // return col
+        return text
+}
+
+function generateSettingsField(class_name, text)  {
+        let col0 = document.createElement("div")
+        col0.className = "td"
+        col0.contentEditable = "true"
+        col0.innerText = text
+        // let col = document.createElement("INPUT")
+        // col.className = "td " + class_name
+        // col.defaultValue = text
+        // col0.appendChild(col)
+        return col0
+}
+
+function settingsButtonClick(evt) {
+        row = document.getElementById(evt.currentTarget.myParam)
+        let childs = Array.from(row.childNodes)
+        // console.log("click!", evt.currentTarget.myParam.split('.')[0], evt.currentTarget.myParam.split('.')[1], childs[1].innerText)
+
+        let data = {
+                token: '<%=token%>',
+                side: evt.currentTarget.myParam.split('.')[0],
+                param: evt.currentTarget.myParam.split('.')[1],
+                value: childs[1].innerText
+        }
+
+        var xhr = new XHR();
+
+        xhr.post("/cgi-bin/luci/admin/gs/settings_set", data, function(xhr,j){
+                        // setTimeout(get_show_data, 1500)
+                }
+        )
+        // console.log("settings button click!", evt.currentTarget.myParam)
+}
+
+function generateSettingsButton(class_name, row_id)  {
+        let col = document.createElement("BUTTON")
+        // col.setAttribute("type", "button");
+        col.className = class_name
+        col.innerText = 'Change'
+        col.myParam = row_id
+        col.addEventListener("click", settingsButtonClick)
         return col
 }
 
@@ -111,6 +194,17 @@ function generateParamName(value = '') {
 function generateParamValue(value = '') {
         text = document.createTextNode(value)
         return text
+}
+
+function generateSettingsName(value = '') {
+        text = document.createTextNode(value)
+        return text
+}
+
+function generateSettingsValue(value = '') {
+        // text = document.createTextNode(value)
+        // return text
+        return value
 }
 
 function gpioToggled(e) {
@@ -172,6 +266,18 @@ function generateParam(name, value) {
         trow.appendChild(generateParamOption("td", generateParamValue(value)))
 }
 
+function generateSettings(id, name, value) {
+        let table = document.getElementById(id)
+        let trow = document.createElement("div")
+        trow.className = "trb"
+        trow.id = id + '.' + name
+
+        table.appendChild(trow)
+        trow.appendChild(generateSettingsOption("td", generateSettingsName(name)))
+        trow.appendChild(generateSettingsField("tdfield", generateSettingsValue(value)))
+        trow.appendChild(generateSettingsButton("tdbutton", trow.id))
+}
+
 function generateGpioHead(table) {
         let thead = document.createElement("div")
         thead.className = "tr table-titles"
@@ -189,6 +295,24 @@ function generateTelemetryHead(table) {
         thead.appendChild(generateHeadField("th col-2 middle center", "Raw value"))
 }
 
+function generateSettingsLeftHead(table) {
+        let thead = document.createElement("div")
+        thead.className = "tr table-titles"
+        table.appendChild(thead)
+        thead.appendChild(generateHeadField("th col-1 middle center", "Name"))
+        thead.appendChild(generateHeadField("th col-1 middle center", "Value"))
+        thead.appendChild(generateHeadField("th col-1 middle center", "Change"))
+}
+
+function generateSettingsRightHead(table) {
+        let thead = document.createElement("div")
+        thead.className = "tr table-titles"
+        table.appendChild(thead)
+        thead.appendChild(generateHeadField("th col-1 middle center", "Name"))
+        thead.appendChild(generateHeadField("th col-1 middle center", "Value"))
+        thead.appendChild(generateHeadField("th col-1 middle center", "Change"))
+}
+
 window.requestAnimationFrame(function() {
         let table = document.getElementById("table")
         get_show_data();
@@ -196,6 +320,8 @@ window.requestAnimationFrame(function() {
         setInterval(function () {
                 let rows = document.getElementById("table").children
                 let telemetry_rows = document.getElementById("telemetry").children
+                let settings_left_rows = document.getElementById("settings_left").children
+                let settings_right_rows = document.getElementById("settings_right").children
 
                 XHR.get('/cgi-bin/luci/admin/gs/state_get', { token: '<%=token%>' }, function(xhr, resp) {
                         let gpios = resp.gpios
@@ -229,6 +355,22 @@ window.requestAnimationFrame(function() {
                                 }
                         }
 
+                        // let settings_left = resp.settings_left
+                        // len = settings_left.length
+                        // for (let k = 0; k < len; k++) {
+                        //         const idd = 'settings_left.' + settings_left[k].name
+                        //         const valuee = settings_left[k].value
+                        //         for (let i = 1; i < settings_left_rows.length; i++) {
+                        //                 let row = settings_left_rows[i]
+                        //                 if (idd === row.id) {
+                        //                         let node = row.childNodes[1]
+                        //                         if (node.innerText !== valuee) {
+                        //                                 node.innerText = valuee
+                        //                         }
+                        //                 }
+                        //         }
+                        // }
+
                 })
         },1500)
 
@@ -251,6 +393,10 @@ window.requestAnimationFrame(function() {
         <div style="flex: 1; width: 100%; margin-left: 10px">
                 <h2 name="content">Telemetry</h2>
                 <div id="telemetry" class="table"></div>
+                <h2 name="content">Settings Column 1</h2>
+                <div id="settings_left" class="table"></div>
+                <h2 name="content">Settings Column 2</h2>
+                <div id="settings_right" class="table"></div>
         </div>
 </div>
 

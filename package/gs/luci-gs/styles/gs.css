@@ -75,6 +75,23 @@ input:checked + .slider:before {
   height: 40px;
 }
 
+.table .tdbutton {
+  padding: 7px 10px 7px;
+  height: 25px;
+  margin: 7px 20% 7px 20%;
+}
+
+.table .tdfield {
+  padding: 7px 10px 7px;
+  height: 25px;
+  width: 60px;
+  margin: 7px 20% 7px 20%;
+}
+
 .table .th {
   height: 40px;
+}
+
+.trb {
+  display: table-row;
 }

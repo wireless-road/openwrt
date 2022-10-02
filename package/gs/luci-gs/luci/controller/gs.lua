@@ -1,7 +1,7 @@
--- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.84:/usr/lib/lua/luci/controller/gs.lua
--- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.84:/usr/lib/lua/luci/view/gs.htm
--- scp package/gs/luci-gs/styles/gs.css root@192.168.31.84:/www/luci-static/resources/gs.css
--- scp package/gs/gs/files/gpio_conf.json root@192.168.31.84:/etc/gpio_conf.json
+-- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.238:/usr/lib/lua/luci/controller/gs.lua
+-- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.238:/usr/lib/lua/luci/view/gs.htm
+-- scp package/gs/luci-gs/styles/gs.css root@192.168.31.238:/www/luci-static/resources/gs.css
+-- scp package/gs/gs/files/gpio_conf.json root@192.168.31.238:/etc/gpio_conf.json
 
 module("luci.controller.gs", package.seeall)
 
@@ -9,6 +9,7 @@ function index()
 	entry( {"admin", "gs"}, template("gs"), _("Gs"), 99)
 	entry( {"admin", "gs", "configuration_get"}, call("gs_configuration_get")).leaf = true
 	entry( {"admin", "gs", "configuration_set"}, post("gs_configuration_set")).leaf = true
+	entry( {"admin", "gs", "settings_set"}, post("gs_settings_set")).leaf = true
 	entry( {"admin", "gs", "value_get"}, call("gs_value_get")).leaf = true
 	entry( {"admin", "gs", "value_set"}, post("gs_value_set")).leaf = true
 	entry( {"admin", "gs", "state_get"}, call("gs_state_get")).leaf = true
@@ -38,6 +39,8 @@ function gs_state_get()
 	local result = {}
 	result.gpios = {}
 	result.telemetry = {}
+	result.settings_left = {}
+	result.settings_right = {}
 	local gpios = {}
 	local value_0 = tonumber(nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage0_raw"):sub(1,-2))
 	local value_1 = tonumber(nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage1_raw"):sub(1,-2))
@@ -73,6 +76,35 @@ function gs_state_get()
 	        raw_value = raw_value_1
 	    }
 	}
+
+    local density = nixio.fs.readfile("/mnt/gs/1/setting_gas_density"):sub(1,-2)
+    local relay_cut_off = nixio.fs.readfile("/mnt/gs/1/setting_relay_cut_off_timing"):sub(1,-2)
+
+	result.settings_left = {
+	    {
+	        name = "gas density",
+	        value = density
+	    },
+	    {
+	        name = "relay cut-off",
+	        value = relay_cut_off
+	    }
+	}
+
+    density = nixio.fs.readfile("/mnt/gs/2/setting_gas_density"):sub(1,-2)
+    relay_cut_off = nixio.fs.readfile("/mnt/gs/2/setting_relay_cut_off_timing"):sub(1,-2)
+
+	result.settings_right = {
+	    {
+	        name = "gas density",
+	        value = density
+	    },
+	    {
+	        name = "relay cut-off",
+	        value = relay_cut_off
+	    }
+	}
+
 	local tmp = {}
 
 	cfg = nixio.fs.readfile(dir .. "/gpio_conf.json", 524288)
@@ -90,6 +122,8 @@ function gs_state_get()
     end
 	json_out["gpios"] = json_cfg.gpios
 	table.insert(result, telemetry)
+	table.insert(result, settings_left)
+	table.insert(result, settings_right)
 
 	luci.http.prepare_content("application/json")
     luci.http.write_json(result or {})
@@ -129,6 +163,72 @@ function gs_value_set()
     	luci.http.prepare_content("text/plain; charset=utf-8")
 	    luci.http.write("input");
     end
+end
+
+function gs_settings_set()
+	local cfg, json_cfg
+	local json_str
+
+-- 	cfg = nixio.fs.readfile(dir .. "/gpio_conf.json", 524288)
+-- 	parser = luci.jsonc.new()
+-- 	json_cfg = luci.jsonc.parse(cfg)
+
+	-- parse gpios structure
+	side = luci.http.formvalue('side')
+	param = luci.http.formvalue('param')
+	value = luci.http.formvalue('value')
+
+    if side == 'settings_left' then
+        side = '1'
+    elseif side == 'settings_right' then
+        side = '2'
+    else
+        luci.http.prepare_content("text/plain; charset=utf-8")
+        luci.http.write('ERROR. unknown side: ' .. side);
+    end
+
+    if param == 'gas density' then
+        param = 'setting_gas_density'
+    elseif param == 'relay cut-off' then
+        param = 'setting_relay_cut_off_timing'
+    else
+        luci.http.prepare_content("text/plain; charset=utf-8")
+        luci.http.write('ERROR. unknown param: ' .. param);
+    end
+
+    local file = '/mnt/gs/'.. side .. '/' .. param
+--     luci.sys.exec('echo "' .. value .. '" > /mnt/gs/' .. side .. '/' .. param)
+
+    luci.sys.exec('echo "' .. side .. '" > /tmp/log.txt')
+    luci.sys.exec('echo "' .. param .. '" >> /tmp/log.txt')
+    luci.sys.exec('echo "' .. value .. '" >> /tmp/log.txt')
+    luci.sys.exec('echo "' .. file .. '" >> /tmp/log.txt')
+    luci.sys.exec('echo ' .. value .. ' > ' .. file)
+-- 	parser = luci.jsonc.new()
+-- 	gpios_data = luci.jsonc.parse(gpios)
+-- 	for i = 1, #gpios_data do
+-- 		luci.sys.exec('echo "' .. gpios_data[i].controller_number .. '" >> /tmp/l')
+-- 		luci.sys.exec('echo "' .. gpios_data[i].pad_number .. '" >> /tmp/l')
+-- 		luci.sys.exec('echo "' .. gpios_data[i].direction .. '" >> /tmp/l')
+--
+-- 		local controller_number = gpios_data[i].controller_number
+-- 		local pad_number = gpios_data[i].pad_number
+-- 		local direction = gpios_data[i].direction
+-- 		local gpio_number = (controller_number - 1)*32 + pad_number
+--
+-- 		if nixio.fs.stat('/sys/class/gpio/gpio' .. gpio_number, 'type') ~= 'dir' then
+-- 			luci.sys.exec('echo "' .. gpio_number .. '" > /sys/class/gpio/export')
+-- 		end
+-- 		luci.sys.exec('echo "' .. direction .. '" > /sys/class/gpio/gpio' .. gpio_number .. '/direction')
+-- 	end
+--
+-- 	json_cfg.gpios = gpios_data
+-- 	json_str = luci.jsonc.stringify(json_cfg, true)
+-- 	nixio.fs.writefile(dir .. "/gpio_conf.json", json_str)
+
+	luci.http.prepare_content("text/plain; charset=utf-8")
+	luci.http.write("ok");
+
 end
 
 -- function gs_configuration_set()
