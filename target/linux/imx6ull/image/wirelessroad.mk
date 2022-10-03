@@ -300,8 +300,8 @@ define Device/gs
         DEVICE_DTS := gs
         BOARDNAME := WIRELESSROAD_FLEXCAN_WIFI_IMX6ULL
         SUPPORTED_DEVICES := wirelessroad_stream-imx6ull gs
-        IMAGE_SIZE := 31m
-        IMAGE_SIZE_FACTORY := 32m
+        IMAGE_SIZE := 15m
+        IMAGE_SIZE_FACTORY := 16m
         CONSOLE := ttymxc0,115200
         KERNEL := kernel-bin | buildDtb | append-dtb | uImage none | imx6ull-bootscript
         IMAGES := u-boot.bin sdcard.bin mtd-sysupgrade.bin mtd-factory.bin
