@@ -51,6 +51,7 @@ typedef struct gs_conninfo {
     measurements_t measurements;
     _Atomic float summator_volume;
     _Atomic float summator_mass;
+    _Atomic float mass_flowrate;
     int connection_lost_flag;
 } gs_conninfo_t;
 

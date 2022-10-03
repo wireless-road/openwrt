@@ -208,6 +208,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     int ret;
     _Atomic float* mass = (_Atomic float*)&conninfo->summator_mass;
     _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
+    _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
     conninfo->ctx = gs_init(conninfo);
     ret = gs_get_version(conninfo->ctx);
     
@@ -228,8 +229,9 @@ static void gs_thread(gs_conninfo_t* conninfo) {
 //            print_measts(&conninfo->measurements);
             atomic_store(mass, conninfo->measurements.mass_inventory);
             atomic_store(volume, conninfo->measurements.volume_inventory);
+            atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);
         }
-        usleep(300000);
+//        usleep(300000);
     }
 }
 

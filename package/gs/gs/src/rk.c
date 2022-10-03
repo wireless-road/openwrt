@@ -233,7 +233,7 @@ static int rk_process(rk_t* self) {
 
 static int rk_fueling_simulation(rk_t* self) {
     static int store_prev_summators_flag = 0;
-    usleep(100000);
+//    usleep(100000);
     if(!store_prev_summators_flag) {
         self->prev_summator_volume = self->summator_volume;
         self->prev_summator_price = self->summator_price;
@@ -244,11 +244,12 @@ static int rk_fueling_simulation(rk_t* self) {
 
         // Simulation of fueling process 0.1 liters per second
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
-            self->flomac_inv_volume = atomic_load(&self->modbus.summator_mass);
+            self->flomac_inv_mass = atomic_load(&self->modbus.summator_mass);
+            self->flomac_mass_flowrate = atomic_load(&self->modbus.mass_flowrate);
 #ifdef SIMULATION
             self->fueling_current_volume += 0.01;
 #else
-            self->fueling_current_volume = (self->flomac_inv_volume - self->flomac_inv_volume_starting_value) / self->gas_density;
+            self->fueling_current_volume = (self->flomac_inv_mass - self->flomac_inv_mass_starting_value) / self->gas_density;
 #endif
             if(self->fueling_current_volume > self->fueling_dose_in_liters) {
                 self->fueling_current_volume = self->fueling_dose_in_liters;
@@ -282,8 +283,8 @@ static int rk_fueling_simulation(rk_t* self) {
         printf("currently fueled: %.2f of %.2f dose (%.2f --> %.2f). summator: %.2f, interrupted: %.2f\r\n",
                self->fueling_current_volume,
                self->fueling_dose_in_liters,
-			   self->flomac_inv_volume_starting_value,
-			   self->flomac_inv_volume,
+			   self->flomac_inv_mass_starting_value,
+			   self->flomac_inv_mass,
                self->summator_volume,
                self->fueling_interrupted_volume);
 
@@ -541,8 +542,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             if(tmp == 0) {
                 self->state = trk_enabled_fueling_process;
                 self->fueling_current_volume = 0.00;
-                self->flomac_inv_volume_starting_value = atomic_load(&self->modbus.summator_mass);
-                printf("flomac inventory volume starting value: %f\r\n", self->flomac_inv_volume_starting_value);
+                self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
+                printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
                 self->fueling_current_price = 0.00;
                 azt_tx_ack();
                 relay_middle_on(&self->relay);
