@@ -417,7 +417,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             tmp = (int)roundf(self->summator_price * 100.0);
             int_to_string_azt(tmp, responce, &cnt);
             azt_tx(responce, cnt);
-            printf("%s RK. summator_volume: %.2f. summator_price: %.2f\r\n", self->side == left ? "Left" : "Right", self->address, self->summator_volume, self->summator_price);
+            printf("%s RK. summator_volume: %.2f. summator_price: %.2f\r\n", self->side == left ? "Left" : "Right", self->summator_volume, self->summator_price);
             break;
         case AZT_REQUEST_TRK_TYPE:
 //            printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
