@@ -13,7 +13,7 @@
 
 #include "settings.h"
 
-#define DEF_BAUDRATE    57600
+#define DEF_BAUDRATE    9600
 #define DEF_ADDR 1
 
 typedef struct measure_units {
@@ -85,6 +85,8 @@ int gs_reset_inventory_counters(modbus_t *ctx); // Reset total counters
 
 #define DEF_CONFIG_MODBUS_PORT              "/etc/gs/%d/modbus_port"
 #define DEF_CONFIG_MODBUS_DEVICE_ADDRESS    "/etc/gs/%d/modbus_address"
+#define DEF_CONFIG_MODBUS_BAUDRATE        	"/etc/gs/%d/modbus_baudrate"
 
 #define CONFIG_MODBUS_PORT                  "/mnt/gs/%d/modbus_port"
 #define CONFIG_MODBUS_DEVICE_ADDRESS        "/mnt/gs/%d/modbus_address"
+#define CONFIG_MODBUS_BAUDRATE        		"/mnt/gs/%d/modbus_baudrate"

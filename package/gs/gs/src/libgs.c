@@ -253,9 +253,16 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
     }
     conninfo->devaddr = ret;
 
-    if(conninfo->baudrate == 0) {
-    	conninfo->baudrate = DEF_BAUDRATE;
+    // baudrate
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_MODBUS_BAUDRATE, idx);
+    ret = parse_integer_config(filename);
+
+    if(ret == -1) {
+        return -1;
     }
+    conninfo->baudrate = ret;
+
     conninfo->connection_lost_flag = 0;
 
     atomic_init(&conninfo->summator_volume, 0.00);
@@ -288,7 +295,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
     _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
     conninfo->ctx = gs_init(conninfo);
-//    ret = gs_set_modbus_baudrate(conninfo, Baudrate_57600);  // set DEF_BAUDRATE macro value to current baudrate
+//    ret = gs_set_modbus_baudrate(conninfo, Baudrate_9600);  // set DEF_BAUDRATE macro value to current baudrate
     ret = gs_get_version(conninfo->ctx);
     
     if(ret == -1) {

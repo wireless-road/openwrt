@@ -161,8 +161,12 @@ int rk_init(int idx, rk_t* rk) {
 
     rk->fueling_process_flag = 0;
     led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);
-    rk->modbus.baudrate = DEF_BAUDRATE;
+
     ret = gs_init_pthreaded(idx, &rk->modbus);
+    if(ret == -1) {
+    	printf("ERROR %s RK. Modbus (flomac) initialization failed\r\n", rk->side == left ? "Left" : "Right");
+    	return -1;
+    }
 
     relay_init(idx, &rk->relay);
     return 0;
