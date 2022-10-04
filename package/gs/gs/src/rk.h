@@ -5,6 +5,7 @@
 #ifndef SRC_RK_H
 #define SRC_RK_H
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

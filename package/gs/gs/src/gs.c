@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <termios.h>
 
+#include "config.h"
 //#include "libgs.h"
 #include "libazt.h"
 #include "rk.h"
@@ -32,10 +33,12 @@ int main(int argc, char* argv[])
 	buttons_init(&left_rk,
                  &right_rk);
 
+#ifdef SIMULATION
     // simulation of fueling process
-//    left_rk.state = trk_enabled_fueling_process;
-//    left_rk.fueling_price_per_liter = 30.0;
-//    left_rk.fueling_dose_in_liters = 3;
+    right_rk.state = trk_enabled_fueling_process;
+    right_rk.fueling_price_per_liter = 30.0;
+    right_rk.fueling_dose_in_liters = 3;
+#endif
 
     int azt_req_flag = 0;
 	while(1) {

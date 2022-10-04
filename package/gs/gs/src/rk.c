@@ -272,10 +272,13 @@ static int rk_fueling_simulation(rk_t* self) {
 
 #ifdef SIMULATION
         if(fabs(self->fueling_current_volume - SIMULATION_FUELING_FULL_TANK_VOLUME) <= 0.001) {
+        	printf("FULL TANK. IN SIMULATION MODE.\r\n");
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
         }
+#else
+        // To-Do: implement here mass flow rate handling functionality
 #endif
         self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
         self->summator_volume = self->prev_summator_volume + self->fueling_current_volume + self->fueling_interrupted_volume;
@@ -285,11 +288,12 @@ static int rk_fueling_simulation(rk_t* self) {
                                self->fueling_current_volume + self->fueling_interrupted_volume,
                                self->fueling_price_per_liter,
                                (self->fueling_current_volume + self->fueling_interrupted_volume) * self->fueling_price_per_liter);
-        printf("currently fueled: %.2f of %.2f dose (%.2f --> %.2f). summator: %.2f, interrupted: %.2f\r\n",
+        printf("currently fueled: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, summator: %.2f, interrupted: %.2f\r\n",
                self->fueling_current_volume,
                self->fueling_dose_in_liters,
 			   self->flomac_inv_mass_starting_value,
 			   self->flomac_inv_mass,
+			   self->flomac_mass_flowrate,
                self->summator_volume,
                self->fueling_interrupted_volume);
 
@@ -304,6 +308,8 @@ static int rk_fueling_simulation(rk_t* self) {
             sprintf(price_summator, "%.2f", self->summator_price);
             set_config(self->config_filename_summator_price, price_summator, strlen(price_summator));
         }
+    } else {
+    	printf("@@@\r\n");
     }
 }
 
@@ -421,7 +427,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             tmp = (int)roundf(self->summator_price * 100.0);
             int_to_string_azt(tmp, responce, &cnt);
             azt_tx(responce, cnt);
-            printf("%s RK. summator_volume: %.2f. summator_price: %.2f\r\n", self->side == left ? "Left" : "Right", self->summator_volume, self->summator_price);
+//            printf("%s RK. summator_volume: %.2f. summator_price: %.2f\r\n", self->side == left ? "Left" : "Right", self->summator_volume, self->summator_price);
             break;
         case AZT_REQUEST_TRK_TYPE:
 //            printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
@@ -635,6 +641,11 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 static void button_start_callback(rk_t* self, int code)
 {
     printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
+    if(self->local_control_allowed) {
+    	printf("%s RK. start button by controlled fueling\r\n", self->side == left ? "Left" : "Right");
+    } else {
+    	printf("%s RK. button by controlled fueling disabled\r\n", self->side == left ? "Left" : "Right");
+    }
 }
 
 static void button_stop_callback(rk_t* self, int code)
