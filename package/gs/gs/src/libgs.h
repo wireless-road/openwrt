@@ -13,7 +13,7 @@
 
 #include "settings.h"
 
-#define DEF_BAUDRATE    115200
+#define DEF_BAUDRATE    57600
 #define DEF_ADDR 1
 
 typedef struct measure_units {

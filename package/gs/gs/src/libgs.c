@@ -168,8 +168,10 @@ int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
     float *p;
     p = (float *)measurements;
     uint16_t buf[20];
-    if (gs_read_reg(ctx, R_MMI_MEASUREMENTS_BASE, 20, &buf) == -1)
+    if (gs_read_reg(ctx, R_MMI_MEASUREMENTS_BASE, 20, &buf) == -1) {
+    	printf("ERROR. Modbus. Read measurements failed\r\n");
         return -1;
+    }
     for (int i = 0; i < 20; i += 2)
     {
         *p = modbus_get_float_badc(&buf[i]);
@@ -286,7 +288,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
     _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
     conninfo->ctx = gs_init(conninfo);
-//    ret = gs_set_modbus_baudrate(conninfo, Baudrate_115200); set DEF_BAUDRATE macro value to current baudrate
+//    ret = gs_set_modbus_baudrate(conninfo, Baudrate_57600);  // set DEF_BAUDRATE macro value to current baudrate
     ret = gs_get_version(conninfo->ctx);
     
     if(ret == -1) {
