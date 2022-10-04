@@ -409,7 +409,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_SUMMATORS_VALUE:
-            printf("%s RK. Address %d. AZT_REQUEST_SUMMATORS_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+//            printf("%s RK. Address %d. AZT_REQUEST_SUMMATORS_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
             tmp = (int)roundf(self->summator_volume * 100.0);
@@ -417,10 +417,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             tmp = (int)roundf(self->summator_price * 100.0);
             int_to_string_azt(tmp, responce, &cnt);
             azt_tx(responce, cnt);
-            printf("\tsummator_volume: %.2f. summator_price: %.2f\r\n", self->summator_volume, self->summator_price);
+            printf("%s RK. summator_volume: %.2f. summator_price: %.2f\r\n", self->side == left ? "Left" : "Right", self->address, self->summator_volume, self->summator_price);
             break;
         case AZT_REQUEST_TRK_TYPE:
-            printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
+//            printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
             responce[cnt] = AZT_TRK_TYPE;
@@ -437,7 +437,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 //            printf("\treset_current_fueling_values_flag = %d\r\n", reset_current_fueling_values_flag);
             break;
         case AZT_REQUEST_PROTOCOL_VERSION:
-            printf("%s RK. Address %d. AZT_REQUEST_PROTOCOL_VERSION\n", self->side == left ? "Left" : "Right", self->address);
+//            printf("%s RK. Address %d. AZT_REQUEST_PROTOCOL_VERSION\n", self->side == left ? "Left" : "Right", self->address);
 
             cnt = 0;
             memset(responce, 0, sizeof(responce));
@@ -562,7 +562,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_TRANSACTION\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_READ_PARAMS:
-            printf("%s RK. Address %d. AZT_REQUEST_READ_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
+//            printf("%s RK. Address %d. AZT_REQUEST_READ_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
             if(req->params_cnt == 0) {
