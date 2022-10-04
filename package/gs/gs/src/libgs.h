@@ -13,7 +13,7 @@
 
 #include "settings.h"
 
-#define DEF_BAUDRATE    9600
+#define DEF_BAUDRATE    115200
 #define DEF_ADDR 1
 
 typedef struct measure_units {
@@ -43,7 +43,7 @@ typedef struct measurements {
 
 typedef struct gs_conninfo {
     uint8_t port;
-    uint16_t baudrate;
+    uint32_t baudrate;
     uint8_t devaddr;
     pthread_t thread_id;
     modbus_t *ctx;
@@ -65,6 +65,7 @@ int gs_check_state(gs_conninfo_t* conninfo);
 
 /*common functions */
 int gs_get_version(modbus_t *ctx);
+int gs_set_modbus_baudrate(gs_conninfo_t* conninfo, Flomac_Baudrate_t baudrate_);
 
 int gs_get_all_units(modbus_t *ctx, measure_units_t *measure_units);
 

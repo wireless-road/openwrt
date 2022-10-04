@@ -16,6 +16,79 @@ static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
     return ret;
 }
 
+static int gs_write_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
+{
+    int ret;
+    usleep(5000);
+    ret = modbus_write_registers(ctx, reg, count, buffer);
+    if (ret == -1) {
+        fprintf(stderr, "Write reg %d failed: %s\n", reg, modbus_strerror(errno));
+    }
+    return ret;
+}
+
+int gs_set_modbus_baudrate(gs_conninfo_t* conninfo, Flomac_Baudrate_t baudrate_)
+{
+    int ret;
+    int baudrate = baudrate_;
+
+    int device_mode = 0;
+
+    modbus_t *ctx = conninfo->ctx;
+
+    if (gs_read_reg(ctx, R_MMI_MBUS_MAP, 1, &device_mode) == -1)
+    {
+        return -1;
+    }
+
+    printf("Baudrate changing. initial mode: %d\r\n", device_mode);
+    if(device_mode == Mode_MMI) {
+    	int mode = Mode_Flomac;
+
+    	printf("Baudrate changing step 1. set Flomac mode\r\n");
+    	// change mode from MMI to Flomac
+    	if(gs_write_reg(ctx, R_MMI_MBUS_MAP, 1, &mode) == -1) {
+    		printf("MB error. write failed\r\n");
+    	}
+    }
+
+    printf("Baudrate changing step 2. set baudrate\r\n");
+    // set Baudrate
+    if(gs_write_reg(ctx, REG_F_BAUDRATE, 1, &baudrate) == -1) {
+    	printf("MB error. write failed\r\n");
+    }
+
+    switch(baudrate_) {
+    	case Baudrate_1200:		conninfo->baudrate = 1200;break;
+    	case Baudrate_2400:		conninfo->baudrate = 2400;break;
+    	case Baudrate_4800:		conninfo->baudrate = 4800;break;
+    	case Baudrate_9600:		conninfo->baudrate = 9600;break;
+    	case Baudrate_14400:	conninfo->baudrate = 14400;break;
+    	case Baudrate_19200:	conninfo->baudrate = 19200;break;
+    	case Baudrate_28800:	conninfo->baudrate = 28800;break;
+    	case Baudrate_38400:	conninfo->baudrate = 38400;break;
+    	case Baudrate_57600:	conninfo->baudrate = 57600;break;
+    	case Baudrate_115200:	conninfo->baudrate = 115200;break;
+    	default:    		break;
+    }
+
+    printf("Baudrate changing step 3. reinit %d\r\n", conninfo->baudrate);
+    conninfo->ctx = gs_init(conninfo);
+
+    if(device_mode == Mode_MMI) {
+
+    	// change mode back from Flomac to MMI
+    	int mode = Mode_MMI;
+    	usleep(100000);
+    	if(gs_write_reg(ctx, R_MMI_MBUS_MAP, 1, &mode) == -1) {
+    	}
+    	usleep(100000);
+    }
+
+    return 0;
+}
+
+
 int gs_get_version(modbus_t *ctx)
 {
     int ret;
@@ -26,12 +99,13 @@ int gs_get_version(modbus_t *ctx)
     {
         return -1;
     }
+
     if (gs_read_reg(ctx, R_MMI_SW_VER, 1, &sw_revision) == -1)
     {
         return -1;
     }
-    printf("Device mode: %s\n", device_mode ? "MMI" : "FLOMAC");
-    printf("Software version: %d\n", sw_revision);
+    printf("INFO. Flomac device mode: %s\n", device_mode ? "MMI" : "FLOMAC");
+    printf("INFO. Flomac software version: %d\n", sw_revision);
     return 0;
 }
 #ifdef METER_TYPE_FLOMAC
@@ -177,7 +251,9 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
     }
     conninfo->devaddr = ret;
 
-    conninfo->baudrate = DEF_BAUDRATE;
+    if(conninfo->baudrate == 0) {
+    	conninfo->baudrate = DEF_BAUDRATE;
+    }
     conninfo->connection_lost_flag = 0;
 
     atomic_init(&conninfo->summator_volume, 0.00);
@@ -210,6 +286,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
     _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
     conninfo->ctx = gs_init(conninfo);
+//    ret = gs_set_modbus_baudrate(conninfo, Baudrate_115200); set DEF_BAUDRATE macro value to current baudrate
     ret = gs_get_version(conninfo->ctx);
     
     if(ret == -1) {
@@ -247,6 +324,7 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
 
     sprintf(&port, "/dev/ttymxc%d", conninfo->port);
 //    printf("Connecting to %s...\n", port);
+//    printf("Connecting using baudrate: %d\n", conninfo->baudrate);
     ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
     if (ctx == NULL)
     {

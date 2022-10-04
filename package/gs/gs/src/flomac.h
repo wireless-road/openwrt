@@ -6,6 +6,24 @@
  *   =====================
  */
 
+typedef enum {
+	Mode_Flomac = 0,
+	Mode_MMI = 1
+} Flomac_Mode_t;
+
+typedef enum {
+    Baudrate_1200 = 0,
+    Baudrate_2400 = 1,
+    Baudrate_4800 = 2,
+    Baudrate_9600 = 3,
+	Baudrate_14400 = 4,
+    Baudrate_19200 = 5,
+    Baudrate_28800 = 6,
+    Baudrate_38400 = 7,
+    Baudrate_57600 = 8,
+    Baudrate_115200 = 9
+} Flomac_Baudrate_t;
+
 /* Main params registres */
 #define REG_F_MASS_FLOW 300
 #define REG_F_VOLUME_VLOW 302
