@@ -94,6 +94,9 @@ int relay_middle_off(relay_t* relay)
 	if(!ret) {
 		relay->relay_middle_state = relay_off;
 	}
+#ifdef SIMULATION
+	simulation_close_valve();
+#endif
 	return ret;
 }
 

@@ -71,6 +71,7 @@ struct rk_t {
     char config_filename_price_per_liter[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_gas_density[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_relay_cut_off_timing[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_mass_flow_rate_threshold_value[CONFIG_FILENAME_MAX_LENGTH];
     float fueling_dose_in_liters;  // Заданная с АРМ доза к заправке в литрах
     float fueling_dose_in_rubles;  // Заданная с АРМ доза к заправке в рублях
     float fueling_price_per_liter;  // Заданная с АРМ стоимость топлива за литр
@@ -91,7 +92,8 @@ struct rk_t {
     led_t led;
     relay_t relay;
     float gas_density;
-    float relay_cut_off_timing;
+    float relay_cut_off_timing;	// упреждающее количества объема, оставшееся к заправке в бак, при котором происходит закрытие клапана
+    float mass_flow_rate_threshold_value;  // пороговое значение скорости расхода газа, ниже которого считается, что бак полный и заправка завершена
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
@@ -102,7 +104,8 @@ struct rk_t {
 #define DEF_CONFIG_FILE_SUMMATOR_VOLUME             "/etc/gs/%d/summatorVolume"
 #define DEF_CONFIG_FILE_PRICE_PER_LITER_MASK        "/etc/gs/%d/pricePerLiter"
 #define DEF_CONFIG_FILE_GAS_DENSITY		            "/etc/gs/%d/setting_gas_density"
-#define DEF_CONFIG_FILE_GAS_DENSITYRELAY_CUT_OFF_TIMING		"/etc/gs/%d/setting_relay_cut_off_timing"
+#define DEF_CONFIG_FILE_RELAY_CUT_OFF_TIMING		"/etc/gs/%d/setting_relay_cut_off_timing"
+#define DEF_CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE  "/etc/gs/%d/setting_mass_flow_rate_threshold_value"
 
 
 #define CONFIG_FILE_IS_ENABLED                  "/mnt/gs/%d/isEnabled"
@@ -113,7 +116,8 @@ struct rk_t {
 #define CONFIG_FILE_SUMMATOR_VOLUME             "/mnt/gs/%d/summatorVolume"
 #define CONFIG_FILE_PRICE_PER_LITER_MASK        "/mnt/gs/%d/pricePerLiter"
 #define CONFIG_FILE_GAS_DENSITY		            "/mnt/gs/%d/setting_gas_density"
-#define CONFIG_FILE_RELAY_CUT_OFF_TIMING        "/mnt/gs/%d/setting_relay_cut_off_timing"
+#define CONFIG_FILE_RELAY_CUT_OFF_TIMING        	"/mnt/gs/%d/setting_relay_cut_off_timing"
+#define CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE  "/mnt/gs/%d/setting_mass_flow_rate_threshold_value"
 
 int rk_init(int idx, rk_t* rk);
 

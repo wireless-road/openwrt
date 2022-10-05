@@ -129,6 +129,17 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->relay_cut_off_timing = tmp;
 
+    // mass_flow_rate_threshold_value
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE, idx);
+    memset(rk->config_filename_mass_flow_rate_threshold_value, 0, sizeof(rk->config_filename_mass_flow_rate_threshold_value));
+    strcpy(rk->config_filename_mass_flow_rate_threshold_value, filename);
+    ret = parse_float_config(filename, &tmp);
+    if(ret == -1) {
+        return -1;
+    }
+    rk->mass_flow_rate_threshold_value = tmp;
+
     // summator_volume
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_SUMMATOR_VOLUME, idx);
@@ -238,6 +249,8 @@ static int rk_process(rk_t* self) {
 
 static int rk_fueling_simulation(rk_t* self) {
     static int store_prev_summators_flag = 0;
+    static int cnt = 0;
+    cnt++;
 //    usleep(100000);
     if(!store_prev_summators_flag) {
         self->prev_summator_volume = self->summator_volume;
@@ -262,18 +275,14 @@ static int rk_fueling_simulation(rk_t* self) {
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
-        }
-
-#ifdef SIMULATION
-        if(fabs(self->fueling_current_volume - SIMULATION_FUELING_FULL_TANK_VOLUME) <= 0.001) {
-        	printf("FULL TANK. IN SIMULATION MODE.\r\n");
+        } else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (cnt > 20)) {  // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
+        	printf("FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->flomac_mass_flowrate);
+        	relay_middle_off(&self->relay);
             self->state = trk_disabled_fueling_finished;
             self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
         }
-#else
-        // To-Do: implement here mass flow rate handling functionality
-#endif
+
         self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
         self->summator_volume = self->prev_summator_volume + self->fueling_current_volume + self->fueling_interrupted_volume;
         self->summator_price = self->prev_summator_price + self->fueling_current_price + self->fueling_interrupted_price;
@@ -301,6 +310,8 @@ static int rk_fueling_simulation(rk_t* self) {
             char price_summator[10] = {0};
             sprintf(price_summator, "%.2f", self->summator_price);
             set_config(self->config_filename_summator_price, price_summator, strlen(price_summator));
+
+            cnt = 0;
         }
     } else {
     	printf("@@@\r\n");

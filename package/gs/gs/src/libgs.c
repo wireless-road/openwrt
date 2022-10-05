@@ -316,6 +316,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
 #ifdef SIMULATION
             simulate_mass_inventory_value();
             conninfo->measurements.mass_inventory = simulation_mass_inventory_value;
+            conninfo->measurements.mass_flowrate = simulation_mass_rate_value;
 #endif
             atomic_store(mass, conninfo->measurements.mass_inventory);
             atomic_store(volume, conninfo->measurements.volume_inventory);
