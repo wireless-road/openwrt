@@ -11,6 +11,7 @@
 #include "mmi.h"
 #include "flomac.h"
 
+#include "config.h"
 #include "settings.h"
 
 #define DEF_BAUDRATE    9600

@@ -247,20 +247,14 @@ static int rk_fueling_simulation(rk_t* self) {
 
     if(self->fueling_dose_in_liters > 0.00) {
 
-        // Simulation of fueling process 0.1 liters per second
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
             self->flomac_inv_mass = atomic_load(&self->modbus.summator_mass);
             self->flomac_mass_flowrate = atomic_load(&self->modbus.mass_flowrate);
-#ifdef SIMULATION
-            self->fueling_current_volume += 0.01;
-#else
             self->fueling_current_volume = (self->flomac_inv_mass - self->flomac_inv_mass_starting_value) / self->gas_density;
-#endif
             if(self->fueling_current_volume > self->fueling_dose_in_liters) {
                 self->fueling_current_volume = self->fueling_dose_in_liters;
             }
         }
-        // Simulation ends here
 
         if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= self->relay_cut_off_timing) {
             relay_middle_off(&self->relay);

@@ -82,6 +82,9 @@ int relay_middle_on(relay_t* relay)
 	if(!ret) {
 		relay->relay_middle_state = relay_on;
 	}
+#ifdef SIMULATION
+	simulation_open_valve();
+#endif
 	return ret;
 }
 

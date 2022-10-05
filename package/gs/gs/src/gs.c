@@ -33,13 +33,6 @@ int main(int argc, char* argv[])
 	buttons_init(&left_rk,
                  &right_rk);
 
-#ifdef SIMULATION
-    // simulation of fueling process
-    right_rk.state = trk_enabled_fueling_process;
-    right_rk.fueling_price_per_liter = 30.0;
-    right_rk.fueling_dose_in_liters = 3;
-#endif
-
     int azt_req_flag = 0;
 	while(1) {
 		buttons_handler(&left_rk, &right_rk);

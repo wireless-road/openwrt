@@ -313,6 +313,10 @@ static void gs_thread(gs_conninfo_t* conninfo) {
         } else {
             conninfo->connection_lost_flag = 0;
 //            print_measts(&conninfo->measurements);
+#ifdef SIMULATION
+            simulate_mass_inventory_value();
+            conninfo->measurements.mass_inventory = simulation_mass_inventory_value;
+#endif
             atomic_store(mass, conninfo->measurements.mass_inventory);
             atomic_store(volume, conninfo->measurements.volume_inventory);
             atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);

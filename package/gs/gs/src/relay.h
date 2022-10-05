@@ -20,6 +20,7 @@
 
 #include "settings.h"
 
+#include "config.h"
 #include <pthread.h>
 
 #define CONFIG_FILENAME_MAX_LENGTH      64
