@@ -18,6 +18,7 @@ static void rk_indicate_error_message(rk_t* self);
 static int rk_check_state(rk_t* self);
 static void button_start_callback(rk_t* self, int code);
 static void button_stop_callback(rk_t* self, int code);
+static void rk_start_fueling_process(rk_t* self);
 
 char tmp[RX_BUF_SIZE] = {0};
 
@@ -388,7 +389,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_FULL_FUELING_VALUE:
-            printf("%s RK. Address %d. AZT_REQUEST_FULL_FUELING_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+//            printf("%s RK. Address %d. AZT_REQUEST_FULL_FUELING_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             cnt = 0;
             memset(responce, 0, sizeof(responce));
             self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
@@ -556,13 +557,8 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 //            Возможные статусы ТРК до запроса:     ‘2’  // trk_authorization_cmd
 //            Возможные статусы ТРК после запроса:  ‘3’  // trk_enabled_fueling_process
             if(tmp == 0) {
-                self->state = trk_enabled_fueling_process;
-                self->fueling_current_volume = 0.00;
-                self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
-                printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
-                self->fueling_current_price = 0.00;
+            	rk_start_fueling_process(self);
                 azt_tx_ack();
-                relay_middle_on(&self->relay);
             } else {
                 azt_tx_can();
             }
@@ -643,13 +639,23 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
     }
 }
 
+static void rk_start_fueling_process(rk_t* self)
+{
+    self->state = trk_enabled_fueling_process;
+    self->fueling_current_volume = 0.00;
+    self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
+    printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
+    self->fueling_current_price = 0.00;
+    relay_middle_on(&self->relay);
+}
+
 static void button_start_callback(rk_t* self, int code)
 {
     printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
     if(self->local_control_allowed) {
-    	printf("%s RK. start button by controlled fueling\r\n", self->side == left ? "Left" : "Right");
+    	printf("%s RK. LOCAL FUELING started by pressing start button\r\n", self->side == left ? "Left" : "Right");
     } else {
-    	printf("%s RK. button by controlled fueling disabled\r\n", self->side == left ? "Left" : "Right");
+    	printf("%s RK. LOCAL FUELING stopped by pressing stop button\r\n", self->side == left ? "Left" : "Right");
     }
 }
 
