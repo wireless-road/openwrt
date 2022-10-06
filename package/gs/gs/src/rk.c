@@ -19,6 +19,8 @@ static int rk_check_state(rk_t* self);
 static void button_start_callback(rk_t* self, int code);
 static void button_stop_callback(rk_t* self, int code);
 static void rk_start_fueling_process(rk_t* self);
+static void rk_start_local_fueling_process(rk_t* self);
+static void rk_stop_fueling_process(rk_t* self);
 
 char tmp[RX_BUF_SIZE] = {0};
 
@@ -27,6 +29,7 @@ int rk_init(int idx, rk_t* rk) {
 
     rk->btn_clbk_start = button_start_callback;
     rk->btn_clbk_stop = button_stop_callback;
+    rk->stop_button_pressed_flag = 0;
 
     rk->fueling_current_volume = 0.00;
     rk->fueling_interrupted_volume = 0.00;
@@ -235,7 +238,10 @@ static int rk_process(rk_t* self) {
             break;
         case trk_enabled_fueling_process:
         	self->fueling_process_flag = 1;
-//        	printf("mass: %.2f, volume: %.2f\r\n", mass, volume);
+            rk_fueling_simulation(self);
+            break;
+        case trk_enabled_fueling_process_local:
+        	self->fueling_process_flag = 1;
             rk_fueling_simulation(self);
             break;
         case trk_disabled_fueling_finished:
@@ -246,6 +252,47 @@ static int rk_process(rk_t* self) {
         default:
             break;
     }
+}
+
+static int rk_fueling_log(rk_t* self) {
+    self->can_bus.transmit(&self->can_bus,
+                           self->fueling_current_volume + self->fueling_interrupted_volume,
+                           self->fueling_price_per_liter,
+                           (self->fueling_current_volume + self->fueling_interrupted_volume) * self->fueling_price_per_liter);
+
+    printf("currently fueled: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, summator: %.2f, interrupted: %.2f\r\n",
+           self->fueling_current_volume,
+           self->fueling_dose_in_liters,
+		   self->flomac_inv_mass_starting_value,
+		   self->flomac_inv_mass,
+		   self->flomac_mass_flowrate,
+           self->summator_volume,
+           self->fueling_interrupted_volume);
+    return 0;
+}
+
+static int rk_fueling_log_results(rk_t* self) {
+    char volume_summator[8] = {0};
+    sprintf(volume_summator, "%.2f", self->summator_volume);
+    set_config(self->config_filename_summator_volume, volume_summator, strlen(volume_summator));
+    self->fueling_interrupted_volume = 0.00;
+    self->fueling_interrupted_price = 0.00;
+
+    char price_summator[10] = {0};
+    sprintf(price_summator, "%.2f", self->summator_price);
+    set_config(self->config_filename_summator_price, price_summator, strlen(price_summator));
+}
+
+static int rk_fueling_calculate_summators(rk_t* self) {
+    self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
+    self->summator_volume = self->prev_summator_volume + self->fueling_current_volume + self->fueling_interrupted_volume;
+    self->summator_price = self->prev_summator_price + self->fueling_current_price + self->fueling_interrupted_price;
+}
+
+static void rk_stop_fueling_process(rk_t* self) {
+    relay_middle_off(&self->relay);
+    self->state = trk_disabled_fueling_finished;
+    self->state_issue = trk_state_issue_less_or_equal_dose;
 }
 
 static int rk_fueling_simulation(rk_t* self) {
@@ -270,52 +317,47 @@ static int rk_fueling_simulation(rk_t* self) {
             }
         }
 
+        // Процесс заправки может прекращаться в трех случаях:
+        // 1. Заданная доза топлива заправлена
+        // 2. Бак заполнен (расход топлива снизился ниже порогового)
+        // 3. Нажата кнопка СТОП в случае, если заправка начата по нажатию кнопки СТАРТ.
         if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= self->relay_cut_off_timing) {
-            relay_middle_off(&self->relay);
+        	// Случай 1.
+        	rk_stop_fueling_process(self);
             self->fueling_current_volume = self->fueling_dose_in_liters;
-            self->state = trk_disabled_fueling_finished;
-            self->state_issue = trk_state_issue_less_or_equal_dose;
             store_prev_summators_flag = 0;
         } else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (cnt > 20)) {  // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
-        	printf("FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->flomac_mass_flowrate);
-        	relay_middle_off(&self->relay);
-            self->state = trk_disabled_fueling_finished;
-            self->state_issue = trk_state_issue_less_or_equal_dose;
+        	// Случай 2.
+        	if(self->state == trk_enabled_fueling_process_local) {
+        		// Если заправка была начата локально (с кнопки СТАРТ), то "забываем" объем заправленного топлива,
+        		// чтобы в GasKit не возникла ошибка "Расхождения по счетчикам"
+        		self->fueling_current_volume = 0.00;
+        	}
+        	rk_stop_fueling_process(self);
             store_prev_summators_flag = 0;
+        	printf("FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->flomac_mass_flowrate);
+        } else if(self->state == trk_enabled_fueling_process_local) {
+        	// Случай 3.
+        	if(self->stop_button_pressed_flag == 1) {
+        		rk_stop_fueling_process(self);
+        		self->stop_button_pressed_flag = 0;
+        		self->fueling_current_volume = 0.00;
+        	}
         }
 
-        self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
-        self->summator_volume = self->prev_summator_volume + self->fueling_current_volume + self->fueling_interrupted_volume;
-        self->summator_price = self->prev_summator_price + self->fueling_current_price + self->fueling_interrupted_price;
+        if(self->state != trk_enabled_fueling_process_local) {
+        	// При локальной заправке (с кнопки СТАРТ) значения сумматоров не вычисляем, чтобы
+        	// в GasKit не возникла ошибка "Расхождения по счетчикам"
+        	rk_fueling_calculate_summators(self);
+        }
 
-        self->can_bus.transmit(&self->can_bus,
-                               self->fueling_current_volume + self->fueling_interrupted_volume,
-                               self->fueling_price_per_liter,
-                               (self->fueling_current_volume + self->fueling_interrupted_volume) * self->fueling_price_per_liter);
-        printf("currently fueled: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, summator: %.2f, interrupted: %.2f\r\n",
-               self->fueling_current_volume,
-               self->fueling_dose_in_liters,
-			   self->flomac_inv_mass_starting_value,
-			   self->flomac_inv_mass,
-			   self->flomac_mass_flowrate,
-               self->summator_volume,
-               self->fueling_interrupted_volume);
+        rk_fueling_log(self);
 
         if(self->state == trk_disabled_fueling_finished) {
-            char volume_summator[8] = {0};
-            sprintf(volume_summator, "%.2f", self->summator_volume);
-            set_config(self->config_filename_summator_volume, volume_summator, strlen(volume_summator));
-            self->fueling_interrupted_volume = 0.00;
-            self->fueling_interrupted_price = 0.00;
-
-            char price_summator[10] = {0};
-            sprintf(price_summator, "%.2f", self->summator_price);
-            set_config(self->config_filename_summator_price, price_summator, strlen(price_summator));
-
+        	rk_fueling_log_results(self);
             cnt = 0;
         }
     } else {
-    	printf("@@@\r\n");
     }
 }
 
@@ -349,6 +391,9 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             memset(responce, 0, sizeof(responce));
 
             responce[cnt] = self->state;
+            if(self->state == trk_enabled_fueling_process_local) {
+            	responce[cnt] = trk_disabled_rk_installed;
+            }
             cnt++;
 
             responce[cnt] = self->state_issue;
@@ -419,7 +464,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
             azt_tx(responce, cnt);
 
-            printf("\tfueling_current_volume: %.2f. fueling_current_price: %.2f\r\n", self->fueling_current_volume, self->fueling_current_price);
+//            printf("\tfueling_current_volume: %.2f. fueling_current_price: %.2f\r\n", self->fueling_current_volume, self->fueling_current_price);
             if(reset_current_fueling_values_flag == TRUE) {
                 reset_current_fueling_values_flag = FALSE;
             }
@@ -444,7 +489,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             azt_tx(responce, cnt);
             break;
         case AZT_REQUEST_RECORD_CONFIRMATION:
-            printf("%s RK. Address %d. AZT_REQUEST_RECORD_CONFIRMATION\n", self->side == left ? "Left" : "Right", self->address);
+//            printf("%s RK. Address %d. AZT_REQUEST_RECORD_CONFIRMATION\n", self->side == left ? "Left" : "Right", self->address);
             azt_tx_ack();
             self->state = trk_disabled_rk_installed;
 //            self->state_issue = trk_state_issue_less_or_equal_dose;  // To-Do: implement state issue setup
@@ -649,11 +694,27 @@ static void rk_start_fueling_process(rk_t* self)
     relay_middle_on(&self->relay);
 }
 
+static void rk_start_local_fueling_process(rk_t* self)
+{
+    self->state = trk_enabled_fueling_process_local;
+    self->fueling_current_volume = 0.00;
+	self->fueling_dose_in_liters = 500.0;
+    self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
+    printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
+    self->fueling_current_price = 0.00;
+    relay_middle_on(&self->relay);
+}
+
 static void button_start_callback(rk_t* self, int code)
 {
     printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
     if(self->local_control_allowed) {
     	printf("%s RK. LOCAL FUELING started by pressing start button\r\n", self->side == left ? "Left" : "Right");
+    	if(self->state == trk_disabled_rk_installed) {
+    		rk_start_local_fueling_process(self);
+    	} else {
+    		printf("%s RK. LOCAL FUELING not possible in %d state.\r\n", self->side == left ? "Left" : "Right", self->state);
+    	}
     } else {
     	printf("%s RK. LOCAL FUELING stopped by pressing stop button\r\n", self->side == left ? "Left" : "Right");
     }
@@ -662,6 +723,10 @@ static void button_start_callback(rk_t* self, int code)
 static void button_stop_callback(rk_t* self, int code)
 {
     printf("%s RK. stop btn clbk\r\n", self->side == left ? "Left" : "Right");
+    if( (self->state == trk_enabled_fueling_process_local) &&
+    		(self->stop_button_pressed_flag == 0) ){
+    	self->stop_button_pressed_flag = 1;
+    }
 }
 
 static void int_to_string_azt(int val, char* res, int* cnt) {

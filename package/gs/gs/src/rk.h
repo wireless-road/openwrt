@@ -30,7 +30,8 @@ typedef enum {
     trk_authorization_cmd = 0x32,
     trk_enabled_fueling_process = 0x33,
     trk_disabled_fueling_finished = 0x34,
-    trk_disabled_local_control_unit_dose = 0x38
+    trk_disabled_local_control_unit_dose = 0x38,
+	trk_enabled_fueling_process_local = 0x39
 } trk_state_t;
 
 typedef enum {
@@ -89,6 +90,7 @@ struct rk_t {
     gs_conninfo_t modbus;
     void (*btn_clbk_start)(int);
     void (*btn_clbk_stop)(int);
+    int stop_button_pressed_flag;
     led_t led;
     relay_t relay;
     float gas_density;
