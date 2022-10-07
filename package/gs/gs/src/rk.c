@@ -20,7 +20,7 @@ static void button_start_callback(rk_t* self, int code);
 static void button_stop_callback(rk_t* self, int code);
 static void rk_start_fueling_process(rk_t* self);
 static void rk_start_local_fueling_process(rk_t* self);
-static void rk_stop_fueling_process(rk_t* self);
+static void rk_stop_fueling_process(rk_t* self, int* cnt);
 
 char tmp[RX_BUF_SIZE] = {0};
 
@@ -289,10 +289,11 @@ static int rk_fueling_calculate_summators(rk_t* self) {
     self->summator_price = self->prev_summator_price + self->fueling_current_price + self->fueling_interrupted_price;
 }
 
-static void rk_stop_fueling_process(rk_t* self) {
+static void rk_stop_fueling_process(rk_t* self, int* cnt) {
     relay_middle_off(&self->relay);
     self->state = trk_disabled_fueling_finished;
     self->state_issue = trk_state_issue_less_or_equal_dose;
+    *cnt = 0;
 }
 
 static int rk_fueling_simulation(rk_t* self) {
@@ -305,6 +306,7 @@ static int rk_fueling_simulation(rk_t* self) {
         self->prev_summator_price = self->summator_price;
         store_prev_summators_flag = 1;
     }
+    static int dont_log_flag = 0;
 
     if(self->fueling_dose_in_liters > 0.00) {
 
@@ -318,28 +320,35 @@ static int rk_fueling_simulation(rk_t* self) {
         }
 
         // Процесс заправки может прекращаться в трех случаях:
-        // 1. Заданная доза топлива заправлена
-        // 2. Бак заполнен (расход топлива снизился ниже порогового)
-        // 3. Нажата кнопка СТОП в случае, если заправка начата по нажатию кнопки СТАРТ.
-        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= self->relay_cut_off_timing) {
-        	// Случай 1.
-        	rk_stop_fueling_process(self);
+        if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= self->relay_cut_off_timing)
+        {
+        	// 1. Заданная доза топлива заправлена
+        	rk_stop_fueling_process(self, &cnt);
             self->fueling_current_volume = self->fueling_dose_in_liters;
+        	rk_fueling_log(self);
             store_prev_summators_flag = 0;
-        } else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (cnt > 20)) {  // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
-        	// Случай 2.
+        }
+        else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (cnt > 20)) // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
+        {
+        	// 2. Бак заполнен (расход топлива снизился ниже порогового)
+        	rk_fueling_log(self);
         	if(self->state == trk_enabled_fueling_process_local) {
         		// Если заправка была начата локально (с кнопки СТАРТ), то "забываем" объем заправленного топлива,
         		// чтобы в GasKit не возникла ошибка "Расхождения по счетчикам"
+                rk_fueling_log(self);
         		self->fueling_current_volume = 0.00;
+        	} else {
+                rk_fueling_log(self);
         	}
-        	rk_stop_fueling_process(self);
+        	rk_stop_fueling_process(self, &cnt);
             store_prev_summators_flag = 0;
         	printf("FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->flomac_mass_flowrate);
-        } else if(self->state == trk_enabled_fueling_process_local) {
-        	// Случай 3.
+        }
+        else if(self->state == trk_enabled_fueling_process_local) {
+        	// 3. Нажата кнопка СТОП в случае, если заправка начата по нажатию кнопки СТАРТ.
         	if(self->stop_button_pressed_flag == 1) {
-        		rk_stop_fueling_process(self);
+            	rk_fueling_log(self);
+        		rk_stop_fueling_process(self, &cnt);
         		self->stop_button_pressed_flag = 0;
         		self->fueling_current_volume = 0.00;
         	}
@@ -351,11 +360,13 @@ static int rk_fueling_simulation(rk_t* self) {
         	rk_fueling_calculate_summators(self);
         }
 
-        rk_fueling_log(self);
+        if(self->state != trk_disabled_fueling_finished)
+        {
+        	rk_fueling_log(self);
+        }
 
         if(self->state == trk_disabled_fueling_finished) {
         	rk_fueling_log_results(self);
-            cnt = 0;
         }
     } else {
     }
