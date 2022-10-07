@@ -56,10 +56,15 @@ struct relay_t {
 int relay_init(int idx, relay_t* relay);
 int relay_low_on(relay_t* relay);
 int relay_low_off(relay_t* relay);
+int relay_low_is_on(relay_t* relay);
+
 int relay_middle_on(relay_t* relay);
 int relay_middle_off(relay_t* relay);
+int relay_middle_is_on(relay_t* relay);
+
 int relay_high_on(relay_t* relay);
 int relay_high_off(relay_t* relay);
+int relay_high_is_on(relay_t* relay);
 
 #endif  // RELAY_H
 

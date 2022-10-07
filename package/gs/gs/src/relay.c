@@ -67,6 +67,15 @@ int relay_low_on(relay_t* relay)
 	return ret;
 }
 
+int relay_low_is_on(relay_t* relay)
+{
+	if(relay->relay_low_state == relay_on) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 int relay_low_off(relay_t* relay)
 {
 	int ret = set_config(relay->relay_low_filename, "0", 1);
@@ -88,6 +97,15 @@ int relay_middle_on(relay_t* relay)
 	return ret;
 }
 
+int relay_middle_is_on(relay_t* relay)
+{
+	if(relay->relay_middle_state == relay_on) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 int relay_middle_off(relay_t* relay)
 {
 	int ret = set_config(relay->relay_middle_filename, "0", 1);
@@ -106,7 +124,19 @@ int relay_high_on(relay_t* relay)
 	if(!ret) {
 		relay->relay_high_state = relay_on;
 	}
+#ifdef SIMULATION
+	simulation_open_high_valve();
+#endif
 	return ret;
+}
+
+int relay_high_is_on(relay_t* relay)
+{
+	if(relay->relay_high_state == relay_on) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 int relay_high_off(relay_t* relay)
@@ -115,5 +145,8 @@ int relay_high_off(relay_t* relay)
 	if(!ret) {
 		relay->relay_high_state = relay_off;
 	}
+#ifdef SIMULATION
+	simulation_close_high_valve();
+#endif
 	return ret;
 }

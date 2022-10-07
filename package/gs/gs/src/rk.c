@@ -4,8 +4,6 @@
 
 #include "rk.h"
 
-//#define SIMULATION					1
-
 #define FILENAME_MAX_SIZE   64
 #define RX_BUF_SIZE         64
 
@@ -21,6 +19,8 @@ static void button_stop_callback(rk_t* self, int code);
 static void rk_start_fueling_process(rk_t* self);
 static void rk_start_local_fueling_process(rk_t* self);
 static void rk_stop_fueling_process(rk_t* self, int* cnt);
+
+static int valves_amount = 1;  // To-Do: implement config file and web interface
 
 char tmp[RX_BUF_SIZE] = {0};
 
@@ -290,7 +290,8 @@ static int rk_fueling_calculate_summators(rk_t* self) {
 }
 
 static void rk_stop_fueling_process(rk_t* self, int* cnt) {
-    relay_middle_off(&self->relay);
+	relay_high_off(&self->relay);
+	relay_middle_off(&self->relay);
     self->state = trk_disabled_fueling_finished;
     self->state_issue = trk_state_issue_less_or_equal_dose;
     *cnt = 0;
@@ -332,6 +333,16 @@ static int rk_fueling_simulation(rk_t* self) {
         {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
         	rk_fueling_log(self);
+
+        	if((valves_amount == 2) && (!relay_high_is_on(&self->relay)))
+        	{
+        		// Если схема заправки - двухклапанная и верхний клапан еще не открыт, - то открываем его и продолжаем заправку
+        		relay_high_on(&self->relay);
+        		cnt = 0;
+        		printf("FUELING PROCESS. HIGH VALVE OPENED\r\n");
+        		return;
+        	}
+
         	if(self->state == trk_enabled_fueling_process_local) {
         		// Если заправка была начата локально (с кнопки СТАРТ), то "забываем" объем заправленного топлива,
         		// чтобы в GasKit не возникла ошибка "Расхождения по счетчикам"
