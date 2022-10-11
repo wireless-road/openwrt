@@ -40,7 +40,9 @@ typedef enum {
 } trk_state_issue_t;
 
 
-#define SIMULATION_FUELING_FULL_TANK_VOLUME	1.2f
+#define SINGLE_VALVE	1
+#define TWO_VALVE		2
+
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
 #define PRICE_PER_LITER_DIGITS      6
@@ -73,6 +75,7 @@ struct rk_t {
     char config_filename_gas_density[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_relay_cut_off_timing[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_mass_flow_rate_threshold_value[CONFIG_FILENAME_MAX_LENGTH];
+    char config_filename_valves_amount[CONFIG_FILENAME_MAX_LENGTH];
     float fueling_dose_in_liters;  // Заданная с АРМ доза к заправке в литрах
     float fueling_dose_in_rubles;  // Заданная с АРМ доза к заправке в рублях
     float fueling_price_per_liter;  // Заданная с АРМ стоимость топлива за литр
@@ -96,6 +99,7 @@ struct rk_t {
     float gas_density;
     float relay_cut_off_timing;	// упреждающее количества объема, оставшееся к заправке в бак, при котором происходит закрытие клапана
     float mass_flow_rate_threshold_value;  // пороговое значение скорости расхода газа, ниже которого считается, что бак полный и заправка завершена
+    int valves_amount;  // количество клапанов, используемых в схеме заправки (1, 2). Если 2 клапана, - то один - клапан нижнего давления, второй - высокого давления
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
@@ -108,6 +112,7 @@ struct rk_t {
 #define DEF_CONFIG_FILE_GAS_DENSITY		            "/etc/gs/%d/setting_gas_density"
 #define DEF_CONFIG_FILE_RELAY_CUT_OFF_TIMING		"/etc/gs/%d/setting_relay_cut_off_timing"
 #define DEF_CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE  "/etc/gs/%d/setting_mass_flow_rate_threshold_value"
+#define DEF_CONFIG_FILE_VALVES_AMOUNT  				"/etc/gs/%d/setting_valves_amount"
 
 
 #define CONFIG_FILE_IS_ENABLED                  "/mnt/gs/%d/isEnabled"
@@ -120,6 +125,7 @@ struct rk_t {
 #define CONFIG_FILE_GAS_DENSITY		            "/mnt/gs/%d/setting_gas_density"
 #define CONFIG_FILE_RELAY_CUT_OFF_TIMING        	"/mnt/gs/%d/setting_relay_cut_off_timing"
 #define CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE  "/mnt/gs/%d/setting_mass_flow_rate_threshold_value"
+#define CONFIG_FILE_VALVES_AMOUNT  					"/mnt/gs/%d/setting_valves_amount"
 
 int rk_init(int idx, rk_t* rk);
 

@@ -20,7 +20,7 @@ static void rk_start_fueling_process(rk_t* self);
 static void rk_start_local_fueling_process(rk_t* self);
 static void rk_stop_fueling_process(rk_t* self, int* cnt);
 
-static int valves_amount = 1;  // To-Do: implement config file and web interface
+//static int valves_amount = 1;  // To-Do: implement config file and web interface
 
 char tmp[RX_BUF_SIZE] = {0};
 
@@ -144,6 +144,18 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->mass_flow_rate_threshold_value = tmp;
 
+    // valves_amount
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_FILE_VALVES_AMOUNT, idx);
+    memset(rk->config_filename_valves_amount, 0, sizeof(rk->config_filename_valves_amount));
+    strcpy(rk->config_filename_valves_amount, filename);
+    ret = parse_float_config(filename, &tmp);
+    if(ret == -1) {
+        return -1;
+    }
+    rk->valves_amount = tmp;
+    printf("valves amount: %d\r\n", rk->valves_amount);
+
     // summator_volume
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_SUMMATOR_VOLUME, idx);
@@ -154,7 +166,6 @@ int rk_init(int idx, rk_t* rk) {
         return -1;
     }
     rk->summator_volume = tmp;
-
 
     // price_per_liter
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -334,7 +345,7 @@ static int rk_fueling_simulation(rk_t* self) {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
         	rk_fueling_log(self);
 
-        	if((valves_amount == 2) && (!relay_high_is_on(&self->relay)))
+        	if((self->valves_amount == TWO_VALVE) && (!relay_high_is_on(&self->relay)))
         	{
         		// Если схема заправки - двухклапанная и верхний клапан еще не открыт, - то открываем его и продолжаем заправку
         		relay_high_on(&self->relay);
