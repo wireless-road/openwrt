@@ -154,7 +154,6 @@ int rk_init(int idx, rk_t* rk) {
         return -1;
     }
     rk->valves_amount = tmp;
-    printf("valves amount: %d\r\n", rk->valves_amount);
 
     // summator_volume
     memset(filename, 0, FILENAME_MAX_SIZE);
