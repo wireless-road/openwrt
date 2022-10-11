@@ -329,7 +329,7 @@ static int rk_fueling_simulation(rk_t* self) {
         	rk_fueling_log(self);
             store_prev_summators_flag = 0;
         }
-        else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (cnt > 20)) // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
+        else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (cnt > 500) && (self->fueling_current_volume >= 0.05)) // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
         {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
         	rk_fueling_log(self);
@@ -374,6 +374,9 @@ static int rk_fueling_simulation(rk_t* self) {
         if(self->state != trk_disabled_fueling_finished)
         {
         	rk_fueling_log(self);
+        	if(self->fueling_current_volume <= 0.1) {
+        		cnt = 0;
+        	}
         }
 
         if(self->state == trk_disabled_fueling_finished) {
@@ -732,13 +735,14 @@ static void button_start_callback(rk_t* self, int code)
     printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
     if(self->local_control_allowed) {
     	printf("%s RK. LOCAL FUELING started by pressing start button\r\n", self->side == left ? "Left" : "Right");
+
     	if(self->state == trk_disabled_rk_installed) {
     		rk_start_local_fueling_process(self);
     	} else {
     		printf("%s RK. LOCAL FUELING not possible in %d state.\r\n", self->side == left ? "Left" : "Right", self->state);
     	}
     } else {
-    	printf("%s RK. LOCAL FUELING stopped by pressing stop button\r\n", self->side == left ? "Left" : "Right");
+    	printf("%s RK. LOCAL FUELING not allowed\r\n", self->side == left ? "Left" : "Right");
     }
 }
 
