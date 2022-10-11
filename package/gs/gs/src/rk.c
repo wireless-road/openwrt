@@ -438,12 +438,14 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_TRK_AUTHORIZATION:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_AUTHORIZATION\n", self->side == left ? "Left" : "Right", self->address);
-            ret = 0;  // To-Do: implement checkout whether we can start discharging
-            if(tmp == 0) {
+            ret = 0;
+            if(self->is_not_fault(self)) {
                 self->state = trk_authorization_cmd;
                 azt_tx_ack();
             } else {
-                azt_tx_can();
+            	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
+            	azt_tx_can();
+            	self->state = trk_disabled_rk_taken_off;
             }
             break;
         case AZT_REQUEST_TRK_RESET:
@@ -633,14 +635,16 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             break;
         case AZT_REQUEST_UNCONDITIONAL_START:
             printf("%s RK. Address %d. AZT_REQUEST_UNCONDITIONAL_START\n", self->side == left ? "Left" : "Right", self->address);
-            ret = 0;  // To-Do: implement checkout whether we can start discharging
+            ret = 0;
 //            Возможные статусы ТРК до запроса:     ‘2’  // trk_authorization_cmd
 //            Возможные статусы ТРК после запроса:  ‘3’  // trk_enabled_fueling_process
-            if(tmp == 0) {
+            if(self->is_not_fault(self)) {
             	rk_start_fueling_process(self);
                 azt_tx_ack();
             } else {
+            	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
                 azt_tx_can();
+                self->state = trk_disabled_rk_taken_off;
             }
             break;
         case AZT_REQUEST_TRK_ADDRESS_CHANGE:
