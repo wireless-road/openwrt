@@ -1,0 +1,146 @@
+--- a/cmd/fdt.c
++++ b/cmd/fdt.c
+@@ -40,9 +40,143 @@ struct fdt_header *working_fdt;
+ void set_working_fdt_addr(ulong addr)
+ {
+ 	void *buf;
++	/* patch by hlb start */
++	#define B2L(x)	(((x & 0xff000000) >> 24) | ((x & 0xff0000) >> 8) | ((x & 0xff00) << 8) | ((x & 0xff) << 24))
+ 
++	unsigned int off_dt_struct; 	 /* offset to structure */
++	unsigned int off_dt_strings;		 /* offset to strings */
++	unsigned int off_mem_rsvmap;		 /* offset to memory reserve map */
++
++	unsigned int temp;
++	unsigned int len;
++	unsigned int name_off;
++	unsigned char* str;
++	unsigned char* node_name;
++	int root_node = 0;
++	int mac_cnt = 0;
++	unsigned int ID0 = *((volatile const unsigned int*)0x21BC410);
++	unsigned int ID1 = *((volatile const unsigned int*)0x21BC420);
++	printf("\nID0 = 0x%08x\n", ID0);
++	printf("ID1 = 0x%08x\n", ID1);
++	/* patch by hlb end */
+ 	buf = map_sysmem(addr, 0);
+ 	working_fdt = buf;
++	/* patch by hlb start*/
++#if 0
++	printf("addr = 0x%08x\n", addr);
++	printf("buf = 0x%08x\n", buf);
++#endif
++
++	off_dt_struct = B2L(working_fdt->off_dt_struct);
++	off_dt_strings = B2L(working_fdt->off_dt_strings);
++	off_mem_rsvmap = B2L(working_fdt->off_mem_rsvmap);
++
++#if 0
++	printf("off_dt_struct = %d\n", off_dt_struct);
++	printf("off_dt_strings = %d\n", off_dt_strings);
++	printf("off_mem_rsvmap = %d\n", off_mem_rsvmap);
++#endif
++	off_dt_struct += (unsigned int)working_fdt;
++	off_dt_strings += (unsigned int)working_fdt;
++	off_mem_rsvmap += (unsigned int)working_fdt;
++
++	do
++	{
++		temp = *((unsigned int*)off_dt_struct);
++		off_dt_struct += 4;
++		temp = B2L(temp);
++		switch (temp)
++		{
++		case 1:
++			if (root_node == 0) //
++			{
++				root_node = 1;
++				 off_dt_struct += 4; //
++			}
++			else
++			{
++				/* node name */
++				node_name = (unsigned char*)off_dt_struct;
++				//printf("node name: %s\n", str);
++
++				int str_len;
++				str_len = strlen((const char*)node_name) + 1;
++				off_dt_struct += str_len;
++				if (str_len % 4)
++				{
++					 off_dt_struct += 4- (str_len% 4); //
++				}
++			}
++			break;
++
++		case 2:
++			break;
++
++		case 3:
++			/* value len */
++			temp = *((unsigned int*)off_dt_struct);
++			len = B2L(temp);
++
++			off_dt_struct += 4;
++
++			/* nameoff */
++			temp = *((unsigned int*)off_dt_struct);
++			name_off = B2L(temp);
++			str = (unsigned char*)(off_dt_strings + name_off);
++
++			off_dt_struct += 4;
++
++			if (strstr((char*)str, (const char*)"local-mac-address"))
++			{
++				unsigned char* pmac;
++				pmac = (unsigned char*)off_dt_struct;
++
++#if 1
++				printf("Finding eth%d node name is: %s\n", mac_cnt, node_name);
++				printf("Old local-mac-address value len = %d\n", len);
++				for (int i = 0; i < 6; i++)
++				{
++					printf("0x%02x ", pmac[i]);
++				}
++				printf("\n");
++#endif
++				pmac[0] = 0x00;
++				pmac[1] = 0x0a;
++				pmac[2] = 0x35 + mac_cnt++;
++				pmac[3] = (unsigned char)(ID1 >> 16);
++				pmac[4] = (unsigned char)(ID1 >> 8);
++				pmac[5] = (unsigned char)(ID1 >> 0);
++
++#if 1
++				printf("Use ID1 value!\n");
++				printf("local-mac-address value len = %d\n", len);
++				for (int i = 0; i < 6; i++)
++				{
++					printf("0x%02x ", pmac[i]);
++				}
++				printf("\n\n");
++#endif
++			}
++
++
++			 off_dt_struct += len; //
++			if (len % 4)
++			{
++				 off_dt_struct += 4- (len% 4); //
++			}
++			break;
++
++		case 9:
++			off_dt_struct = 0;
++			break;
++
++		default:
++			break;
++		}
++
++	} while (off_dt_struct);
++
++	/* patch by hlb end */
+ 	env_set_hex("fdtaddr", addr);
+ }
+ 
