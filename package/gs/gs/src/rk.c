@@ -382,7 +382,6 @@ static int rk_fueling_scheduler(rk_t* self) {
             	rk_fueling_log(self, cnt);
             	if(!counter_is_started(&self->counter_stop_btn)) {
             		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
-//            		printf("counter started to wait for flomac actual measurements\r\n");
             		counter_start(&self->counter_stop_btn);
             		relay_high_off(&self->relay);
             		relay_middle_off(&self->relay);
@@ -394,13 +393,8 @@ static int rk_fueling_scheduler(rk_t* self) {
                 		self->fueling_current_volume = 0.00;
                     	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
             		} else {
-//            			printf("counter cnt: %d\r\n", counter_state(&self->counter_stop_btn));
             		}
             	}
-//        		rk_stop_fueling_process(self, &cnt);
-//        		self->stop_button_pressed_flag = 0;
-//        		self->fueling_current_volume = 0.00;
-//            	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
         	}
         }
         else if(self->reset_command_received_flag) {
