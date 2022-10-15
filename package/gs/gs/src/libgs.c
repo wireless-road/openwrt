@@ -169,7 +169,9 @@ int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
     p = (float *)measurements;
     uint16_t buf[20];
     if (gs_read_reg(ctx, R_MMI_MEASUREMENTS_BASE, 20, &buf) == -1) {
+#ifndef DEV_WITHOUT_FLOMAC
     	printf("ERROR. Modbus. Read measurements failed\r\n");
+#endif
         return -1;
     }
     for (int i = 0; i < 20; i += 2)

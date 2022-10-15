@@ -216,6 +216,7 @@ static int rk_check_state(rk_t* self) {
         rk_indicate_error_message(self);
     }
 
+#ifndef DEV_WITHOUT_FLOMAC
     // modbus checkout
     ret = gs_check_state(&self->modbus);
     if( (ret == -1) && error_is_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED) ) {
@@ -227,6 +228,7 @@ static int rk_check_state(rk_t* self) {
         error_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
+#endif
 
     return self->error_state.code == 0;
 }
