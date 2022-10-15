@@ -195,6 +195,9 @@ int rk_init(int idx, rk_t* rk) {
     }
 
     relay_init(idx, &rk->relay);
+
+    counter_init(&rk->counter_stop_btn);
+    counter_init(&rk->counter_reset_cmd);
     return 0;
 }
 
@@ -377,10 +380,27 @@ static int rk_fueling_scheduler(rk_t* self) {
         	// 3. Нажата кнопка СТОП в случае, если заправка начата по нажатию кнопки СТАРТ.
         	if(self->stop_button_pressed_flag == 1) {
             	rk_fueling_log(self, cnt);
-        		rk_stop_fueling_process(self, &cnt);
-        		self->stop_button_pressed_flag = 0;
-        		self->fueling_current_volume = 0.00;
-            	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
+            	if(!counter_is_started(&self->counter_stop_btn)) {
+            		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
+//            		printf("counter started to wait for flomac actual measurements\r\n");
+            		counter_start(&self->counter_stop_btn);
+            		relay_high_off(&self->relay);
+            		relay_middle_off(&self->relay);
+            	} else {
+            		if(counter_tick(&self->counter_stop_btn)) {
+            			counter_reset(&self->counter_stop_btn);
+                		rk_stop_fueling_process(self, &cnt);
+                		self->stop_button_pressed_flag = 0;
+                		self->fueling_current_volume = 0.00;
+                    	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
+            		} else {
+//            			printf("counter cnt: %d\r\n", counter_state(&self->counter_stop_btn));
+            		}
+            	}
+//        		rk_stop_fueling_process(self, &cnt);
+//        		self->stop_button_pressed_flag = 0;
+//        		self->fueling_current_volume = 0.00;
+//            	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
         	}
         }
         else if(self->reset_command_received_flag) {

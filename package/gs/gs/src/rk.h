@@ -21,6 +21,7 @@
 #include "libgs.h"
 #include "led.h"
 #include "relay.h"
+#include "delay_counter.h"
 
 typedef enum { right, left } rk_side;
 
@@ -101,6 +102,8 @@ struct rk_t {
     float relay_cut_off_timing;	// упреждающее количества объема, оставшееся к заправке в бак, при котором происходит закрытие клапана
     float mass_flow_rate_threshold_value;  // пороговое значение скорости расхода газа, ниже которого считается, что бак полный и заправка завершена
     int valves_amount;  // количество клапанов, используемых в схеме заправки (1, 2). Если 2 клапана, - то один - клапан нижнего давления, второй - высокого давления
+    delay_counter_t counter_stop_btn;  // счетчик выжидания результатов расходомера при остановке заправки кнопкой Stop
+    delay_counter_t counter_reset_cmd;  // счетчик выжидания результатов расходомера при остановке по команде с GasKit
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
