@@ -80,8 +80,8 @@ static int CAN_send(can_t* self, float volume, float price, float totalPrice) {
     char frame2_data[4] = {0};
     memset(frame_data, 0, sizeof(frame_data));
     memset(frame2_data, 0, sizeof(frame2_data));
-    memcpy(frame_data, &volume, sizeof(volume));
-    memcpy(frame_data+4, &totalPrice, sizeof(totalPrice));
+    memcpy(frame_data+4, &volume, sizeof(volume));
+    memcpy(frame_data, &totalPrice, sizeof(totalPrice));
     memcpy(frame2_data, &price, sizeof(price));
 
     // send frame for upper and middle rows data
