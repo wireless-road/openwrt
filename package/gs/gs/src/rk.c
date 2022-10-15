@@ -399,12 +399,24 @@ static int rk_fueling_scheduler(rk_t* self) {
         }
         else if(self->reset_command_received_flag) {
         	// 4. Пришла команда "СТОП" с GasKit
-        	self->reset_command_received_flag = 0;
-        	self->fueling_interrupted_volume = self->summator_volume - self->prev_summator_volume;
-        	self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
-        	rk_stop_fueling_process(self, &cnt);
-        	printf("%s RK. FUELING FINISHED #4. Reset command received\r\n", self->side == left ? "Left" : "Right");
-        	return;
+        	if(!counter_is_started(&self->counter_reset_cmd)) {
+        		counter_start(&self->counter_reset_cmd);
+        		relay_high_off(&self->relay);
+        		relay_middle_off(&self->relay);
+        	} else {
+        		if(counter_tick(&self->counter_reset_cmd)) {
+        			counter_reset(&self->counter_reset_cmd);
+                	self->reset_command_received_flag = 0;
+                	rk_fueling_log_results(self);
+                	self->fueling_interrupted_volume = self->summator_volume - self->prev_summator_volume;
+                	self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
+                	rk_stop_fueling_process(self, &cnt);
+                	printf("%s RK. FUELING FINISHED #4. Reset command received\r\n", self->side == left ? "Left" : "Right");
+                	return;
+        		} else {
+        			printf("RK reset cmd counter: %d\r\n", counter_state(&self->counter_reset_cmd));
+        		}
+        	}
         }
 
         if(self->state != trk_enabled_fueling_process_local) {
