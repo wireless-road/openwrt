@@ -94,6 +94,7 @@ struct rk_t {
     void (*btn_clbk_start)(int);
     void (*btn_clbk_stop)(int);
     int stop_button_pressed_flag;
+    int reset_command_received_flag;
     led_t led;
     relay_t relay;
     float gas_density;
