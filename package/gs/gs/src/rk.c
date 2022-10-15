@@ -400,6 +400,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         else if(self->reset_command_received_flag) {
         	// 4. Пришла команда "СТОП" с GasKit
         	if(!counter_is_started(&self->counter_reset_cmd)) {
+            	printf("%s RK. FUELING FINISHED #4. Reset command received. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
         		counter_start(&self->counter_reset_cmd);
         		relay_high_off(&self->relay);
         		relay_middle_off(&self->relay);
@@ -414,7 +415,6 @@ static int rk_fueling_scheduler(rk_t* self) {
                 	printf("%s RK. FUELING FINISHED #4. Reset command received\r\n", self->side == left ? "Left" : "Right");
                 	return;
         		} else {
-        			printf("RK reset cmd counter: %d\r\n", counter_state(&self->counter_reset_cmd));
         		}
         	}
         }
