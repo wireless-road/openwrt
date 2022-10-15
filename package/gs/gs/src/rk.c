@@ -268,10 +268,13 @@ static int rk_process(rk_t* self) {
 }
 
 static int rk_fueling_log(rk_t* self, int cnt) {
+	float volume = self->fueling_current_volume + self->fueling_interrupted_volume;
+	volume = round(volume * 100.0) / 100.0;
+	float price = volume * self->fueling_price_per_liter;
     self->can_bus.transmit(&self->can_bus,
-                           self->fueling_current_volume + self->fueling_interrupted_volume,
+                           volume,
                            self->fueling_price_per_liter,
-                           (self->fueling_current_volume + self->fueling_interrupted_volume) * self->fueling_price_per_liter);
+                           price);
 
     printf("currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, summator: %.2f, interrupted: %.2f\r\n",
     	   cnt,
