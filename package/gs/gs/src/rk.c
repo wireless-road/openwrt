@@ -209,6 +209,7 @@ static int rk_check_state(rk_t* self) {
     if(!self->enabled) {
     	return 0;
     }
+#ifndef DEV_WITHOUT_4_20
     // 4-20ma checkout
     int ret = in_4_20_ma_read(&self->in_4_20);
     if( (ret == -1) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) ) {
@@ -218,6 +219,7 @@ static int rk_check_state(rk_t* self) {
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
+#endif
 
 #ifndef DEV_WITHOUT_FLOMAC
     // modbus checkout

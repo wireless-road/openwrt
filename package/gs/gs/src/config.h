@@ -1,6 +1,7 @@
 
-#define DEV_WITHOUT_FLOMAC	1
-//#define SIMULATION	1
+//#define DEV_WITHOUT_4_20	1
+//#define DEV_WITHOUT_FLOMAC	1
+//#define SIMULATION			1
 
 #ifdef SIMULATION
 
