@@ -104,6 +104,8 @@ struct rk_t {
     int valves_amount;  // количество клапанов, используемых в схеме заправки (1, 2). Если 2 клапана, - то один - клапан нижнего давления, второй - высокого давления
     delay_counter_t counter_stop_btn;  // счетчик выжидания результатов расходомера при остановке заправки кнопкой Stop
     delay_counter_t counter_reset_cmd;  // счетчик выжидания результатов расходомера при остановке по команде с GasKit
+    int cnt;
+    int store_prev_summators_flag;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
