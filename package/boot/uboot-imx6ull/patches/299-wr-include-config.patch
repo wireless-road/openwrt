@@ -1,7 +1,8 @@
-diff -Nru u-boot-2017.07-001/include/configs/wirelessroad_ecspi3.h u-boot-2017.07-002-generic_ecspi3/include/configs/wirelessroad_ecspi3.h
---- u-boot-2017.07-001/include/configs/wirelessroad_ecspi3.h	1970-01-01 03:00:00.000000000 +0300
-+++ u-boot-2017.07-002-generic_ecspi3/include/configs/wirelessroad_ecspi3.h	2020-03-19 04:47:08.202714768 +0200
-@@ -0,0 +1,238 @@
+Index: u-boot-2020.10/include/configs/wirelessroad_ecspi3.h
+===================================================================
+--- /dev/null
++++ u-boot-2020.10/include/configs/wirelessroad_ecspi3.h
+@@ -0,0 +1,247 @@
 +/*
 + * Copyright (C) 2020 WirelessRoad.
 + *
@@ -139,7 +140,7 @@ diff -Nru u-boot-2017.07-001/include/configs/wirelessroad_ecspi3.h u-boot-2017.0
 +
 +#define CONFIG_DRIVE_USB "usb "
 +#define CONFIG_DRIVE_MMC "mmc "
-+#define CONFIG_DRIVE_TYPES CONFIG_DRIVE_MMC CONFIG_DRIVE_USB
++#define CONFIG_DRIVE_TYPES CONFIG_DRIVE_MMC // CONFIG_DRIVE_USB disable usb probe on boot
 +#define CONFIG_UMSDEVS CONFIG_DRIVE_MMC CONFIG_DRIVE_USB
 +
 +#define CONFIG_EXTRA_ENV_SETTINGS \
@@ -152,6 +153,7 @@ diff -Nru u-boot-2017.07-001/include/configs/wirelessroad_ecspi3.h u-boot-2017.0
 +		"echo restored environment to factory default ; fi\0" \
 +	"loadaddr=84000000\0" \
 +	"fit_size=1000000\0" \
++	"autoload=0\0" \
 +	"dtbname=wirelessroad_stream_wifi_imx6ull.dtb\0" \
 +	"bootcmd=for dtype in ${bootdevs}" \
 +		"; do " \
@@ -183,9 +185,17 @@ diff -Nru u-boot-2017.07-001/include/configs/wirelessroad_ecspi3.h u-boot-2017.0
 +				"/6x_upgrade.ull " \
 +				"&& source 80008000 ; " \
 +		"done ; " \
-+	"done\0"
-+
-+
++	"done\0" \
++	"do_tftp_flash_firmware=dhcp;" \
++	 		"tftp ${loadaddr} imxfw.bin;" \
++			"sf probe;" \
++			"sf update ${loadaddr} 0 ${filesize};" \
++			"reset\0" \
++	"do_tftp_flash_uboot=dhcp;" \
++	 		"tftp ${loadaddr} uboot-imx.bin;" \
++			"sf probe;" \
++			"sf update ${loadaddr} 0 ${filesize};" \
++			"reset\0"
 +
 +/* Miscellaneous configurable options */
 +#define CONFIG_SYS_MEMTEST_START	0x80000000

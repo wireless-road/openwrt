@@ -1,7 +1,8 @@
-diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ecspi3.c u-boot-2017.07-002-generic_ecspi3/board/freescale/wirelessroad_ecspi3/wirelessroad_ecspi3.c
---- u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ecspi3.c	1970-01-01 03:00:00.000000000 +0300
-+++ u-boot-2017.07-002-generic_ecspi3/board/freescale/wirelessroad_ecspi3/wirelessroad_ecspi3.c	2020-03-28 01:18:12.821831652 +0200
-@@ -0,0 +1,855 @@
+Index: u-boot-2020.10/board/freescale/wirelessroad_ecspi3/wirelessroad_ecspi3.c
+===================================================================
+--- /dev/null
++++ u-boot-2020.10/board/freescale/wirelessroad_ecspi3/wirelessroad_ecspi3.c
+@@ -0,0 +1,872 @@
 +/*
 + * Copyright (C) 2015 Freescale Semiconductor, Inc.
 + *
@@ -429,11 +430,7 @@ diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ec
 +int board_phy_config(struct phy_device *phydev)
 +{
 +
-+
-+
-+
 +	//phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x8190);
-+
 +	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x8180);
 +
 +	if (phydev->drv->config)
@@ -665,12 +662,33 @@ diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/wirelessroad_ec
 +#endif
 +
 +#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-+	setenv("board_name", "GooseNeck");
++	setenv("board_name", "WRECSPI");
 +
 +
 +	setenv("board_rev", "v1");
 +#endif
++	char buf[18];
++	unsigned int ID0 = *((volatile const unsigned int*)0x21BC410);
++	unsigned int ID1 = *((volatile const unsigned int*)0x21BC420);
++	//printf("ID0 = 0x%08x\n", ID0);
++	//printf("ID1 = 0x%08x\n", ID1);
 +
++	sprintf(buf, "06:0a:36:%02x:%02x:%02x",
++		(unsigned char)(ID1 >> 16),
++		(unsigned char)(ID1 >> 8),
++		(unsigned char)(ID1 >> 0)
++	);
++	printf("MAC1: %s\n", buf);
++
++	env_set("ethaddr", buf);
++
++	sprintf(buf, "06:0a:46:%02x:%02x:%02x",
++		(unsigned char)(ID1 >> 16),
++		(unsigned char)(ID1 >> 8),
++		(unsigned char)(ID1 >> 0)
++	);
++	printf("MAC2: %s\n", buf);
++	env_set("eth1addr", buf);
 +	return 0;
 +}
 +

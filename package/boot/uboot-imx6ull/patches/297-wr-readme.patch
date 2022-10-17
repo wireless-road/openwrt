@@ -1,6 +1,7 @@
-diff -Nru u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/README u-boot-2017.07-002-generic_ecspi3/board/freescale/wirelessroad_ecspi3/README
---- u-boot-2017.07-001/board/freescale/wirelessroad_ecspi3/README	1970-01-01 03:00:00.000000000 +0300
-+++ u-boot-2017.07-002-generic_ecspi3/board/freescale/wirelessroad_ecspi3/README	2020-03-19 04:47:08.202714768 +0200
+Index: u-boot-2020.10/board/freescale/wirelessroad_ecspi3/README
+===================================================================
+--- /dev/null
++++ u-boot-2020.10/board/freescale/wirelessroad_ecspi3/README
 @@ -0,0 +1,32 @@
 +How to use U-Boot on Freescale MX6UL 14x14 EVK
 +-----------------------------------------------
