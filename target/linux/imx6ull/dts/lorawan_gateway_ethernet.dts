@@ -9,6 +9,8 @@
 /dts-v1/;
 
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
 #include "imx6ull.dtsi"
 
 / {
@@ -45,17 +47,39 @@
 		wdog1 = &wdog1;
 	};
 
-	@aips3 {
+	leds {
+		compatible = "gpio-leds";
 
-			rngb: rngb@02284000 {
-				compatible = "fsl,imx6sl-rng", "fsl,imx-rng", "imx-rng";
-				reg = <0x02284000 0x4000>;
-				interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
-				clocks =  <&clks IMX6UL_CLK_DUMMY>;
-			};
-
-
+		led1 {
+			label = "led-eth0";
+			gpios = <&gpio5 3 GPIO_ACTIVE_LOW>;
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "off";
 		};
+
+		led2 {
+			label = "led-wifi";
+			gpios = <&gpio5 0 GPIO_ACTIVE_LOW>;
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "off";
+		};
+
+		led3 {
+			label = "led-3g";
+			gpios = <&gpio5 8 GPIO_ACTIVE_LOW>;
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "off";
+		};
+	};
+
+	@aips3 {
+		rngb: rngb@02284000 {
+			compatible = "fsl,imx6sl-rng", "fsl,imx-rng", "imx-rng";
+			reg = <0x02284000 0x4000>;
+			interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
+			clocks =  <&clks IMX6UL_CLK_DUMMY>;
+		};
+	};
 };
 
 #include "wr_cpu.dtsi"
@@ -111,6 +135,18 @@
 	status = "disabled";
 	nand-on-flash-bbt;
 	fsl,legacy-bch-geometry;
+};
+
+&iomuxc_snvs {
+	pinctrl-names = "default_snvs";
+
+	pinctrl_snvs_leds1: snvs-leds-grp {
+		fsl,pins = <
+			MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00  0x10b0 /* LED */
+			MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03	0x10b0 /* LED */
+			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08  0x10b0 /* LED */
+		>;
+	};
 };
 
 &iomuxc {
@@ -190,18 +226,18 @@
 			>;
 		};
 
-                pinctrl_enet2: enet2grp {
-                        fsl,pins = <
-                                MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN      0x1b0b0
-                                MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER      0x1b0b0
-                                MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00 0x1b0b0
-                                MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01 0x1b0b0
-                                MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN      0x1b0b0
-                                MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00 0x1b0b0
-                                MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01 0x1b0b0
-                                MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2  0x4001b031
-                        >;
-                };
+		pinctrl_enet2: enet2grp {
+				fsl,pins = <
+						MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN      0x1b0b0
+						MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER      0x1b0b0
+						MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00 0x1b0b0
+						MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01 0x1b0b0
+						MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN      0x1b0b0
+						MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00 0x1b0b0
+						MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01 0x1b0b0
+						MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2  0x4001b031
+				>;
+		};
 
 		pinctrl_flexcan0: flexcan0grp{
 			fsl,pins = <
@@ -300,7 +336,6 @@
 	pinctrl-0 = <&pinctrl_pwm4>;
 	status = "okay";
 };
-
 
 &sai2 {
 	pinctrl-names = "default";
