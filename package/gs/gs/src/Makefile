@@ -1,4 +1,4 @@
-all: gs test_modbus
+all: gs test_modbus test_modbus2
 
 CC = gcc
 CFLAGS += -Wall -Wunused -std=c11
@@ -18,6 +18,9 @@ gs: $(OBJ)
 
 test_modbus: $(OBJ)
 	$(CC) -o test_modbus test_modbus.o libgs.o settings.o simulator.o $(LDFLAGS)
+
+test_modbus2: $(OBJ)
+	$(CC) -o test_modbus2 test_modbus2.o $(LDFLAGS)
 
 .PHONY: clean
 
