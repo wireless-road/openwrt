@@ -100,6 +100,7 @@ function lora_cfg_upload()
 				end
 				if fp and eof then
 					fp:close()
+					luci.sys.exec("/etc/init.d/lora_pkt_fwd restart")
 				end
 			end
 		)
