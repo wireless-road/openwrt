@@ -132,10 +132,6 @@ function gs_state_get()
 	        value = can_address
 	    },
 	    {
-	        name = "display address",
-	        value = can_address
-	    },
-	    {
 	        name = "flomac address",
 	        value = flomac_address
 	    },
