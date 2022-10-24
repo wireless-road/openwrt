@@ -1,7 +1,7 @@
--- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.238:/usr/lib/lua/luci/controller/gs.lua
--- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.238:/usr/lib/lua/luci/view/gs.htm
--- scp package/gs/luci-gs/styles/gs.css root@192.168.31.238:/www/luci-static/resources/gs.css
--- scp package/gs/gs/files/gpio_conf.json root@192.168.31.238:/etc/gpio_conf.json
+-- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.6:/usr/lib/lua/luci/controller/gs.lua
+-- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.6:/usr/lib/lua/luci/view/gs.htm
+-- scp package/gs/luci-gs/styles/gs.css root@192.168.31.6:/www/luci-static/resources/gs.css
+-- scp package/gs/gs/files/gpio_conf.json root@192.168.31.6:/etc/gpio_conf.json
 
 module("luci.controller.gs", package.seeall)
 
@@ -77,10 +77,30 @@ function gs_state_get()
 	    }
 	}
 
+    local is_enabled = nixio.fs.readfile("/mnt/gs/1/isEnabled"):sub(1,-2)
     local density = nixio.fs.readfile("/mnt/gs/1/setting_gas_density"):sub(1,-2)
     local relay_cut_off = nixio.fs.readfile("/mnt/gs/1/setting_relay_cut_off_timing"):sub(1,-2)
+    local can_address = nixio.fs.readfile("/mnt/gs/1/can_deviceAddress"):sub(1,-2)
+    local flomac_address = nixio.fs.readfile("/mnt/gs/1/modbus_address"):sub(1,-2)
+    local gaskit_address = nixio.fs.readfile("/mnt/gs/1/address"):sub(1,-2)
 
 	result.settings_left = {
+	    {
+	        name = "enabled",
+	        value = is_enabled
+	    },
+	    {
+	        name = "gaskit address",
+	        value = gaskit_address
+	    },
+	    {
+	        name = "display address",
+	        value = can_address
+	    },
+	    {
+	        name = "flomac address",
+	        value = flomac_address
+	    },
 	    {
 	        name = "gas density",
 	        value = density
@@ -91,10 +111,34 @@ function gs_state_get()
 	    }
 	}
 
+    is_enabled = nixio.fs.readfile("/mnt/gs/2/isEnabled"):sub(1,-2)
     density = nixio.fs.readfile("/mnt/gs/2/setting_gas_density"):sub(1,-2)
     relay_cut_off = nixio.fs.readfile("/mnt/gs/2/setting_relay_cut_off_timing"):sub(1,-2)
+    can_address = nixio.fs.readfile("/mnt/gs/2/can_deviceAddress"):sub(1,-2)
+    flomac_address = nixio.fs.readfile("/mnt/gs/2/modbus_address"):sub(1,-2)
+    gaskit_address = nixio.fs.readfile("/mnt/gs/2/address"):sub(1,-2)
 
 	result.settings_right = {
+	    {
+	        name = "enabled",
+	        value = is_enabled
+	    },
+	    {
+	        name = "gaskit address",
+	        value = gaskit_address
+	    },
+	    {
+	        name = "display address",
+	        value = can_address
+	    },
+	    {
+	        name = "display address",
+	        value = can_address
+	    },
+	    {
+	        name = "flomac address",
+	        value = flomac_address
+	    },
 	    {
 	        name = "gas density",
 	        value = density
@@ -191,6 +235,14 @@ function gs_settings_set()
         param = 'setting_gas_density'
     elseif param == 'relay cut-off' then
         param = 'setting_relay_cut_off_timing'
+    elseif param == 'enabled' then
+        param = 'isEnabled'
+    elseif param == 'flomac address' then
+        param = 'modbus_address'
+    elseif param == 'gaskit address' then
+        param = 'address'
+    elseif param == 'display address' then
+        param = 'can_deviceAddress'
     else
         luci.http.prepare_content("text/plain; charset=utf-8")
         luci.http.write('ERROR. unknown param: ' .. param);
