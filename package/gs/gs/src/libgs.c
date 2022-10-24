@@ -266,6 +266,7 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
     conninfo->baudrate = ret;
 
     conninfo->connection_lost_flag = 0;
+    conninfo->connection_lost_counter = 0;
 
     atomic_init(&conninfo->summator_volume, 0.00);
     atomic_init(&conninfo->summator_mass, 0.00);
@@ -301,7 +302,8 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     ret = gs_get_version(conninfo->ctx);
     
     if(ret == -1) {
-        conninfo->connection_lost_flag = -1;
+    	conninfo->connection_lost_counter++;
+//        conninfo->connection_lost_flag = -1;
     }
     
     ret = gs_get_all_units(conninfo->ctx, &conninfo->measure_units);
@@ -311,7 +313,10 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     while(1) {
         ret = gs_get_all_measurements(conninfo->ctx, &conninfo->measurements);
     	if(ret == -1) {
-            conninfo->connection_lost_flag = -1;
+    		conninfo->connection_lost_counter++;
+    		if(conninfo->connection_lost_counter > CONNESTION_LOST_COUNTER_VALUE) {
+    			conninfo->connection_lost_flag = -1;
+    		}
 #ifdef SIMULATION
             simulate_mass_inventory_value();
             conninfo->measurements.mass_inventory = simulation_mass_inventory_value;
@@ -320,6 +325,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
             atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);
 #endif
         } else {
+        	conninfo->connection_lost_counter = 0;
             conninfo->connection_lost_flag = 0;
 //            print_measts(&conninfo->measurements);
 #ifdef SIMULATION

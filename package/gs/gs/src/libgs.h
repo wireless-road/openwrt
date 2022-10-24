@@ -16,6 +16,7 @@
 
 #define DEF_BAUDRATE    9600
 #define DEF_ADDR 1
+#define CONNESTION_LOST_COUNTER_VALUE	100
 
 typedef struct measure_units {
     uint16_t massflow_unit;
@@ -54,6 +55,7 @@ typedef struct gs_conninfo {
     _Atomic float summator_mass;
     _Atomic float mass_flowrate;
     int connection_lost_flag;
+    int connection_lost_counter;
 } gs_conninfo_t;
 
 /* port handling */
