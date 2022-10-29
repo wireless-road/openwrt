@@ -97,6 +97,7 @@ define Package/chirpstack-gateway-bridge/install
 	$(INSTALL_DIR) $(1)/usr/bin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/chirpstack-gateway-bridge $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/chirpstack-gateway-bridge/
+	$(INSTALL_DATA) ./files/chirpstack-gateway-bridge.toml $(1)/etc/chirpstack-gateway-bridge/
 	$(INSTALL_DIR) $(1)/etc/init.d/
 	$(INSTALL_BIN) ./files/cs-gateway.init $(1)/etc/init.d/cs-gateway
 endef
