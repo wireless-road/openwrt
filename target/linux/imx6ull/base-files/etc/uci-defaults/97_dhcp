@@ -10,7 +10,8 @@ board=$(board_name)
 board_config_update
 
 case "$board" in
-lorawan_gateway_ethernet)
+lorawan_gateway_ethernet |\
+lorawan_gateway_ethernet_bridged)
 	uci delete network.lan
 	uci delete network.@device[0]
 	uci delete network.globals
