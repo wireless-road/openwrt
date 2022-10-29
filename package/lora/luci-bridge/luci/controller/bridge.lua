@@ -1,7 +1,7 @@
 module("luci.controller.bridge", package.seeall)
 
 function index()
-	entry( {"admin", "bridge"}, template("bridge"), _("Bridge"), 99 )
+	entry( {"admin", "bridge"}, template("bridge"), _("ChirpStack"), 99 )
 	entry( {"admin", "bridge", "upload"},   call("bridge_cfg_upload"))
 end
 
