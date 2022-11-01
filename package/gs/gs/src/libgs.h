@@ -18,7 +18,7 @@
 #define DEF_ADDR 1
 #define CONNESTION_LOST_COUNTER_VALUE	100
 
-#define MODBUG_DELAY_US		5000
+#define MODBUG_DELAY_US		10000
 
 typedef struct measure_units {
     uint16_t massflow_unit;
