@@ -10,11 +10,17 @@ PROG=/usr/bin/gs
 
 SD="/dev/mmcblk0p1"
 TGT="/mnt/gs"
+TGT_DIR="/mnt/gs/1"
 
 init_storage() {
     echo -n "Mounting SD..."
+    if [ -d ${TGT_DIR} ]; then
+	echo "Already mounted"
+	return 0
+    fi
     if [ -b "/dev/mmcblk0p1" ]; then
         mkdir -p ${TGT}
+	fsck.fat -a ${SD}
         mount -t vfat ${SD} ${TGT}
         [ "$?" -eq 0 ] && {
             echo "OK"
@@ -75,5 +81,5 @@ start_service() {
 
 stop_service() {
     stop_gs
-    deinit_storage
+#    deinit_storage
 }
