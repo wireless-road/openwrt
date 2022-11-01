@@ -292,7 +292,7 @@ V_TOTAL: %.2f. M_INV: %.2f. V_INV: %.2f\r\n",
 static void gs_thread(gs_conninfo_t* conninfo) {
     int ret;
     _Atomic float* mass = (_Atomic float*)&conninfo->summator_mass;
-    _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
+//    _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
     _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
     conninfo->ctx = gs_init(conninfo);
 //    ret = gs_set_modbus_baudrate(conninfo, Baudrate_9600);  // set DEF_BAUDRATE macro value to current baudrate
@@ -334,10 +334,9 @@ static void gs_thread(gs_conninfo_t* conninfo) {
             conninfo->measurements.mass_flowrate = simulation_mass_rate_value;
 #endif
             atomic_store(mass, conninfo->measurements.mass_inventory);
-            atomic_store(volume, conninfo->measurements.volume_inventory);
+//            atomic_store(volume, conninfo->measurements.volume_inventory);
             atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);
         }
-//        usleep(300000);
     }
 }
 
