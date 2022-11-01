@@ -8,7 +8,7 @@ static void gs_thread(gs_conninfo_t* conninfo);
 static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 {
     int ret;
-    usleep(5000);
+    usleep(MODBUG_DELAY_US);
     ret = modbus_read_input_registers(ctx, reg, count, buffer);
     if (ret == -1) {
 //        fprintf(stderr, "Read reg %d failed: %s\n", reg, modbus_strerror(errno));
@@ -19,7 +19,7 @@ static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 static int gs_write_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 {
     int ret;
-    usleep(5000);
+    usleep(MODBUG_DELAY_US);
     ret = modbus_write_registers(ctx, reg, count, buffer);
     if (ret == -1) {
         fprintf(stderr, "Write reg %d failed: %s\n", reg, modbus_strerror(errno));
