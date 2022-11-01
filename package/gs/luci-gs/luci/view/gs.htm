@@ -84,7 +84,8 @@ function get_show_data(){
                         for (let k = 0; k < len; k++) {
                                  generateSettings("settings_left",
                                          settings_left[k].name,
-                                         settings_left[k].value
+                                         settings_left[k].value,
+                                         settings_left[k].label
                                  )
                         }
 
@@ -93,7 +94,8 @@ function get_show_data(){
                         for (let k = 0; k < len; k++) {
                                  generateSettings("settings_right",
                                          settings_right[k].name,
-                                         settings_right[k].value
+                                         settings_right[k].value,
+                                         settings_right[k].label
                                  )
                         }
 
@@ -161,7 +163,7 @@ function generateSettingsButton(class_name, row_id)  {
         let col = document.createElement("BUTTON")
         // col.setAttribute("type", "button");
         col.className = class_name
-        col.innerText = 'Change'
+        col.innerText = 'change'
         col.myParam = row_id
         col.addEventListener("click", settingsButtonClick)
         return col
@@ -266,14 +268,14 @@ function generateParam(name, value) {
         trow.appendChild(generateParamOption("td", generateParamValue(value)))
 }
 
-function generateSettings(id, name, value) {
+function generateSettings(id, name, value, label) {
         let table = document.getElementById(id)
         let trow = document.createElement("div")
         trow.className = "trb"
         trow.id = id + '.' + name
 
         table.appendChild(trow)
-        trow.appendChild(generateSettingsOption("td", generateSettingsName(name)))
+        trow.appendChild(generateSettingsOption("td", generateSettingsName(label)))
         trow.appendChild(generateSettingsField("tdfield", generateSettingsValue(value)))
         trow.appendChild(generateSettingsButton("tdbutton", trow.id))
 }

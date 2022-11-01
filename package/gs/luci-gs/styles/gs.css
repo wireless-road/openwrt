@@ -79,6 +79,7 @@ input:checked + .slider:before {
   padding: 7px 10px 7px;
   height: 25px;
   margin: 7px 20% 7px 20%;
+  width: 70px;
 }
 
 .table .tdfield {

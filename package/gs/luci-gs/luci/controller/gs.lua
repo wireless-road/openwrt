@@ -80,6 +80,7 @@ function gs_state_get()
     local is_enabled = nixio.fs.readfile("/mnt/gs/1/isEnabled"):sub(1,-2)
     local density = nixio.fs.readfile("/mnt/gs/1/setting_gas_density"):sub(1,-2)
     local relay_cut_off = nixio.fs.readfile("/mnt/gs/1/setting_relay_cut_off_timing"):sub(1,-2)
+    local mass_flow_threshold = nixio.fs.readfile("/mnt/gs/1/setting_mass_flow_rate_threshold_value"):sub(1,-2)
     local can_address = nixio.fs.readfile("/mnt/gs/1/can_deviceAddress"):sub(1,-2)
     local flomac_address = nixio.fs.readfile("/mnt/gs/1/modbus_address"):sub(1,-2)
     local gaskit_address = nixio.fs.readfile("/mnt/gs/1/address"):sub(1,-2)
@@ -87,33 +88,45 @@ function gs_state_get()
 	result.settings_left = {
 	    {
 	        name = "enabled",
-	        value = is_enabled
+	        value = is_enabled,
+	        label = "пост включен"
 	    },
 	    {
 	        name = "gaskit address",
-	        value = gaskit_address
+	        value = gaskit_address,
+	        label = "адрес поста в ГазКите"
 	    },
 	    {
 	        name = "display address",
-	        value = can_address
+	        value = can_address,
+	        label = "адрес дисплея"
 	    },
 	    {
 	        name = "flomac address",
-	        value = flomac_address
+	        value = flomac_address,
+	        label = "адрес массомера"
 	    },
 	    {
 	        name = "gas density",
-	        value = density
+	        value = density,
+	        label = "плотность газа"
 	    },
 	    {
 	        name = "relay cut-off",
-	        value = relay_cut_off
+	        value = relay_cut_off,
+	        label = "отсечка клапана"
+	    },
+	    {
+	        name = "mass flow rate threshold",
+	        value = mass_flow_threshold,
+	        label = "расход газа при полном баке"
 	    }
 	}
 
     is_enabled = nixio.fs.readfile("/mnt/gs/2/isEnabled"):sub(1,-2)
     density = nixio.fs.readfile("/mnt/gs/2/setting_gas_density"):sub(1,-2)
     relay_cut_off = nixio.fs.readfile("/mnt/gs/2/setting_relay_cut_off_timing"):sub(1,-2)
+    mass_flow_threshold = nixio.fs.readfile("/mnt/gs/2/setting_mass_flow_rate_threshold_value"):sub(1,-2)
     can_address = nixio.fs.readfile("/mnt/gs/2/can_deviceAddress"):sub(1,-2)
     flomac_address = nixio.fs.readfile("/mnt/gs/2/modbus_address"):sub(1,-2)
     gaskit_address = nixio.fs.readfile("/mnt/gs/2/address"):sub(1,-2)
@@ -121,27 +134,38 @@ function gs_state_get()
 	result.settings_right = {
 	    {
 	        name = "enabled",
-	        value = is_enabled
+	        value = is_enabled,
+	        label = "пост включен"
 	    },
 	    {
 	        name = "gaskit address",
-	        value = gaskit_address
+	        value = gaskit_address,
+	        label = "адрес поста в ГазКите"
 	    },
 	    {
 	        name = "display address",
-	        value = can_address
+	        value = can_address,
+	        label = "адрес дисплея"
 	    },
 	    {
 	        name = "flomac address",
-	        value = flomac_address
+	        value = flomac_address,
+	        label = "адрес массомера"
 	    },
 	    {
 	        name = "gas density",
-	        value = density
+	        value = density,
+	        label = "плотность газа"
 	    },
 	    {
 	        name = "relay cut-off",
-	        value = relay_cut_off
+	        value = relay_cut_off,
+	        label = "отсечка клапана"
+	    },
+	    {
+	        name = "mass flow rate threshold",
+	        value = mass_flow_threshold,
+	        label = "расход газа при полном баке"
 	    }
 	}
 
@@ -231,6 +255,8 @@ function gs_settings_set()
         param = 'setting_gas_density'
     elseif param == 'relay cut-off' then
         param = 'setting_relay_cut_off_timing'
+    elseif param == 'mass flow rate threshold' then
+        param = 'setting_mass_flow_rate_threshold_value'
     elseif param == 'enabled' then
         param = 'isEnabled'
     elseif param == 'flomac address' then
