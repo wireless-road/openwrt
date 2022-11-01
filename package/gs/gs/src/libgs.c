@@ -169,9 +169,6 @@ int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
     p = (float *)measurements;
     uint16_t buf[20];
     if (gs_read_reg(ctx, R_MMI_MEASUREMENTS_BASE, 20, &buf) == -1) {
-#ifndef DEV_WITHOUT_FLOMAC
-    	printf("ERROR. Modbus. Read measurements failed\r\n");
-#endif
         return -1;
     }
     for (int i = 0; i < 20; i += 2)
@@ -314,6 +311,9 @@ static void gs_thread(gs_conninfo_t* conninfo) {
         ret = gs_get_all_measurements(conninfo->ctx, &conninfo->measurements);
     	if(ret == -1) {
     		conninfo->connection_lost_counter++;
+#ifndef DEV_WITHOUT_FLOMAC
+    		printf("ERROR. Modbus. Read measurements failed: %d\r\n", conninfo->connection_lost_counter);
+#endif
     		if(conninfo->connection_lost_counter > CONNESTION_LOST_COUNTER_VALUE) {
     			conninfo->connection_lost_flag = -1;
     		}
