@@ -106,8 +106,8 @@ define Device/lorawan_gateway_ethernet_bridged
 	DEVICE_DTS := lorawan_gateway_ethernet_bridged
 	BOARDNAME := WIRELESSROAD_GW_IMX6ULL
 	SUPPORTED_DEVICES:= wirelessroad_gw-imx6ull lorawan_gateway_ethernet_bridged
-	IMAGE_SIZE := 15m
-	IMAGE_SIZE_FACTORY := 16m
+	IMAGE_SIZE := 31m
+	IMAGE_SIZE_FACTORY := 32m
 	CONSOLE := ttymxc0,115200
 	KERNEL := kernel-bin | buildDtb | append-dtb | uImage none | imx6ull-bootscript
 	IMAGES := u-boot.bin sdcard.bin mtd-sysupgrade.bin mtd-factory.bin
