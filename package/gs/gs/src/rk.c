@@ -277,7 +277,7 @@ static int rk_process(rk_t* self) {
     }
 }
 
-static int rk_fueling_log(rk_t* self, int cnt) {
+static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
 	float volume = self->fueling_current_volume + self->fueling_interrupted_volume;
 	volume = round(volume * 100.0) / 100.0;
 	float price = volume * self->fueling_price_per_liter;
@@ -286,16 +286,18 @@ static int rk_fueling_log(rk_t* self, int cnt) {
                            self->fueling_price_per_liter,
                            price);
 
-    printf("%s RK. currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, summator: %.2f, interrupted: %.2f\r\n",
-    		self->side == left ? "Left" : "Right",
-    		cnt,
-           self->fueling_current_volume,
-           self->fueling_dose_in_liters,
-		   self->flomac_inv_mass_starting_value,
-		   self->flomac_inv_mass,
-		   self->flomac_mass_flowrate,
-           self->summator_volume,
-           self->fueling_interrupted_volume);
+    if((cnt % 30 == 0) || necessary_flag) {
+		printf("%s RK. currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, summator: %.2f, interrupted: %.2f\r\n",
+				self->side == left ? "Left" : "Right",
+				cnt,
+			   self->fueling_current_volume,
+			   self->fueling_dose_in_liters,
+			   self->flomac_inv_mass_starting_value,
+			   self->flomac_inv_mass,
+			   self->flomac_mass_flowrate,
+			   self->summator_volume,
+			   self->fueling_interrupted_volume);
+    }
     return 0;
 }
 
@@ -351,14 +353,14 @@ static int rk_fueling_scheduler(rk_t* self) {
         	// 1. Заданная доза топлива заправлена
         	rk_stop_fueling_process(self, &self->cnt);
             self->fueling_current_volume = self->fueling_dose_in_liters;
-        	rk_fueling_log(self, self->cnt);
+        	rk_fueling_log(self, self->cnt, 1);
             self->store_prev_summators_flag = 0;
         	printf("%s RK. FUELING FINISHED #1. Requested dose fueled\r\n", self->side == left ? "Left" : "Right");
         }
         else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (self->cnt > 500) && (self->fueling_current_volume >= 0.05)) // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
         {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
-        	rk_fueling_log(self, self->cnt);
+        	rk_fueling_log(self, self->cnt, 1);
 
         	if((self->valves_amount == TWO_VALVE) && (!relay_high_is_on(&self->relay)))
         	{
@@ -372,10 +374,10 @@ static int rk_fueling_scheduler(rk_t* self) {
         	if(self->state == trk_enabled_fueling_process_local) {
         		// Если заправка была начата локально (с кнопки СТАРТ), то "забываем" объем заправленного топлива,
         		// чтобы в GasKit не возникла ошибка "Расхождения по счетчикам"
-                rk_fueling_log(self, self->cnt);
+                rk_fueling_log(self, self->cnt, 1);
         		self->fueling_current_volume = 0.00;
         	} else {
-                rk_fueling_log(self, self->cnt);
+                rk_fueling_log(self, self->cnt, 1);
         	}
         	rk_stop_fueling_process(self, &self->cnt);
             self->store_prev_summators_flag = 0;
@@ -384,7 +386,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         else if(self->state == trk_enabled_fueling_process_local) {
         	// 3. Нажата кнопка СТОП в случае, если заправка начата по нажатию кнопки СТАРТ.
         	if(self->stop_button_pressed_flag == 1) {
-            	rk_fueling_log(self, self->cnt);
+            	rk_fueling_log(self, self->cnt, 1);
             	if(!counter_is_started(&self->counter_stop_btn)) {
             		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
             		counter_start(&self->counter_stop_btn);
@@ -432,7 +434,7 @@ static int rk_fueling_scheduler(rk_t* self) {
 
         if(self->state != trk_disabled_fueling_finished)
         {
-        	rk_fueling_log(self, self->cnt);
+        	rk_fueling_log(self, self->cnt, 0);
         	if(self->fueling_current_volume <= 0.1) {
         		self->cnt = 0;
         	}
