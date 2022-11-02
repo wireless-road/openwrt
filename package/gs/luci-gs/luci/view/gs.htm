@@ -145,8 +145,7 @@ function settingsButtonClick(evt) {
         var xhr = new XHR();
 
         xhr.post("/cgi-bin/luci/admin/gs/settings_set", data, function(xhr,j){
-                        console.log('res: ', j[0].value)
-                        if(j[0].value === value) {
+                        if(j[0].result === 'ok') {
                                 window.alert("value changed to " + j[0].value)
                         } else {
                                 window.alert("something wrong")

@@ -33,6 +33,46 @@ function gs_configuration_get()
 	luci.http.write_json(json_out or {})
 end
 
+function relay_code_to_gpio_number (relay_code)
+    local gpio_number = '200'
+
+    if relay_code == 'K1' then
+        gpio_number = '5'
+    elseif relay_code == 'K2' then
+        gpio_number = '103'
+    elseif relay_code == 'K3' then
+        gpio_number = '104'
+    elseif relay_code == 'K4' then
+        gpio_number = '105'
+    elseif relay_code == 'K5' then
+        gpio_number = '110'
+    elseif relay_code == 'K6' then
+        gpio_number = '107'
+    end
+
+    return gpio_number
+end
+
+function gpio_number_to_relay_code (gpio_number)
+    local relay_code = 'K0'
+
+    if gpio_number == '5' then
+        relay_code = 'K1'
+    elseif gpio_number == '103' then
+        relay_code = 'K2'
+    elseif gpio_number == '104' then
+        relay_code = 'K3'
+    elseif gpio_number == '105' then
+        relay_code = 'K4'
+    elseif gpio_number == '110' then
+        relay_code = 'K5'
+    elseif gpio_number == '107' then
+        relay_code = 'K6'
+    end
+
+    return relay_code
+end
+
 function gs_state_get()
    	local cfg, json_cfg
 	local json_out = { }
@@ -84,6 +124,11 @@ function gs_state_get()
     local can_address = nixio.fs.readfile("/mnt/gs/1/can_deviceAddress"):sub(1,-2)
     local flomac_address = nixio.fs.readfile("/mnt/gs/1/modbus_address"):sub(1,-2)
     local gaskit_address = nixio.fs.readfile("/mnt/gs/1/address"):sub(1,-2)
+    local relay_middle_gpio = nixio.fs.readfile("/mnt/gs/1/relay_middle_number"):sub(1,-2)
+    local relay_high_gpio = nixio.fs.readfile("/mnt/gs/1/relay_high_number"):sub(1,-2)
+
+    local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
+    local relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
 
 	result.settings_left = {
 	    {
@@ -120,6 +165,16 @@ function gs_state_get()
 	        name = "mass flow rate threshold",
 	        value = mass_flow_threshold,
 	        label = "расход газа при полном баке"
+	    },
+	    {
+	        name = "relay_middle_number",
+	        value = relay_middle_number,
+	        label = "клапан среднего давления"
+	    },
+	    {
+	        name = "relay_high_number",
+	        value = relay_high_number,
+	        label = "клапан высокого давления"
 	    }
 	}
 
@@ -130,6 +185,11 @@ function gs_state_get()
     can_address = nixio.fs.readfile("/mnt/gs/2/can_deviceAddress"):sub(1,-2)
     flomac_address = nixio.fs.readfile("/mnt/gs/2/modbus_address"):sub(1,-2)
     gaskit_address = nixio.fs.readfile("/mnt/gs/2/address"):sub(1,-2)
+    relay_middle_gpio = nixio.fs.readfile("/mnt/gs/2/relay_middle_number"):sub(1,-2)
+    relay_high_gpio = nixio.fs.readfile("/mnt/gs/2/relay_high_number"):sub(1,-2)
+
+    relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
+    relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
 
 	result.settings_right = {
 	    {
@@ -166,6 +226,16 @@ function gs_state_get()
 	        name = "mass flow rate threshold",
 	        value = mass_flow_threshold,
 	        label = "расход газа при полном баке"
+	    },
+	    {
+	        name = "relay_middle_number",
+	        value = relay_middle_number,
+	        label = "клапан среднего давления"
+	    },
+	    {
+	        name = "relay_high_number",
+	        value = relay_high_number,
+	        label = "клапан высокого давления"
 	    }
 	}
 
@@ -233,10 +303,6 @@ function gs_settings_set()
 	local cfg, json_cfg
 	local json_str
 
--- 	cfg = nixio.fs.readfile(dir .. "/gpio_conf.json", 524288)
--- 	parser = luci.jsonc.new()
--- 	json_cfg = luci.jsonc.parse(cfg)
-
 	-- parse gpios structure
 	side = luci.http.formvalue('side')
 	param = luci.http.formvalue('param')
@@ -265,6 +331,15 @@ function gs_settings_set()
         param = 'address'
     elseif param == 'display address' then
         param = 'can_deviceAddress'
+    elseif param == 'relay_middle_line' then
+        param = 'relay_middle_number'
+        value = relay_code_to_gpio_number(value)
+    elseif param == 'relay_middle_number' then
+        param = 'relay_middle_number'
+        value = relay_code_to_gpio_number(value)
+    elseif param == 'relay_high_number' then
+        param = 'relay_high_number'
+        value = relay_code_to_gpio_number(value)
     else
         luci.http.prepare_content("text/plain; charset=utf-8")
         luci.http.write('ERROR. unknown param: ' .. param);
@@ -278,7 +353,8 @@ function gs_settings_set()
 	    {
 	        file = file,
 	        side = side,
-	        value = value
+	        value = value,
+	        result = 'ok'
 	    }
     }
 
