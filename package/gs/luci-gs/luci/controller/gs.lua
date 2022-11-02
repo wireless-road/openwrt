@@ -126,6 +126,7 @@ function gs_state_get()
     local gaskit_address = nixio.fs.readfile("/mnt/gs/1/address"):sub(1,-2)
     local relay_middle_gpio = nixio.fs.readfile("/mnt/gs/1/relay_middle_number"):sub(1,-2)
     local relay_high_gpio = nixio.fs.readfile("/mnt/gs/1/relay_high_number"):sub(1,-2)
+    local is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/1/isPAGZmodeEnabled"):sub(1,-2)
 
     local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     local relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -175,6 +176,11 @@ function gs_state_get()
 	        name = "relay_high_number",
 	        value = relay_high_number,
 	        label = "клапан высокого давления"
+	    },
+	    {
+	        name = "is_pagz_mode_enabled",
+	        value = is_pagz_mode_enabled,
+	        label = "режим ПАГЗ"
 	    }
 	}
 
@@ -187,6 +193,7 @@ function gs_state_get()
     gaskit_address = nixio.fs.readfile("/mnt/gs/2/address"):sub(1,-2)
     relay_middle_gpio = nixio.fs.readfile("/mnt/gs/2/relay_middle_number"):sub(1,-2)
     relay_high_gpio = nixio.fs.readfile("/mnt/gs/2/relay_high_number"):sub(1,-2)
+    is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/2/isPAGZmodeEnabled"):sub(1,-2)
 
     relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -236,6 +243,11 @@ function gs_state_get()
 	        name = "relay_high_number",
 	        value = relay_high_number,
 	        label = "клапан высокого давления"
+	    },
+	    {
+	        name = "is_pagz_mode_enabled",
+	        value = is_pagz_mode_enabled,
+	        label = "режим ПАГЗ"
 	    }
 	}
 
@@ -340,6 +352,8 @@ function gs_settings_set()
     elseif param == 'relay_high_number' then
         param = 'relay_high_number'
         value = relay_code_to_gpio_number(value)
+    elseif param == 'is_pagz_mode_enabled' then
+        param = 'isPAGZmodeEnabled'
     else
         luci.http.prepare_content("text/plain; charset=utf-8")
         luci.http.write('ERROR. unknown param: ' .. param);

@@ -145,10 +145,10 @@ function settingsButtonClick(evt) {
         var xhr = new XHR();
 
         xhr.post("/cgi-bin/luci/admin/gs/settings_set", data, function(xhr,j){
-                        if(j[0].result === 'ok') {
+                        if((j !== null) && (j[0].result === 'ok')) {
                                 window.alert("value changed to " + j[0].value)
                         } else {
-                                window.alert("something wrong")
+                                window.alert("something wrong: " + xhr.responseText)
                         }
                 }
         )
@@ -384,16 +384,16 @@ window.requestAnimationFrame(function() {
 <div style="display: flex; flex-direction: row">
         <link rel="stylesheet" href="<%=resource%>/gs.css" type="text/css" />
         <div style="flex: 1; width: 100%">
-                <h2 name="content">GPIO Configuration</h2>
+                <h2 name="content">Настройки Поста №1</h2>
+                <div id="settings_left" class="table"></div>
+                <h2 name="content">Блок проверки реле клапанов</h2>
                 <div id="table" class="table"></div>
         </div>
         <div style="flex: 1; width: 100%; margin-left: 10px">
-                <h2 name="content">Telemetry</h2>
-                <div id="telemetry" class="table"></div>
-                <h2 name="content">Settings Column 1</h2>
-                <div id="settings_left" class="table"></div>
-                <h2 name="content">Settings Column 2</h2>
+                <h2 name="content">Настройки Поста №2</h2>
                 <div id="settings_right" class="table"></div>
+                <h2 name="content">Датчики</h2>
+                <div id="telemetry" class="table"></div>
         </div>
 </div>
 <br>

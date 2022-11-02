@@ -58,7 +58,7 @@ struct rk_t {
     int fueling_process_flag;
     trk_state_issue_t state_issue;
     int address;
-    int local_control_allowed;
+    int pagz_mode_enabled;
     float summator_volume;
     float summator_price;
     float prev_summator_volume;
@@ -111,7 +111,7 @@ struct rk_t {
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
 #define DEF_CONFIG_FILE_IS_LEFT                     "/etc/gs/%d/isLeft"
 #define DEF_CONFIG_FILE_ADDRESS                     "/etc/gs/%d/address"
-#define DEF_CONFIG_FILE_IS_LOCAL_CONTROL_ENABLED    "/etc/gs/%d/isLocalControlEnabled"
+#define DEF_CONFIG_FILE_IS_PAGZ_MODE_ENABLED    	"/etc/gs/%d/isPAGZmodeEnabled"
 #define DEF_CONFIG_FILE_SUMMATOR_PRICE              "/etc/gs/%d/summatorPrice"
 #define DEF_CONFIG_FILE_SUMMATOR_VOLUME             "/etc/gs/%d/summatorVolume"
 #define DEF_CONFIG_FILE_PRICE_PER_LITER_MASK        "/etc/gs/%d/pricePerLiter"
@@ -124,7 +124,7 @@ struct rk_t {
 #define CONFIG_FILE_IS_ENABLED                  "/mnt/gs/%d/isEnabled"
 #define CONFIG_FILE_IS_LEFT                     "/mnt/gs/%d/isLeft"
 #define CONFIG_FILE_ADDRESS                     "/mnt/gs/%d/address"
-#define CONFIG_FILE_IS_LOCAL_CONTROL_ENABLED    "/mnt/gs/%d/isLocalControlEnabled"
+#define CONFIG_FILE_IS_PAGZ_MODE_ENABLED    	"/mnt/gs/%d/isPAGZmodeEnabled"
 #define CONFIG_FILE_SUMMATOR_PRICE              "/mnt/gs/%d/summatorPrice"
 #define CONFIG_FILE_SUMMATOR_VOLUME             "/mnt/gs/%d/summatorVolume"
 #define CONFIG_FILE_PRICE_PER_LITER_MASK        "/mnt/gs/%d/pricePerLiter"

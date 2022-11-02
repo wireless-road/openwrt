@@ -92,14 +92,14 @@ int rk_init(int idx, rk_t* rk) {
 
     // isLocalControlEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
-    sprintf(filename, CONFIG_FILE_IS_LOCAL_CONTROL_ENABLED, idx);
+    sprintf(filename, CONFIG_FILE_IS_PAGZ_MODE_ENABLED, idx);
     memset(rk->config_filename_summator_price, 0, sizeof(rk->config_filename_is_local_control_enabled));
     strcpy(rk->config_filename_is_local_control_enabled, filename);
     ret = parse_true_false_config(filename);
     if(ret == -1) {
         return -1;
     }
-    rk->local_control_allowed = ret;
+    rk->pagz_mode_enabled = ret;
 
 
     // summator_price
@@ -742,7 +742,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
                         responce[cnt] = AZT_PARAM_TRK_DOSE_SETUP_TYPE;
                         cnt++;
 
-                        char trk_control_mode = self->local_control_allowed == TRUE ? AZT_PARAM_TRK_DOSE_SETUP_TYPE_VAL_SYSTEM_AND_LOCAL_CONTROL : AZT_PARAM_TRK_DOSE_SETUP_TYPE_VAL_SYSTEM_CONTROL_ONLY;
+                        char trk_control_mode = self->pagz_mode_enabled == TRUE ? AZT_PARAM_TRK_DOSE_SETUP_TYPE_VAL_SYSTEM_AND_LOCAL_CONTROL : AZT_PARAM_TRK_DOSE_SETUP_TYPE_VAL_SYSTEM_CONTROL_ONLY;
 
                         // Param value higher 4 bits
                         higher_bits = ((trk_control_mode & 0xF0) >> 4)  + 0x30;
@@ -799,7 +799,7 @@ static void rk_start_local_fueling_process(rk_t* self)
 static void button_start_callback(rk_t* self, int code)
 {
     printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
-    if(self->local_control_allowed) {
+    if(self->pagz_mode_enabled) {
     	printf("%s RK. LOCAL FUELING started by pressing start button\r\n", self->side == left ? "Left" : "Right");
 
     	if(self->state == trk_disabled_rk_installed) {
