@@ -119,10 +119,6 @@ function generateParamOption(class_name, text)  {
 }
 
 function generateSettingsOption(class_name, text)  {
-        // let col = document.createElement("div")
-        // col.className = class_name
-        // col.appendChild(text)
-        // return col
         return text
 }
 
@@ -131,32 +127,32 @@ function generateSettingsField(class_name, text)  {
         col0.className = "td"
         col0.contentEditable = "true"
         col0.innerText = text
-        // let col = document.createElement("INPUT")
-        // col.className = "td " + class_name
-        // col.defaultValue = text
-        // col0.appendChild(col)
         return col0
 }
 
 function settingsButtonClick(evt) {
         row = document.getElementById(evt.currentTarget.myParam)
         let childs = Array.from(row.childNodes)
-        // console.log("click!", evt.currentTarget.myParam.split('.')[0], evt.currentTarget.myParam.split('.')[1], childs[1].innerText)
 
+        const value = childs[1].innerText
         let data = {
                 token: '<%=token%>',
                 side: evt.currentTarget.myParam.split('.')[0],
                 param: evt.currentTarget.myParam.split('.')[1],
-                value: childs[1].innerText
+                value: value
         }
 
         var xhr = new XHR();
 
         xhr.post("/cgi-bin/luci/admin/gs/settings_set", data, function(xhr,j){
-                        // setTimeout(get_show_data, 1500)
+                        console.log('res: ', j[0].value)
+                        if(j[0].value === value) {
+                                window.alert("value changed to " + j[0].value)
+                        } else {
+                                window.alert("something wrong")
+                        }
                 }
         )
-        // console.log("settings button click!", evt.currentTarget.myParam)
 }
 
 function generateSettingsButton(class_name, row_id)  {
@@ -401,10 +397,4 @@ window.requestAnimationFrame(function() {
                 <div id="settings_right" class="table"></div>
         </div>
 </div>
-
-<!--<div class="cbi-page-actions">-->
-<!--        <div class="right" style="width: 100%; height: 100%">-->
-<!--        <button class="btn cbi-button cbi-button-action" onclick="handleSubmit(event)"> <%:Save & Apply %> </button>-->
-<!--        </div>-->
-<!--</div>-->
 <br>

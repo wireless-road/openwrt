@@ -271,74 +271,19 @@ function gs_settings_set()
     end
 
     local file = '/mnt/gs/'.. side .. '/' .. param
---     luci.sys.exec('echo "' .. value .. '" > /mnt/gs/' .. side .. '/' .. param)
 
-    luci.sys.exec('echo "' .. side .. '" > /tmp/log.txt')
-    luci.sys.exec('echo "' .. param .. '" >> /tmp/log.txt')
-    luci.sys.exec('echo "' .. value .. '" >> /tmp/log.txt')
-    luci.sys.exec('echo "' .. file .. '" >> /tmp/log.txt')
     luci.sys.exec('echo ' .. value .. ' > ' .. file)
--- 	parser = luci.jsonc.new()
--- 	gpios_data = luci.jsonc.parse(gpios)
--- 	for i = 1, #gpios_data do
--- 		luci.sys.exec('echo "' .. gpios_data[i].controller_number .. '" >> /tmp/l')
--- 		luci.sys.exec('echo "' .. gpios_data[i].pad_number .. '" >> /tmp/l')
--- 		luci.sys.exec('echo "' .. gpios_data[i].direction .. '" >> /tmp/l')
---
--- 		local controller_number = gpios_data[i].controller_number
--- 		local pad_number = gpios_data[i].pad_number
--- 		local direction = gpios_data[i].direction
--- 		local gpio_number = (controller_number - 1)*32 + pad_number
---
--- 		if nixio.fs.stat('/sys/class/gpio/gpio' .. gpio_number, 'type') ~= 'dir' then
--- 			luci.sys.exec('echo "' .. gpio_number .. '" > /sys/class/gpio/export')
--- 		end
--- 		luci.sys.exec('echo "' .. direction .. '" > /sys/class/gpio/gpio' .. gpio_number .. '/direction')
--- 	end
---
--- 	json_cfg.gpios = gpios_data
--- 	json_str = luci.jsonc.stringify(json_cfg, true)
--- 	nixio.fs.writefile(dir .. "/gpio_conf.json", json_str)
 
-	luci.http.prepare_content("text/plain; charset=utf-8")
-	luci.http.write("ok");
+    local result = {
+	    {
+	        file = file,
+	        side = side,
+	        value = value
+	    }
+    }
 
+	luci.http.prepare_content("application/json")
+    luci.http.write_json(result or {})
 end
 
--- function gs_configuration_set()
--- 	local cfg, json_cfg
--- 	local json_str
---
--- 	cfg = nixio.fs.readfile(dir .. "/gpio_conf.json", 524288)
--- 	parser = luci.jsonc.new()
--- 	json_cfg = luci.jsonc.parse(cfg)
---
--- 	-- parse gpios structure
--- 	gpios = luci.http.formvalue('gpios')
--- 	parser = luci.jsonc.new()
--- 	gpios_data = luci.jsonc.parse(gpios)
--- 	for i = 1, #gpios_data do
--- 		luci.sys.exec('echo "' .. gpios_data[i].controller_number .. '" >> /tmp/l')
--- 		luci.sys.exec('echo "' .. gpios_data[i].pad_number .. '" >> /tmp/l')
--- 		luci.sys.exec('echo "' .. gpios_data[i].direction .. '" >> /tmp/l')
---
--- 		local controller_number = gpios_data[i].controller_number
--- 		local pad_number = gpios_data[i].pad_number
--- 		local direction = gpios_data[i].direction
--- 		local gpio_number = (controller_number - 1)*32 + pad_number
---
--- 		if nixio.fs.stat('/sys/class/gpio/gpio' .. gpio_number, 'type') ~= 'dir' then
--- 			luci.sys.exec('echo "' .. gpio_number .. '" > /sys/class/gpio/export')
--- 		end
--- 		luci.sys.exec('echo "' .. direction .. '" > /sys/class/gpio/gpio' .. gpio_number .. '/direction')
--- 	end
---
--- 	json_cfg.gpios = gpios_data
--- 	json_str = luci.jsonc.stringify(json_cfg, true)
--- 	nixio.fs.writefile(dir .. "/gpio_conf.json", json_str)
---
--- 	luci.http.prepare_content("text/plain; charset=utf-8")
--- 	luci.http.write("ok");
-
--- end
 
