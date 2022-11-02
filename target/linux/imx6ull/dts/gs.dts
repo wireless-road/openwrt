@@ -343,6 +343,11 @@
 				MX6UL_PAD_LCD_DATA21__USDHC2_DATA1      0x1b0b0
 				MX6UL_PAD_LCD_DATA22__USDHC2_DATA2      0x1b0b0
 				MX6UL_PAD_LCD_DATA23__USDHC2_DATA3      0x1b0b0
+			>;
+		};
+		
+		pinctrl_wfx_irq: wfx_irq_grp {
+			fsl,pins = <
 				/* W_IRQ */
 				MX6UL_PAD_LCD_DATA06__GPIO3_IO11        0x1b0b0
 			>;
@@ -414,21 +419,30 @@
 	status = "okay";
 };
 
+&fec1 {
+	status = "disabled";
+};
+
+&fec2 {
+	status = "disabled";
+};
+
 &usdhc2 {  /* Wifi SDIO */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc2>;
 	no-1-8-v;
 	non-removable;
 	keep-power-in-suspend;
-	wakeup-source;
+	// wakeup-source;
 	mmc-pwrseq = <&wfx_pwrseq>;
 	status = "okay";
-	usdhc2@1 {
+	wfm200: wifi@1 {
 		compatible = "silabs,wf200";
 		reg = <1>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_wfx_wakeup>;
+		pinctrl-0 = <&pinctrl_wfx_irq &pinctrl_wfx_wakeup>;
 		wakeup-gpios = <&gpio3 13 GPIO_ACTIVE_HIGH>;
+		interrupts = <&gpio3 11 IRQ_TYPE_EDGE_RISING>;
 	};
 };
 
