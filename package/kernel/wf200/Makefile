@@ -35,8 +35,8 @@ define Build/Compile
 endef
 
 define Package/wf200-firmware/install
-	$(INSTALL_DIR) $(1)/lib/firmware
-	$(CP) $(PKG_BUILD_DIR)/wf* $(1)/lib/firmware/
+	$(INSTALL_DIR) $(1)/lib/firmware/wfx/
+	$(CP) $(PKG_BUILD_DIR)/wf* $(1)/lib/firmware/wfx
 endef
 
 $(eval $(call BuildPackage,wf200-firmware))

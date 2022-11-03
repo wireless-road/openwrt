@@ -17,20 +17,20 @@
 
 #define __NLA_ENSURE(condition) BUILD_BUG_ON_ZERO(!(condition))
 
-#define NLA_ENSURE_INT_TYPE(tp)				\
-	(__NLA_ENSURE(tp == NLA_S8 || tp == NLA_U8 ||	\
-		      tp == NLA_S16 || tp == NLA_U16 ||	\
-		      tp == NLA_S32 || tp == NLA_U32 ||	\
+#define NLA_ENSURE_INT_TYPE(tp) \
+	(__NLA_ENSURE(tp == NLA_S8 || tp == NLA_U8 ||      \
+		      tp == NLA_S16 || tp == NLA_U16 ||    \
+		      tp == NLA_S32 || tp == NLA_U32 ||    \
 		      tp == NLA_S64 || tp == NLA_U64) + tp)
 
-#define NLA_POLICY_EXACT_LEN(_len)	{ .type = NLA_BINARY }
+#define NLA_POLICY_EXACT_LEN(_len) { .type = NLA_BINARY }
 
-#define NLA_POLICY_RANGE(tp, _min, _max) {		\
-	.type = NLA_ENSURE_INT_TYPE(tp),		\
+#define NLA_POLICY_RANGE(tp, _min, _max) { \
+	.type = NLA_ENSURE_INT_TYPE(tp),   \
 }
 
-#define NLA_POLICY_MAX(tp, _max) {			\
-	.type = NLA_ENSURE_INT_TYPE(tp),		\
+#define NLA_POLICY_MAX(tp, _max) {         \
+	.type = NLA_ENSURE_INT_TYPE(tp),   \
 }
 
 #endif
@@ -62,7 +62,7 @@ static const struct nla_policy wfx_nl_policy[WFX_NL80211_ATTR_MAX] = {
 	[WFX_NL80211_ATTR_PTA_ENABLE]     = NLA_POLICY_MAX(NLA_U8, 1),
 	[WFX_NL80211_ATTR_PTA_PRIORITY]   = { .type = NLA_U32 },
 	[WFX_NL80211_ATTR_PTA_SETTINGS]   =
-		NLA_POLICY_EXACT_LEN(sizeof(struct hif_req_pta_settings)),
+		NLA_POLICY_EXACT_LEN(sizeof(struct wfx_hif_req_pta_settings)),
 };
 
 #if (KERNEL_VERSION(4, 20, 0) > LINUX_VERSION_CODE)
@@ -86,7 +86,7 @@ static const struct wiphy_vendor_command wfx_nl80211_vendor_commands[] = {
 		.doit = wfx_nl_burn_antirollback,
 		.maxattr = WFX_NL80211_ATTR_MAX - 1,
 	}, {
-		// Compat with iw
+		/* Compat with iw */
 		.info.vendor_id = WFX_NL80211_ID,
 		.info.subcmd = WFX_NL80211_SUBCMD_BURN_PREVENT_ROLLBACK_COMPAT,
 		.policy = VENDOR_CMD_RAW_DATA,
@@ -98,7 +98,7 @@ static const struct wiphy_vendor_command wfx_nl80211_vendor_commands[] = {
 		.doit = wfx_nl_pta_params,
 		.maxattr = WFX_NL80211_ATTR_MAX - 1,
 	}, {
-		// Compat with iw
+		/* Compat with iw */
 		.info.vendor_id = WFX_NL80211_ID,
 		.info.subcmd = WFX_NL80211_SUBCMD_PTA_PARMS_COMPAT,
 		.policy = VENDOR_CMD_RAW_DATA,
@@ -107,4 +107,4 @@ static const struct wiphy_vendor_command wfx_nl80211_vendor_commands[] = {
 };
 #endif
 
-#endif /* WFX_NL80211_VENDOR_H */
+#endif

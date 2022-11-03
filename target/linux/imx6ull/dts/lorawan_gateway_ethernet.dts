@@ -9,6 +9,8 @@
 /dts-v1/;
 
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
 #include "imx6ull.dtsi"
 
 / {
@@ -30,8 +32,8 @@
 		can1 = &can1;
 		can2 = &can2;
 		clks = &clks;
-		fec1 = &fec1;
-		fec2 = &fec2;
+		ethernet0 = &fec1;
+		ethernet1 = &fec2;
 		ecspi3 = &ecspi3;
 		ecspi4 = &ecspi4;
 		gpc = &gpc;
@@ -44,18 +46,40 @@
 		usdhc1 = &usdhc1;
 		wdog1 = &wdog1;
 	};
-	
-	@aips3 {
 
-			rngb: rngb@02284000 {
-				compatible = "fsl,imx6sl-rng", "fsl,imx-rng", "imx-rng";
-				reg = <0x02284000 0x4000>;
-				interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
-				clocks =  <&clks IMX6UL_CLK_DUMMY>;
-			};
+	leds {
+		compatible = "gpio-leds";
 
-
+		led1 {
+			label = "led-eth0";
+			gpios = <&gpio5 3 GPIO_ACTIVE_LOW>;
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "off";
 		};
+
+		led2 {
+			label = "led-wifi";
+			gpios = <&gpio5 0 GPIO_ACTIVE_LOW>;
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "off";
+		};
+
+		led3 {
+			label = "led-3g";
+			gpios = <&gpio5 8 GPIO_ACTIVE_LOW>;
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "off";
+		};
+	};
+
+	@aips3 {
+		rngb: rngb@02284000 {
+			compatible = "fsl,imx6sl-rng", "fsl,imx-rng", "imx-rng";
+			reg = <0x02284000 0x4000>;
+			interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
+			clocks =  <&clks IMX6UL_CLK_DUMMY>;
+		};
+	};
 };
 
 #include "wr_cpu.dtsi"
@@ -93,7 +117,7 @@
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan0>;
-	status = "okay";
+	status = "disabled";
 };
 
 
@@ -108,9 +132,21 @@
 &gpmi {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_gpmi_nand_1>;
-	status = "okay";
+	status = "disabled";
 	nand-on-flash-bbt;
 	fsl,legacy-bch-geometry;
+};
+
+&iomuxc_snvs {
+	pinctrl-names = "default_snvs";
+
+	pinctrl_snvs_leds1: snvs-leds-grp {
+		fsl,pins = <
+			MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00  0x10b0 /* LED */
+			MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03	0x10b0 /* LED */
+			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08  0x10b0 /* LED */
+		>;
+	};
 };
 
 &iomuxc {
@@ -143,14 +179,14 @@
 				MX6UL_PAD_NAND_DATA07__RAWNAND_DATA07   0xb0b1
 			>;
 		};
-		
+
 		pinctrl_adc1: adc1grp {
 			fsl,pins = <
 				MX6UL_PAD_GPIO1_IO08__GPIO1_IO08        0xb0
 				MX6UL_PAD_GPIO1_IO09__GPIO1_IO09        0xb0
 			>;
 		};
-		
+
 		pinctrl_ecspi3_0: ecspi3grp-0 {
 			fsl,pins = <
 				MX6UL_PAD_UART2_CTS_B__ECSPI3_MOSI	0x110b1
@@ -174,7 +210,7 @@
 				MX6UL_PAD_GPIO1_IO00__ANATOP_OTG1_ID	0x17059
 			>;
 		};
-		
+
 		pinctrl_enet1: enet1grp {
 			fsl,pins = <
 				MX6UL_PAD_GPIO1_IO07__ENET1_MDC         0x1b0b0
@@ -190,18 +226,18 @@
 			>;
 		};
 
-                pinctrl_enet2: enet2grp {
-                        fsl,pins = <
-                                MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN      0x1b0b0
-                                MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER      0x1b0b0
-                                MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00 0x1b0b0
-                                MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01 0x1b0b0
-                                MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN      0x1b0b0
-                                MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00 0x1b0b0
-                                MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01 0x1b0b0
-                                MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2  0x4001b031
-                        >;
-                };
+		pinctrl_enet2: enet2grp {
+				fsl,pins = <
+						MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN      0x1b0b0
+						MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER      0x1b0b0
+						MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00 0x1b0b0
+						MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01 0x1b0b0
+						MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN      0x1b0b0
+						MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00 0x1b0b0
+						MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01 0x1b0b0
+						MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2  0x4001b031
+				>;
+		};
 
 		pinctrl_flexcan0: flexcan0grp{
 			fsl,pins = <
@@ -266,7 +302,7 @@
 				MX6UL_PAD_SD1_DATA3__USDHC1_DATA3 0x170f9
 			>;
 		};
-		
+
 		pinctrl_wdog: wdoggrp {
 			fsl,pins = <
 				MX6UL_PAD_LCD_RESET__WDOG1_WDOG_ANY    0x30b0
@@ -275,13 +311,31 @@
 
 	};
 };
+// set actual state of board devices
+&usbotg1 {
+	status = "disabled";
+};
+&usbotg2 {
+	status = "disabled";
+};
+
+&fec1 {
+	status = "okay";
+};
+
+&ethphy1 {
+	status = "disabled";
+};
+
+&fec2 {
+	status = "disabled";
+};
 
 &pwm4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
 	status = "okay";
 };
-
 
 &sai2 {
 	pinctrl-names = "default";
@@ -292,7 +346,7 @@
 	assigned-clock-parents = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
 	assigned-clock-rates = <0>, <12288000>;
 
-	status = "okay";
+	status = "disabled";
 };
 
 &adc1 {
@@ -314,5 +368,5 @@
 	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
 	keep-power-in-suspend;
 	enable-sdio-wakeup;
-	status = "okay";
+	status = "disabled";
 };

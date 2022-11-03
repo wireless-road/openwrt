@@ -8,10 +8,10 @@ function handleSubmit(ev){
 	var srv_addr = document.querySelector('input[name="serv-address"]').value;
 	var srv_pup = document.querySelector('input[name="serv-port-up"]').value;
 	var srv_pdn = document.querySelector('input[name="serv-port-down"]').value;
-	
+
 	let data = { token: '<%=token%>' };
 	var xhr = new XHR();
-	
+
 	if(Number.parseInt(srv_pup) > 0 && Number.parseInt(srv_pup) <= 65536){
 		data["serv-port-up"] = srv_pup;
 		document.querySelector('input[name="serv-port-up"]').value = "";
@@ -87,6 +87,22 @@ window.requestAnimationFrame(function() {
 	</div>
 </div>
 
+<div class="cbi-section-node">
+<h3 name="pf_upload"><%:Packet Forwarder config upload%></h3>
+<div class="table cbi-section-table">
+<div class="tr cbi-section-table-row">
+	<form id="pf_cfg_upload" method="post" action="<%=REQUEST_URI%>/upload" enctype="multipart/form-data">
+	<div class="td left">
+	<input class="cbi-button-apply" type="file" size="100" name="pf_config" accept="application/json,.json" />
+	</div>
+	<div class="td right">
+	<input class="btn cbi-button-save" type="submit" value="<%:Upload config%>" />
+	</div>
+	</form>
+
+</div>
+</div>
+</div>
 <div class="cbi-page-actions">
 	<div class="right" style="width: 100%; height: 100%">
 	<button class="btn cbi-button cbi-button-action" onclick="handleSubmit(event)"> <%:Save & Apply %> </button>
