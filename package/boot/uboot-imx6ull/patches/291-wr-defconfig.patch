@@ -318,7 +318,7 @@ diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.0
 +#
 +# Boot media
 +#
-+CONFIG_NAND_BOOT=y
++# CONFIG_NAND_BOOT is not set
 +# CONFIG_ONENAND_BOOT is not set
 +# CONFIG_QSPI_BOOT is not set
 +# CONFIG_SATA_BOOT is not set
@@ -755,7 +755,7 @@ diff -Nru u-boot-2017.07-001/configs/wirelessroad_ecspi3_defconfig u-boot-2017.0
 +# CONFIG_NAND_VF610_NFC is not set
 +# CONFIG_NAND_PXA3XX is not set
 +# CONFIG_NAND_ARASAN is not set
-+CONFIG_NAND_MXS=y
++# CONFIG_NAND_MXS is not set
 +# CONFIG_NAND_ZYNQ is not set
 +
 +#
