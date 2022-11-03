@@ -58,6 +58,9 @@ imx6ull_board_detect() {
 	"FlexCAN WiFi")
 		name="flexcan_wifi";
 		;;
+	"Gs")
+		name="gs";
+		;;
 	"Amazon Voice Service Ethernet")
 		name="amazon_voice_service_ethernet";
 		;;
