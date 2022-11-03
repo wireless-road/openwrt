@@ -85,7 +85,8 @@ function get_show_data(){
                                  generateSettings("settings_left",
                                          settings_left[k].name,
                                          settings_left[k].value,
-                                         settings_left[k].label
+                                         settings_left[k].label,
+                                         settings_left[k].explanation
                                  )
                         }
 
@@ -95,7 +96,8 @@ function get_show_data(){
                                  generateSettings("settings_right",
                                          settings_right[k].name,
                                          settings_right[k].value,
-                                         settings_right[k].label
+                                         settings_right[k].label,
+                                         settings_right[k].explanation
                                  )
                         }
 
@@ -118,8 +120,16 @@ function generateParamOption(class_name, text)  {
         return col
 }
 
-function generateSettingsOption(class_name, text)  {
-        return text
+function generateSettingsOption(class_name, text, explanation)  {
+        let x = document.createElement("div")
+        x.className = "tooltip"
+        x.innerText = text
+        let y = document.createElement("span")
+        y.className = "tooltiptext"
+        y.innerText = explanation
+        x.appendChild(y)
+        return x
+        // return text
 }
 
 function generateSettingsField(class_name, text)  {
@@ -194,8 +204,9 @@ function generateParamValue(value = '') {
 }
 
 function generateSettingsName(value = '') {
-        text = document.createTextNode(value)
-        return text
+        // text = document.createTextNode(value)
+        // return text
+        return value
 }
 
 function generateSettingsValue(value = '') {
@@ -263,14 +274,14 @@ function generateParam(name, value) {
         trow.appendChild(generateParamOption("td", generateParamValue(value)))
 }
 
-function generateSettings(id, name, value, label) {
+function generateSettings(id, name, value, label, explanation) {
         let table = document.getElementById(id)
         let trow = document.createElement("div")
         trow.className = "trb"
         trow.id = id + '.' + name
 
         table.appendChild(trow)
-        trow.appendChild(generateSettingsOption("td", generateSettingsName(label)))
+        trow.appendChild(generateSettingsOption("td", generateSettingsName(label), explanation))
         trow.appendChild(generateSettingsField("tdfield", generateSettingsValue(value)))
         trow.appendChild(generateSettingsButton("tdbutton", trow.id))
 }
