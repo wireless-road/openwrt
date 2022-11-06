@@ -48,6 +48,7 @@ struct in_4_20_t {
 
 int in_4_20_ma_init(int idx, in_4_20_t* in_4_20);
 int in_4_20_ma_read(in_4_20_t* in_4_20);
+float in_4_20_ma_convert_raw_to_ma(int value);
 
 #endif  // IN_4_20_MA_H
 

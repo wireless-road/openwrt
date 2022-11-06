@@ -87,6 +87,8 @@ struct rk_t {
     float flomac_inv_mass_starting_value;
     float flomac_inv_mass;
     float flomac_mass_flowrate;
+    int pressure_4_20ma_raw;
+    float pressure_4_20ma;
     int fueling_current_finished_flag;
     can_t can_bus;
     in_4_20_t in_4_20;

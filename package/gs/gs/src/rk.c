@@ -218,9 +218,11 @@ static int rk_check_state(rk_t* self) {
     // 4-20ma checkout
     int ret = in_4_20_ma_read(&self->in_4_20);
     if( (ret == -1) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) ) {
+    	printf("4-20ma ERROR. state %d\r\n", ret);
         error_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         rk_indicate_error_message(self);
     } else if( (ret != -1) && error_is_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED)) {
+    	printf("4-20ma NOT ERROR. state %d\r\n", ret);
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
@@ -230,11 +232,11 @@ static int rk_check_state(rk_t* self) {
     // modbus checkout
     ret = gs_check_state(&self->modbus);
     if( (ret == -1) && error_is_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED) ) {
-	printf("MB ERROR. mb state %d\r\n", ret);
+    	printf("MB ERROR. mb state %d\r\n", ret);
         error_set(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
         rk_indicate_error_message(self);
     } else if( (ret != -1) && error_is_set(&self->error_state, ERROR_MODBUS_NOT_CONNECTED)) {
-	printf("MB NOT ERROR. mb state %d\r\n", ret);
+    	printf("MB NOT ERROR. mb state %d\r\n", ret);
         error_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
@@ -287,7 +289,7 @@ static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
                            price);
 
     if((cnt % 30 == 0) || necessary_flag) {
-		printf("%s RK. currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, summator: %.2f, interrupted: %.2f\r\n",
+		printf("%s RK. currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, pressure: %d (%.2f mA), summator: %.2f, interrupted: %.2f\r\n",
 				self->side == left ? "Left" : "Right",
 				cnt,
 			   self->fueling_current_volume,
@@ -295,6 +297,8 @@ static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
 			   self->flomac_inv_mass_starting_value,
 			   self->flomac_inv_mass,
 			   self->flomac_mass_flowrate,
+			   self->pressure_4_20ma_raw,
+			   self->pressure_4_20ma,
 			   self->summator_volume,
 			   self->fueling_interrupted_volume);
     }
@@ -341,6 +345,8 @@ static int rk_fueling_scheduler(rk_t* self) {
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
             self->flomac_inv_mass = atomic_load(&self->modbus.summator_mass);
             self->flomac_mass_flowrate = atomic_load(&self->modbus.mass_flowrate);
+            self->pressure_4_20ma_raw = atomic_load(&self->in_4_20.value);
+            self->pressure_4_20ma = in_4_20_ma_convert_raw_to_ma(self->pressure_4_20ma_raw);
             self->fueling_current_volume = (self->flomac_inv_mass - self->flomac_inv_mass_starting_value) / self->gas_density;
             if(self->fueling_current_volume > self->fueling_dose_in_liters) {
                 self->fueling_current_volume = self->fueling_dose_in_liters;

@@ -32,6 +32,8 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     in_4_20->value = ret;
 
     atomic_init(&in_4_20->value, 0);
+    _Atomic int* value = (_Atomic int*)&in_4_20->value;
+    atomic_store(value, ret);
     pthread_create(&in_4_20->thread_id, NULL, in_4_20_ma_read_thread, in_4_20);
 
     if(ret < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
@@ -42,10 +44,11 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
 
 int in_4_20_ma_read(in_4_20_t* in_4_20) {
 	int val = atomic_load(&in_4_20->value);
+
     if(val < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
         return -1;
     } else {
-        return in_4_20->value;
+        return val;
     }
 }
 
@@ -56,4 +59,9 @@ int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {
         atomic_store(value, ret);
         usleep(300000);
     }
+}
+
+float in_4_20_ma_convert_raw_to_ma(int value) {
+	float res = (value - 2100) / 537.5 + 4.0;
+	return res;
 }
