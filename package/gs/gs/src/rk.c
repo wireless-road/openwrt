@@ -216,7 +216,7 @@ static int rk_check_state(rk_t* self) {
     }
 #ifndef DEV_WITHOUT_4_20
     // 4-20ma checkout
-    int ret = in_4_20_ma_read(&self->in_4_20);
+    int ret = in_4_20_ma_check_state(&self->in_4_20);
 
     if( (ret == IN_4_20_NOT_CONNECTED_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) )
     {
@@ -370,8 +370,8 @@ static void rk_stop_fueling_process(rk_t* self, int* cnt) {
 
 static void rk_calculate_cut_off_setting(rk_t* self) {
 	// function to calculate relay cut-off timing depending on pressure value
-	// the higher pressure -->  the higher mass flow rate --> the earlier we need to close valve
-//	printf("pressure: %d (%.2f mA)\r\n", self->pressure_4_20ma_raw, self->pressure_4_20ma);
+	// the higher mass flow rate --> the earlier we need to close valve
+//	printf("pressure: %d (%.2f mA). mass flow rate: %.2f\r\n", self->pressure_4_20ma_raw, self->pressure_4_20ma, self->flomac_mass_flowrate);
 //	self->relay_cut_off_timing = self->relay_cut_off_timing;
 	return;
 }

@@ -31,7 +31,6 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     }
     in_4_20->pressure_low_threshold = tmp;
     in_4_20->pressure_low_threshold_raw = in_4_20_ma_convert_ma_to_raw(in_4_20->pressure_low_threshold);
-    printf("low threshold: %.2f = %d\r\n", in_4_20->pressure_low_threshold, in_4_20->pressure_low_threshold_raw);
 
     // setting pressure high level error (mA)
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -43,7 +42,6 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     }
     in_4_20->pressure_high_threshold = tmp;
     in_4_20->pressure_high_threshold_raw = in_4_20_ma_convert_ma_to_raw(in_4_20->pressure_high_threshold);
-    printf("high threshold: %.2f = %d\r\n", in_4_20->pressure_high_threshold, in_4_20->pressure_high_threshold_raw);
 
     // value
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -66,25 +64,34 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     return 0;
 }
 
-int in_4_20_ma_read(in_4_20_t* in_4_20) {
+int in_4_20_ma_check_state(in_4_20_t* in_4_20)
+{
 	int val = atomic_load(&in_4_20->value);
 
     if(val < INPUT_NOT_CONNECTED_THRESHOLD_VALUE)
     {
-        return IN_4_20_NOT_CONNECTED_ERROR;
+    	in_4_20->state = IN_4_20_NOT_CONNECTED_ERROR;
     }
     else if (val < in_4_20->pressure_low_threshold_raw)
     {
-    	return IN_4_20_LOW_PRESSURE_ERROR;
+    	in_4_20->state = IN_4_20_LOW_PRESSURE_ERROR;
     }
     else if (val > in_4_20->pressure_high_threshold_raw)
     {
-    	return IN_4_20_HIGH_PRESSURE_ERROR;
+    	in_4_20->state = IN_4_20_HIGH_PRESSURE_ERROR;
     }
-    else
+    else if( (val > in_4_20->pressure_low_threshold_raw + RAW_PRESSURE_THRESHOLD_GAP) &&
+    		 (val < in_4_20->pressure_high_threshold_raw - RAW_PRESSURE_THRESHOLD_GAP) )
     {
-        return val;
+    	in_4_20->state = IN_4_20_NO_ERROR;
     }
+    return in_4_20->state;
+}
+
+int in_4_20_ma_read(in_4_20_t* in_4_20)
+{
+	int val = atomic_load(&in_4_20->value);
+    return val;
 }
 
 int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {

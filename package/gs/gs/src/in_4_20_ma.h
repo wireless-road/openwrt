@@ -41,6 +41,7 @@ struct in_4_20_t {
     int pressure_low_threshold_raw;
     float pressure_high_threshold;
     int pressure_high_threshold_raw;
+    int state;
     pthread_t thread_id;
 };
 
@@ -55,9 +56,13 @@ struct in_4_20_t {
 #define IN_4_20_NOT_CONNECTED_ERROR				-1
 #define IN_4_20_LOW_PRESSURE_ERROR				-2
 #define IN_4_20_HIGH_PRESSURE_ERROR				-3
+#define IN_4_20_NO_ERROR						0
+
+#define RAW_PRESSURE_THRESHOLD_GAP				50
 
 int in_4_20_ma_init(int idx, in_4_20_t* in_4_20);
 int in_4_20_ma_read(in_4_20_t* in_4_20);
+int in_4_20_ma_check_state(in_4_20_t* in_4_20);
 float in_4_20_ma_convert_raw_to_ma(int value);
 float in_4_20_ma_convert_ma_to_raw(float value);
 
