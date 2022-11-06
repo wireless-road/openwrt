@@ -127,6 +127,8 @@ function gs_state_get()
     local relay_middle_gpio = nixio.fs.readfile("/mnt/gs/1/relay_middle_number"):sub(1,-2)
     local relay_high_gpio = nixio.fs.readfile("/mnt/gs/1/relay_high_number"):sub(1,-2)
     local is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/1/isPAGZmodeEnabled"):sub(1,-2)
+    local low_pressure_threshold = nixio.fs.readfile("/mnt/gs/1/setting_in_4_20_pressure_low_threshold"):sub(1,-2)
+    local high_pressure_threshold = nixio.fs.readfile("/mnt/gs/1/setting_in_4_20_pressure_high_threshold"):sub(1,-2)
 
     local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     local relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -191,6 +193,18 @@ function gs_state_get()
 	        value = is_pagz_mode_enabled,
 	        label = "режим ПАГЗ",
 	        explanation = "1 - пост работает в режиме ПАГЗа (управление отпуском топлива по кнопке), 0 - режим ПАГЗ выключен (отпуск топлива с АРМ)"
+	    },
+	    {
+	        name = "low_pressure_threshold",
+	        value = low_pressure_threshold,
+	        label = "MIN давление (мА)",
+	        explanation = "давление (мА) ниже данного значения рассматривается как ошибка"
+	    },
+	    {
+	        name = "high_pressure_threshold",
+	        value = high_pressure_threshold,
+	        label = "MAX давление (мА)",
+	        explanation = "давление (мА) выше данного значения рассматривается как ошибка"
 	    }
 	}
 
@@ -204,6 +218,8 @@ function gs_state_get()
     relay_middle_gpio = nixio.fs.readfile("/mnt/gs/2/relay_middle_number"):sub(1,-2)
     relay_high_gpio = nixio.fs.readfile("/mnt/gs/2/relay_high_number"):sub(1,-2)
     is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/2/isPAGZmodeEnabled"):sub(1,-2)
+    low_pressure_threshold = nixio.fs.readfile("/mnt/gs/2/setting_in_4_20_pressure_low_threshold"):sub(1,-2)
+    high_pressure_threshold = nixio.fs.readfile("/mnt/gs/2/setting_in_4_20_pressure_high_threshold"):sub(1,-2)
 
     relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -268,6 +284,18 @@ function gs_state_get()
 	        value = is_pagz_mode_enabled,
 	        label = "режим ПАГЗ",
 	        explanation = "1 - пост работает в режиме ПАГЗа (управление отпуском топлива по кнопке), 0 - режим ПАГЗ выключен (отпуск топлива с АРМ)"
+	    },
+	    {
+	        name = "low_pressure_threshold",
+	        value = low_pressure_threshold,
+	        label = "MIN давление (мА)",
+	        explanation = "давление (мА) ниже данного значения рассматривается как ошибка"
+	    },
+	    {
+	        name = "high_pressure_threshold",
+	        value = high_pressure_threshold,
+	        label = "MAX давление (мА)",
+	        explanation = "давление (мА) выше данного значения рассматривается как ошибка"
 	    }
 	}
 
@@ -374,6 +402,10 @@ function gs_settings_set()
         value = relay_code_to_gpio_number(value)
     elseif param == 'is_pagz_mode_enabled' then
         param = 'isPAGZmodeEnabled'
+    elseif param == 'low_pressure_threshold' then
+        param = 'setting_in_4_20_pressure_low_threshold'
+    elseif param == 'high_pressure_threshold' then
+        param = 'setting_in_4_20_pressure_high_threshold'
     else
         luci.http.prepare_content("text/plain; charset=utf-8")
         luci.http.write('ERROR. unknown param: ' .. param);
