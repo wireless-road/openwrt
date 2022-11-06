@@ -331,6 +331,14 @@ static void rk_stop_fueling_process(rk_t* self, int* cnt) {
     *cnt = 0;
 }
 
+static void rk_calculate_cut_off_setting(rk_t* self) {
+	// function to calculate relay cut-off timing depending on pressure value
+	// the higher pressure -->  the higher mass flow rate --> the earlier we need to close valve
+//	printf("pressure: %d (%.2f mA)\r\n", self->pressure_4_20ma_raw, self->pressure_4_20ma);
+//	self->relay_cut_off_timing = self->relay_cut_off_timing;
+	return;
+}
+
 static int rk_fueling_scheduler(rk_t* self) {
     self->cnt++;
 
@@ -353,6 +361,7 @@ static int rk_fueling_scheduler(rk_t* self) {
             }
         }
 
+        rk_calculate_cut_off_setting(self);
         // Процесс заправки может прекращаться в трех случаях:
         if(fabs(self->fueling_current_volume - self->fueling_dose_in_liters) <= self->relay_cut_off_timing)
         {
