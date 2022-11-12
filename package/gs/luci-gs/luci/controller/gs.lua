@@ -424,7 +424,9 @@ function gs_settings_set()
 	    }
     }
 
-	luci.http.prepare_content("application/json")
+    luci.sys.exec('/etc/init.d/gs restart')
+
+    luci.http.prepare_content("application/json")
     luci.http.write_json(result or {})
 end
 
