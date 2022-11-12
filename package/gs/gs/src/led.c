@@ -78,8 +78,9 @@ int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
 
     led->normal_led_state = off;
     led->error_led_state = off;
-    pthread_create(&led->thread_id, NULL, led_indicate_thread, led);
-
+    if(led->enabled) {
+    	pthread_create(&led->thread_id, NULL, led_indicate_thread, led);
+    }
     return 0;
 }
 
@@ -87,10 +88,6 @@ static int led_indicate_thread(led_t* led) {
 //	printf("LED NORMAL gpio filename: %s\r\n", led->normal_led_filename);
 //	printf("LED ERROR gpio filename: %s\r\n", led->error_led_filename);
     while(1) {
-    	if(!led->enabled) {
-    		sleep(1);
-    		continue;
-    	}
     	if(*led->error_flag) {
     		//printf("LED. Error: %d\r\n", *led->error_flag);
     		if(led->normal_led_state == on) {
