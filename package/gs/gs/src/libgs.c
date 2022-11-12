@@ -163,6 +163,22 @@ int gs_get_all_units(modbus_t *ctx, measure_units_t *measure_units)
     return 0;
 }
 
+int gs_get_measurements(modbus_t *ctx, measurements_t *measurements, int* counter)
+{
+    (*counter)++;
+    if(*counter == 10){
+        *counter = 0;
+    }
+
+    if( *counter % 10 == 1)
+    {
+        return gs_get_all_measurements(ctx, measurements);
+    }
+    else {
+        return gs_get_mass_summator_only(ctx, measurements);
+    }
+}
+
 int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
 {
     float *p;
@@ -172,6 +188,23 @@ int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
         return -1;
     }
     for (int i = 0; i < 20; i += 2)
+    {
+        *p = modbus_get_float_badc(&buf[i]);
+        p++;
+    }
+    return 0;
+}
+
+int gs_get_mass_summator_only(modbus_t *ctx, measurements_t *measurements)
+{
+    float *p;
+    p = (float *)measurements;
+    p = p+9;
+    uint16_t buf[2];
+    if (gs_read_reg(ctx, R_MMI_DENSITY, 2, &buf) == -1) {
+        return -1;
+    }
+    for (int i = 0; i < 2; i += 2)
     {
         *p = modbus_get_float_badc(&buf[i]);
         p++;
@@ -190,6 +223,7 @@ int gs_set_mass_units(modbus_t *ctx, int mass_units)
     else
         return -1;
 }
+
 int gs_set_volume_units(modbus_t *ctx, int volume_units)
 {
     uint8_t ret;
@@ -214,7 +248,6 @@ int gs_stop_cunt(modbus_t *ctx){
 int gs_reset_total_counters(modbus_t *ctx){
     int ret;
     if(modbus_write_bit(ctx, C_MMI_RESET_TOTALS, 1) == -1){
-        //return -1;
     }
     if(modbus_write_bit(ctx, C_MMI_RESET_TOTALS, 0) == -1){
         return -2;
@@ -292,15 +325,12 @@ V_TOTAL: %.2f. M_INV: %.2f. V_INV: %.2f\r\n",
 static void gs_thread(gs_conninfo_t* conninfo) {
     int ret;
     _Atomic float* mass = (_Atomic float*)&conninfo->summator_mass;
-//    _Atomic float* volume = (_Atomic float*)&conninfo->summator_volume;
     _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
     conninfo->ctx = gs_init(conninfo);
-//    ret = gs_set_modbus_baudrate(conninfo, Baudrate_9600);  // set DEF_BAUDRATE macro value to current baudrate
     ret = gs_get_version(conninfo->ctx);
     
     if(ret == -1) {
     	conninfo->connection_lost_counter++;
-//        conninfo->connection_lost_flag = -1;
     }
     
     ret = gs_get_all_units(conninfo->ctx, &conninfo->measure_units);
@@ -312,7 +342,13 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     	if(ret == -1) {
     		conninfo->connection_lost_counter++;
 #ifndef DEV_WITHOUT_FLOMAC
-    		printf("ERROR. Modbus. Read measurements failed: %d\r\n", conninfo->connection_lost_counter);
+    		printf("ERROR %s RK. Modbus. Read failed: %d. %s\r\n"
+    		, conninfo->side == 1 ? "Left" : "Right"
+    		, conninfo->connection_lost_counter
+		, modbus_strerror(errno)
+    		);
+    		gs_close(conninfo->ctx);
+    		conninfo->ctx = gs_init(conninfo);
 #endif
     		if(conninfo->connection_lost_counter > CONNESTION_LOST_COUNTER_VALUE) {
     			conninfo->connection_lost_flag = -1;
@@ -334,7 +370,6 @@ static void gs_thread(gs_conninfo_t* conninfo) {
             conninfo->measurements.mass_flowrate = simulation_mass_rate_value;
 #endif
             atomic_store(mass, conninfo->measurements.mass_inventory);
-//            atomic_store(volume, conninfo->measurements.volume_inventory);
             atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);
         }
     }
@@ -350,6 +385,7 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
     int ret;
     char port[16];
 
+    conninfo->measurements_read_counter = 0;
     sprintf(&port, "/dev/ttymxc%d", conninfo->port);
 //    printf("Connecting to %s...\n", port);
 //    printf("Connecting using baudrate: %d\n", conninfo->baudrate);
@@ -360,8 +396,8 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
         return ctx;
     }
     modbus_set_slave(ctx, conninfo->devaddr);
-    modbus_set_response_timeout(ctx, 0, 100000);
-    // modbus_set_debug(ctx, TRUE);
+    modbus_set_response_timeout(ctx, 0, 800000);
+//    modbus_set_debug(ctx, TRUE);
     modbus_rtu_set_rts(ctx, MODBUS_RTU_RTS_UP);
     ret = modbus_rtu_set_serial_mode(ctx, MODBUS_RTU_RS485);
     if (!ret)

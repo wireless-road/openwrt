@@ -18,7 +18,7 @@
 #define DEF_ADDR 1
 #define CONNESTION_LOST_COUNTER_VALUE	100
 
-#define MODBUG_DELAY_US		10000
+#define MODBUG_DELAY_US		60000
 
 typedef struct measure_units {
     uint16_t massflow_unit;
@@ -58,6 +58,8 @@ typedef struct gs_conninfo {
     _Atomic float mass_flowrate;
     int connection_lost_flag;
     int connection_lost_counter;
+    int measurements_read_counter;
+    int side;
 } gs_conninfo_t;
 
 /* port handling */
