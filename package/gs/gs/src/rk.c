@@ -71,6 +71,7 @@ int rk_init(int idx, rk_t* rk) {
     }
 
     CAN_init(idx, &rk->can_bus);
+    rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
     error_init(&rk->error_state);
 
     // address
@@ -193,7 +194,8 @@ int rk_init(int idx, rk_t* rk) {
     rk->fueling_process_flag = 0;
     led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);
 
-    ret = gs_init_pthreaded(idx, &rk->modbus);
+    rk->modbus.side = rk->side;
+    ret = gs_init_pthreaded(idx, &rk->modbus, rk->side);
     if(ret == -1) {
     	printf("ERROR %s RK. Modbus (flomac) initialization failed\r\n", rk->side == left ? "Left" : "Right");
     	return -1;
@@ -325,7 +327,7 @@ static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
                            self->fueling_price_per_liter,
                            price);
 
-    if((cnt % 30 == 0) || necessary_flag) {
+    if((cnt % 10 == 0) || necessary_flag) {
 		printf("%s RK. currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, pressure: %d (%.2f mA), summator: %.2f, interrupted: %.2f\r\n",
 				self->side == left ? "Left" : "Right",
 				cnt,
