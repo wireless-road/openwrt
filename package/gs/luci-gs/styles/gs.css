@@ -97,6 +97,12 @@ input:checked + .slider:before {
   display: table-row;
 }
 
+.dropdown {
+  /*width: 100%;*/
+  padding: 7px 10px 7px;
+  height: 40px;
+}
+
 .tooltip {
   position: relative;
   display: inline-block;

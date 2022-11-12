@@ -1,7 +1,7 @@
--- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.6:/usr/lib/lua/luci/controller/gs.lua
--- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.6:/usr/lib/lua/luci/view/gs.htm
--- scp package/gs/luci-gs/styles/gs.css root@192.168.31.6:/www/luci-static/resources/gs.css
--- scp package/gs/gs/files/gpio_conf.json root@192.168.31.6:/etc/gpio_conf.json
+-- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.46:/usr/lib/lua/luci/controller/gs.lua
+-- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.46:/usr/lib/lua/luci/view/gs.htm
+-- scp package/gs/luci-gs/styles/gs.css root@192.168.31.46:/www/luci-static/resources/gs.css
+-- scp package/gs/gs/files/gpio_conf.json root@192.168.31.46:/etc/gpio_conf.json
 
 module("luci.controller.gs", package.seeall)
 
@@ -129,6 +129,7 @@ function gs_state_get()
     local is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/1/isPAGZmodeEnabled"):sub(1,-2)
     local low_pressure_threshold = nixio.fs.readfile("/mnt/gs/1/setting_in_4_20_pressure_low_threshold"):sub(1,-2)
     local high_pressure_threshold = nixio.fs.readfile("/mnt/gs/1/setting_in_4_20_pressure_high_threshold"):sub(1,-2)
+    local valves_amount = nixio.fs.readfile("/mnt/gs/1/setting_valves_amount"):sub(1,-2)
 
     local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     local relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -138,73 +139,105 @@ function gs_state_get()
 	        name = "enabled",
 	        value = is_enabled,
 	        label = "пост включен",
-	        explanation = "вкл/выкл поста"
+	        explanation = "вкл/выкл поста",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='ВЫКЛ', ["1"]='ВКЛ' }
 	    },
 	    {
 	        name = "gaskit address",
 	        value = gaskit_address,
 	        label = "адрес поста в ГазКите",
-	        explanation = "нужно указать адрес, в качестве адреса Поста в ГазКите"
+	        explanation = "нужно указать адрес, в качестве адреса Поста в ГазКите",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "display address",
 	        value = can_address,
 	        label = "адрес дисплея",
-	        explanation = "если переключатель на дисплее выставлен в 0, то нужно задать адрес 32, если 1, то 64."
+	        explanation = "если переключатель на дисплее выставлен в 0, то нужно 'ТУМБЛЕР 0' иначе 'ТУМБЛЕР 1'",
+	        field_type = "dropdown",
+	        field_options = { ["32"]='ТУМБЛЕР 0', ["64"]='ТУМБЛЕР 1' }
 	    },
 	    {
 	        name = "flomac address",
 	        value = flomac_address,
 	        label = "адрес массомера",
-	        explanation = "оставляйте значение по умолчанию 1, чтобы не возникало путаницы. Массомер каждого поста сидит на отдельном интерфейсе, а потому оба могут иметь один и тот же адрес"
+	        explanation = "оставляйте значение по умолчанию 1, чтобы не возникало путаницы. Массомер каждого поста сидит на отдельном интерфейсе, а потому оба могут иметь один и тот же адрес",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "gas density",
 	        value = density,
 	        label = "плотность газа",
-	        explanation = "значение плотности газа, полученное от Газпрома. Используется для преобразования показаний массомера в объем, запрошенный с ГазКита"
+	        explanation = "значение плотности газа, полученное от Газпрома. Используется для преобразования показаний массомера в объем, запрошенный с ГазКита",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "relay cut-off",
 	        value = relay_cut_off,
 	        label = "отсечка клапана",
-	        explanation = "калибровочный коэффициент упреждающего отключения клапана во избежание перелива"
+	        explanation = "калибровочный коэффициент упреждающего отключения клапана во избежание перелива",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "mass flow rate threshold",
 	        value = mass_flow_threshold,
 	        label = "расход газа при полном баке",
-	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон."
+	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон.",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "relay_middle_number",
 	        value = relay_middle_number,
 	        label = "клапан среднего давления",
-	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан среднего давления."
+	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан среднего давления.",
+	        field_type = "dropdown",
+	        field_options = { ["K1"]='K1', ["K2"]='K2', ["K3"]='K3', ["K4"]='K4', ["K5"]='K5', ["K6"]='K6' }
 	    },
 	    {
 	        name = "relay_high_number",
 	        value = relay_high_number,
 	        label = "клапан высокого давления",
-	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан высокого давления."
+	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан высокого давления.",
+	        field_type = "dropdown",
+	        field_options = { ["K1"]='K1', ["K2"]='K2', ["K3"]='K3', ["K4"]='K4', ["K5"]='K5', ["K6"]='K6' }
 	    },
 	    {
 	        name = "is_pagz_mode_enabled",
 	        value = is_pagz_mode_enabled,
 	        label = "режим ПАГЗ",
-	        explanation = "1 - пост работает в режиме ПАГЗа (управление отпуском топлива по кнопке), 0 - режим ПАГЗ выключен (отпуск топлива с АРМ)"
+	        explanation = "1 - пост работает в режиме ПАГЗа (управление отпуском топлива по кнопке), 0 - режим ПАГЗ выключен (отпуск топлива с АРМ)",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='ВЫКЛ', ["1"]='ВКЛ' }
+	    },
+	    {
+	        name = "valves_amount",
+	        value = valves_amount,
+	        label = "количество клапанов",
+	        explanation = "1 - используется только клапан среднего давления. 2 - используются клапаны среднего и высокого давления",
+	        field_type = "dropdown",
+	        field_options = { ["1"]='1', ["2"]='2' }
 	    },
 	    {
 	        name = "low_pressure_threshold",
 	        value = low_pressure_threshold,
 	        label = "MIN давление (мА)",
-	        explanation = "давление (мА) ниже данного значения рассматривается как ошибка"
+	        explanation = "давление (мА) ниже данного значения рассматривается как ошибка",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "high_pressure_threshold",
 	        value = high_pressure_threshold,
 	        label = "MAX давление (мА)",
-	        explanation = "давление (мА) выше данного значения рассматривается как ошибка"
+	        explanation = "давление (мА) выше данного значения рассматривается как ошибка",
+	        field_type = "text",
+	        field_options = {}
 	    }
 	}
 
@@ -220,6 +253,7 @@ function gs_state_get()
     is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/2/isPAGZmodeEnabled"):sub(1,-2)
     low_pressure_threshold = nixio.fs.readfile("/mnt/gs/2/setting_in_4_20_pressure_low_threshold"):sub(1,-2)
     high_pressure_threshold = nixio.fs.readfile("/mnt/gs/2/setting_in_4_20_pressure_high_threshold"):sub(1,-2)
+    valves_amount = nixio.fs.readfile("/mnt/gs/2/setting_valves_amount"):sub(1,-2)
 
     relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -229,73 +263,105 @@ function gs_state_get()
 	        name = "enabled",
 	        value = is_enabled,
 	        label = "пост включен",
-	        explanation = "вкл/выкл поста"
+	        explanation = "вкл/выкл поста",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='ВЫКЛ', ["1"]='ВКЛ' }
 	    },
 	    {
 	        name = "gaskit address",
 	        value = gaskit_address,
 	        label = "адрес поста в ГазКите",
-	        explanation = "нужно указать адрес, в качестве адреса Поста в ГазКите"
+	        explanation = "нужно указать адрес, в качестве адреса Поста в ГазКите",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "display address",
 	        value = can_address,
 	        label = "адрес дисплея",
-	        explanation = "если переключатель на дисплее выставлен в 0, то нужно задать адрес 32, если 1, то 64."
+	        explanation = "если переключатель на дисплее выставлен в 0, то нужно 'ТУМБЛЕР 0' иначе 'ТУМБЛЕР 1'",
+	        field_type = "dropdown",
+	        field_options = { ["32"]='ТУМБЛЕР 0', ["64"]='ТУМБЛЕР 1' }
 	    },
 	    {
 	        name = "flomac address",
 	        value = flomac_address,
 	        label = "адрес массомера",
-	        explanation = "оставляйте значение по умолчанию 1, чтобы не возникало путаницы. Массомер каждого поста сидит на отдельном интерфейсе, а потому оба могут иметь один и тот же адрес"
+	        explanation = "оставляйте значение по умолчанию 1, чтобы не возникало путаницы. Массомер каждого поста сидит на отдельном интерфейсе, а потому оба могут иметь один и тот же адрес",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "gas density",
 	        value = density,
 	        label = "плотность газа",
-	        explanation = "значение плотности газа, полученное от Газпрома. Используется для преобразования показаний массомера в объем, запрошенный с ГазКита"
+	        explanation = "значение плотности газа, полученное от Газпрома. Используется для преобразования показаний массомера в объем, запрошенный с ГазКита",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "relay cut-off",
 	        value = relay_cut_off,
 	        label = "отсечка клапана",
-	        explanation = "калибровочный коэффициент упреждающего отключения клапана во избежание перелива"
+	        explanation = "калибровочный коэффициент упреждающего отключения клапана во избежание перелива",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "mass flow rate threshold",
 	        value = mass_flow_threshold,
 	        label = "расход газа при полном баке",
-	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон."
+	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон.",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "relay_middle_number",
 	        value = relay_middle_number,
 	        label = "клапан среднего давления",
-	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан среднего давления."
+	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан среднего давления.",
+	        field_type = "dropdown",
+	        field_options = { ["K1"]='K1', ["K2"]='K2', ["K3"]='K3', ["K4"]='K4', ["K5"]='K5', ["K6"]='K6' }
 	    },
 	    {
 	        name = "relay_high_number",
 	        value = relay_high_number,
 	        label = "клапан высокого давления",
-	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан высокого давления."
+	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан высокого давления.",
+	        field_type = "dropdown",
+	        field_options = { ["K1"]='K1', ["K2"]='K2', ["K3"]='K3', ["K4"]='K4', ["K5"]='K5', ["K6"]='K6' }
 	    },
 	    {
 	        name = "is_pagz_mode_enabled",
 	        value = is_pagz_mode_enabled,
 	        label = "режим ПАГЗ",
-	        explanation = "1 - пост работает в режиме ПАГЗа (управление отпуском топлива по кнопке), 0 - режим ПАГЗ выключен (отпуск топлива с АРМ)"
+	        explanation = "1 - пост работает в режиме ПАГЗа (управление отпуском топлива по кнопке), 0 - режим ПАГЗ выключен (отпуск топлива с АРМ)",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='ВЫКЛ', ["1"]='ВКЛ' }
+	    },
+	    {
+	        name = "valves_amount",
+	        value = valves_amount,
+	        label = "количество клапанов",
+	        explanation = "1 - используется только клапан среднего давления. 2 - используются клапаны среднего и высокого давления",
+	        field_type = "dropdown",
+	        field_options = { ["1"]='1', ["2"]='2' }
 	    },
 	    {
 	        name = "low_pressure_threshold",
 	        value = low_pressure_threshold,
 	        label = "MIN давление (мА)",
-	        explanation = "давление (мА) ниже данного значения рассматривается как ошибка"
+	        explanation = "давление (мА) ниже данного значения рассматривается как ошибка",
+	        field_type = "text",
+	        field_options = {}
 	    },
 	    {
 	        name = "high_pressure_threshold",
 	        value = high_pressure_threshold,
 	        label = "MAX давление (мА)",
-	        explanation = "давление (мА) выше данного значения рассматривается как ошибка"
+	        explanation = "давление (мА) выше данного значения рассматривается как ошибка",
+	        field_type = "text",
+	        field_options = {}
 	    }
 	}
 
@@ -402,6 +468,8 @@ function gs_settings_set()
         value = relay_code_to_gpio_number(value)
     elseif param == 'is_pagz_mode_enabled' then
         param = 'isPAGZmodeEnabled'
+    elseif param == 'valves_amount' then
+        param = 'setting_valves_amount'
     elseif param == 'low_pressure_threshold' then
         param = 'setting_in_4_20_pressure_low_threshold'
     elseif param == 'high_pressure_threshold' then
