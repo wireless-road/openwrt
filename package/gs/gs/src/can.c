@@ -4,6 +4,7 @@
 
 static int CAN_socket_init(char* interface);
 static int CAN_send(can_t* self, float volume, float price, float totalPrice);
+static int CAN_send_half(can_t* self, float volume, float totalPrice);
 
 int CAN_init(int idx, can_t* can) {
 
@@ -41,6 +42,7 @@ int CAN_init(int idx, can_t* can) {
     can->deviceAddress = ret;
 
     can->transmit = CAN_send;
+    can->transmit_half = CAN_send_half;
 }
 
 static int CAN_socket_init(char* interface) {
@@ -106,3 +108,25 @@ static int CAN_send(can_t* self, float volume, float price, float totalPrice) {
             fprintf(stderr, "CAN write error: %s\n", strerror(errno));
 
 }
+
+static int CAN_send_half(can_t* self, float volume, float totalPrice) {
+    // prepare data
+    char frame_data[8] = {0};
+    memset(frame_data, 0, sizeof(frame_data));
+    memcpy(frame_data+4, &volume, sizeof(volume));
+    memcpy(frame_data, &totalPrice, sizeof(totalPrice));
+
+    // send frame for upper and middle rows data
+    self->frame.can_id = self->deviceAddress;
+    self->frame.can_dlc = sizeof (frame_data);
+
+    memcpy(&self->frame.data, frame_data, sizeof(frame_data));
+    // To-Do: handle case of write() hangs if no devices on the bus
+    int res = write(self->fd, &self->frame, sizeof(self->frame));
+    if (res != sizeof(self->frame)) {
+        if (errno != EAGAIN)
+            fprintf(stderr, "CAN write error: %s\n", strerror(errno));
+    }
+
+}
+

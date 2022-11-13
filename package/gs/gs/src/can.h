@@ -34,7 +34,8 @@ struct can_t {
     char config_filename_device_address[CONFIG_FILENAME_MAX_LENGTH];
     int fd;
     struct can_frame frame;
-    int (*transmit)(can_t* self, float volume, float price, float totalPrice)
+    int (*transmit)(can_t* self, float volume, float price, float totalPrice);
+    int (*transmit_half)(can_t* self, float volume, float totalPrice);
 };
 
 #define DEF_CONFIG_FILE_CAN_BUS_NUMBER              "/etc/gs/%d/can_busNumber"

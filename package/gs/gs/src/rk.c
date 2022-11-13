@@ -75,7 +75,8 @@ int rk_init(int idx, rk_t* rk) {
     }
 
     CAN_init(idx, &rk->can_bus);
-    rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
+    rk->can_bus.transmit_half(&rk->can_bus, FIRMWARE_VERSION, DEVICE_MARKING_CODE);
+//    rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
     error_init(&rk->error_state);
 
     // address

@@ -107,6 +107,12 @@ function get_show_data(){
 
                 })
          });
+
+         XHR.get('/cgi-bin/luci/admin/gs/firmware_version_get', { token: '<%=token%>' }, function(xhr, resp) {
+                 let title = document.getElementById("fw_ver")
+                 console.log("resp: ", resp)
+                 title.innerText = "Версия прошивки: " + resp.version
+         });
 }
 
 function generateHeadField(class_name, text) {
@@ -144,16 +150,13 @@ function generateSettingsField(class_name, text, field_type, field_options)  {
                 col0.innerText = text
                 return col0
         } else if(field_type === "dropdown") {
-                console.log('\tdropdown', text, field_options)
                 let col = document.createElement("div")
                 col.className = "td"
                 let col0 = document.createElement("select")
                 col0.className = "dropdown"
                 for(const [val, label] of Object.entries(field_options)) {
-                        // console.log(val ,label)
                         let opt = new Option(label, val)
                         if(val === text) {
-                                console.log(val ,label, text)
                                 opt.setAttribute('selected', 'selected')
                         }
                         col0.appendChild(opt);
@@ -161,7 +164,6 @@ function generateSettingsField(class_name, text, field_type, field_options)  {
                 col.appendChild(col0)
                 return col
         } else {
-                console.log("unknown ", text)
         }
 }
 
@@ -169,16 +171,12 @@ function settingsButtonClick(evt) {
         row = document.getElementById(evt.currentTarget.myParam)
         let childs = Array.from(row.childNodes)
         let child = childs[1].childNodes[0]
-        // console.log('child ', child, child.options, child.options[child.selectedIndex].text)
         let value = 'unknown'
         if(child.options === undefined) {
                 value = childs[1].innerText
         } else {
                 value = child.value
         }
-        // console.log('value: ', value)
-        // console.log('side: ', evt.currentTarget.myParam.split('.')[0])
-        // console.log('param: ', evt.currentTarget.myParam.split('.')[1])
         let data = {
                 token: '<%=token%>',
                 side: evt.currentTarget.myParam.split('.')[0],
@@ -251,7 +249,7 @@ function generateSettingsValue(value = '') {
 
 function gpioToggled(e) {
         const cnt = e.target.id.split('.')[1]
-        console.log(e.target.id, e.target.checked)
+        // console.log(e.target.id, e.target.checked)
         let data = { token: '<%=token%>', gpio: {} };
         var xhr = new XHR();
         data.gpio.controller_number = e.target.id.split('.')[1] // controller
@@ -316,7 +314,6 @@ function generateSettings(id, name, value, label, explanation, field_type, field
 
         table.appendChild(trow)
         trow.appendChild(generateSettingsOption("td", generateSettingsName(label), explanation))
-        console.log('name', name, field_type)
         trow.appendChild(generateSettingsField("tdfield", generateSettingsValue(value), field_type, field_options))
         trow.appendChild(generateSettingsButton("tdbutton", trow.id))
 }
@@ -422,10 +419,12 @@ window.requestAnimationFrame(function() {
 </script>
 
 <div style="display: flex; flex-direction: row; justify-content: space-between">
+        <div id="fw_ver" style="font-size: 24px">Версия прошивки: 1.00</div>
 <!--        <h2 name="content"><%:GPIO Configuration%></h2>-->
 <!--        <h2 name="content2">Telemetry</h2>-->
 <!--        <button class="btn cbi-button cbi-button-action" onclick="generateGpioNew()"> <%:Add Gpio %> </button>-->
 </div>
+
 
 <div style="display: flex; flex-direction: row">
         <link rel="stylesheet" href="<%=resource%>/gs.css" type="text/css" />

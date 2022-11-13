@@ -13,12 +13,26 @@ function index()
 	entry( {"admin", "gs", "value_get"}, call("gs_value_get")).leaf = true
 	entry( {"admin", "gs", "value_set"}, post("gs_value_set")).leaf = true
 	entry( {"admin", "gs", "state_get"}, call("gs_state_get")).leaf = true
+	entry( {"admin", "gs", "firmware_version_get"}, call("gs_firmware_version_get")).leaf = true
 end
 
 require "nixio.fs"
 require "luci.jsonc"
 
 dir = "/etc"
+
+function gs_firmware_version_get()
+	local cfg, json_cfg
+	local result = {}
+	fw_ver = nixio.fs.readfile("/mnt/gs/1/firmware_version"):sub(1,-2)
+
+	result = {
+	        version = fw_ver,
+	    },
+
+	luci.http.prepare_content("application/json")
+	luci.http.write_json(result or {})
+end
 
 function gs_configuration_get()
 	local cfg, json_cfg
