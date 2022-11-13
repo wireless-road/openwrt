@@ -130,6 +130,8 @@ function gs_state_get()
     local low_pressure_threshold = nixio.fs.readfile("/mnt/gs/1/setting_in_4_20_pressure_low_threshold"):sub(1,-2)
     local high_pressure_threshold = nixio.fs.readfile("/mnt/gs/1/setting_in_4_20_pressure_high_threshold"):sub(1,-2)
     local valves_amount = nixio.fs.readfile("/mnt/gs/1/setting_valves_amount"):sub(1,-2)
+    local led_enabled = nixio.fs.readfile("/mnt/gs/1/led_enabled"):sub(1,-2)
+    local modbus_port = nixio.fs.readfile("/mnt/gs/1/modbus_port"):sub(1,-2)
 
     local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     local relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -238,7 +240,23 @@ function gs_state_get()
 	        explanation = "давление (мА) выше данного значения рассматривается как ошибка",
 	        field_type = "text",
 	        field_options = {}
-	    }
+	    },
+	    {
+	        name = "led_enabled",
+	        value = led_enabled,
+	        label = "лампы индикации",
+	        explanation = "Лампы индикации режима работы/наличия ошибок",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='ВЫКЛ', ["1"]='ВКЛ' }
+	    },
+	    {
+	        name = "modbus_port",
+	        value = modbus_port,
+	        label = "разъем массомера",
+	        explanation = "Разъем, к которому подключен массомер согласно маркировке на корпусе устройства.",
+	        field_type = "dropdown",
+	        field_options = { ["4"]='разъем А', ["5"]='разъем B' }
+	    },
 	}
 
     is_enabled = nixio.fs.readfile("/mnt/gs/2/isEnabled"):sub(1,-2)
@@ -254,6 +272,8 @@ function gs_state_get()
     low_pressure_threshold = nixio.fs.readfile("/mnt/gs/2/setting_in_4_20_pressure_low_threshold"):sub(1,-2)
     high_pressure_threshold = nixio.fs.readfile("/mnt/gs/2/setting_in_4_20_pressure_high_threshold"):sub(1,-2)
     valves_amount = nixio.fs.readfile("/mnt/gs/2/setting_valves_amount"):sub(1,-2)
+    led_enabled = nixio.fs.readfile("/mnt/gs/2/led_enabled"):sub(1,-2)
+    modbus_port = nixio.fs.readfile("/mnt/gs/2/modbus_port"):sub(1,-2)
 
     relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -362,6 +382,22 @@ function gs_state_get()
 	        explanation = "давление (мА) выше данного значения рассматривается как ошибка",
 	        field_type = "text",
 	        field_options = {}
+	    },
+	    {
+	        name = "led_enabled",
+	        value = led_enabled,
+	        label = "лампы индикации",
+	        explanation = "Лампы индикации режима работы/наличия ошибок",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='ВЫКЛ', ["1"]='ВКЛ' }
+	    },
+	    {
+	        name = "modbus_port",
+	        value = modbus_port,
+	        label = "разъем массомера",
+	        explanation = "Разъем, к которому подключен массомер согласно маркировке на корпусе устройства.",
+	        field_type = "dropdown",
+	        field_options = { ["4"]='разъем А', ["5"]='разъем B' }
 	    }
 	}
 
@@ -474,6 +510,10 @@ function gs_settings_set()
         param = 'setting_in_4_20_pressure_low_threshold'
     elseif param == 'high_pressure_threshold' then
         param = 'setting_in_4_20_pressure_high_threshold'
+    elseif param == 'led_enabled' then
+        param = 'led_enabled'
+    elseif param == 'modbus_port' then
+        param = 'modbus_port'
     else
         luci.http.prepare_content("text/plain; charset=utf-8")
         luci.http.write('ERROR. unknown param: ' .. param);
