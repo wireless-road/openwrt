@@ -377,8 +377,22 @@ static int rk_fueling_log_results(rk_t* self) {
 
 static int rk_fueling_calculate_summators(rk_t* self) {
     self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
+    float prev_summator_volume_rounded = roundf(self->prev_summator_volume * 100) / 100;
+    self->fueling_current_price = prev_summator_volume_rounded;
+    float fueling_current_volume_rounded = roundf(self->fueling_current_volume * 100) / 100;
+    self->fueling_current_volume = fueling_current_volume_rounded;
+    float fueling_interrupted_volume_rounded = roundf(self->fueling_interrupted_volume * 100) / 100;
+    self->fueling_interrupted_volume = fueling_interrupted_volume_rounded;
     self->summator_volume = self->prev_summator_volume + self->fueling_current_volume + self->fueling_interrupted_volume;
+
+    float prev_summator_price_rounded = roundf(self->prev_summator_price * 100) / 100;
+    self->prev_summator_price = prev_summator_price_rounded;
+    float fueling_current_price_rounded = roundf(self->fueling_current_price * 100) / 100;
+    self->fueling_current_price = fueling_current_price_rounded;
+    float fueling_interrupted_price_rounded = roundf(self->fueling_interrupted_price * 100) / 100;
+    self->fueling_interrupted_price = fueling_interrupted_price_rounded;
     self->summator_price = self->prev_summator_price + self->fueling_current_price + self->fueling_interrupted_price;
+
 }
 
 static void rk_stop_fueling_process(rk_t* self, int* cnt) {
