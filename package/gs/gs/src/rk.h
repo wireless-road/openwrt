@@ -66,6 +66,7 @@ struct rk_t {
     int (*azt_req_hndl)(azt_request_t* req, rk_t* self);
     int (*is_not_fault)(rk_t* self);
     int (*process)(rk_t* self);
+    int (*stop)(rk_t* self);
     char config_filename_is_enabled[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_is_left[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_address[CONFIG_FILENAME_MAX_LENGTH];

@@ -42,16 +42,21 @@ int main(int argc, char* argv[])
             right_rk.azt_req_hndl(azt_request(), &right_rk);
         }
 
-        if(left_rk.is_not_fault(&left_rk)) {
-            left_rk.process(&left_rk);
-        } else {
+        if(left_rk.enabled) {
+			if(left_rk.is_not_fault(&left_rk)) {
+				left_rk.process(&left_rk);
+			} else {
+				left_rk.stop(&left_rk);
+			}
         }
 
-        if(right_rk.is_not_fault(&right_rk)) {
-            right_rk.process(&right_rk);
-        } else {
+        if(right_rk.enabled) {
+			if(right_rk.is_not_fault(&right_rk)) {
+				right_rk.process(&right_rk);
+			} else {
+				right_rk.stop(&right_rk);
+			}
         }
-
     }
     azt_deinit();
 

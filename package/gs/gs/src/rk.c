@@ -9,7 +9,8 @@
 
 static int azt_req_handler(azt_request_t* req, rk_t* self);
 static int rk_is_not_fault();
-static int rk_process();
+static int rk_process(rk_t* self);
+static int rk_stop(rk_t* self);
 static int rk_fueling_scheduler(rk_t* self);
 static void int_to_string_azt(int val, char* res, int* cnt);
 static void rk_indicate_error_message(rk_t* self);
@@ -19,6 +20,7 @@ static void button_stop_callback(rk_t* self, int code);
 static void rk_start_fueling_process(rk_t* self);
 static void rk_start_local_fueling_process(rk_t* self);
 static void rk_stop_fueling_process(rk_t* self, int* cnt);
+static int rk_fueling_log_results(rk_t* self);
 
 //static int valves_amount = 1;  // To-Do: implement config file and web interface
 
@@ -64,6 +66,8 @@ int rk_init(int idx, rk_t* rk) {
 
     rk->is_not_fault = rk_check_state;
     rk->azt_req_hndl = azt_req_handler;
+
+    rk->stop = rk_stop;
 
     if(!rk->enabled) {
     	printf("INFO. %s RK disabled\r\n", rk->side == left ? "Left" : "Right");
@@ -290,6 +294,9 @@ static void rk_indicate_error_message(rk_t* self) {
 }
 
 static int rk_process(rk_t* self) {
+    if(!self->enabled) {
+    	return 0;
+    }
     switch (self->state) {
         case trk_disabled_rk_installed:
         	self->fueling_process_flag = 0;
@@ -316,6 +323,18 @@ static int rk_process(rk_t* self) {
         default:
             break;
     }
+}
+
+static int rk_stop(rk_t* self) {
+    if(!self->enabled) {
+    	return 0;
+    }
+	if( (self->state == trk_enabled_fueling_process) || (self->state == trk_enabled_fueling_process_local) ) {
+		printf("%s RK. Alarm fueling interruption due to errors.\r\n", self->side == left ? "Left" : "Right");
+    	rk_stop_fueling_process(self, &self->cnt);
+        self->store_prev_summators_flag = 0;
+        rk_fueling_log_results(self);
+	}
 }
 
 static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
