@@ -12,7 +12,6 @@ board_config_update
 case "$board" in
 lorawan_gateway_ethernet|\
 lorawan_gateway_ethernet_bridged|\
-lorawan_gateway_wifi|\
 lorawan_gateway_3g|\
 video_stream_ethernet|\
 video_stream_3g|\
@@ -29,6 +28,8 @@ audio_stream_3g|\
 audio_stream_wifi)
 	ucidef_set_interface_lan 'eth0'
 	;;
+lorawan_gateway_wifi)
+	ucidef_set_interface_lan "ap0"
 esac
 
 board_config_flush

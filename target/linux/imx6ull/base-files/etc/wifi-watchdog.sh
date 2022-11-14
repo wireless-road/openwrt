@@ -3,7 +3,7 @@
 json_init
 let _rc++
 logger -t wmon "Wireless link  monitoring started for '${1}'"
-
+ubus call network.interface.wwan notify_proto '{"action": 5, "available": true}'
 while [ ${_rc} -le 20 ]
     do
         json_load $(ubus -S call network.interface.wwan status)
