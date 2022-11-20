@@ -28,8 +28,8 @@ audio_stream_3g|\
 audio_stream_wifi)
 	ucidef_set_interface_lan 'eth0'
 	;;
-lorawan_gateway_wifi)
-	ucidef_set_interface_lan "ap0"
+# lorawan_gateway_wifi)
+#	ucidef_set_interface_lan "ap0"
 esac
 
 board_config_flush
