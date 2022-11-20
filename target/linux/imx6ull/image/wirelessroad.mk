@@ -338,8 +338,8 @@ define Device/audio_stream_ethernet
 	DEVICE_DTS := audio_stream_ethernet
 	BOARDNAME := WIRELESSROAD_AUDIOSTREAM_IMX6ULL
 	SUPPORTED_DEVICES:= audio_stream_ethernet
-	IMAGE_SIZE := 31m
-	IMAGE_SIZE_FACTORY := 32m
+	IMAGE_SIZE := 15m
+	IMAGE_SIZE_FACTORY := 16m
 	CONSOLE := ttymxc0,115200
 	KERNEL := kernel-bin | buildDtb | append-dtb | uImage none | imx6ull-bootscript
 	IMAGES := u-boot.bin sdcard.bin mtd-sysupgrade.bin mtd-factory.bin
