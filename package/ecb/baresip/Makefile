@@ -43,7 +43,8 @@ baresip-mods:= \
 	stdio \
 	v4l2 \
 	vp8 \
-	vp9
+	vp9 \
+	webrtc-aec
 
 PKG_CONFIG_DEPENDS:= \
 	$(patsubst %,CONFIG_PACKAGE_baresip-mod-%,$(subst _,-,$(baresip-mods)))
@@ -93,6 +94,7 @@ baresip-mod-stdio       := USE_STDIO
 baresip-mod-vp8         := USE_VPX
 baresip-mod-vp9         := USE_VPX
 baresip-mod-v4l2        := USE_V4L2
+baresip-mod-webrtc-aec	:= USE_WEBRTC_AEC
 
 BARESIP_MOD_OPTIONS:= \
 	MOD_AUTODETECT= \
@@ -211,3 +213,4 @@ $(eval $(call BuildPlugin,vidloop,Video-loop test module,vidloop,))
 $(eval $(call BuildPlugin,vumeter,Display audio levels in console,vumeter,))
 $(eval $(call BuildPlugin,vp8,VP8 video codec,vp8,+libvpx))
 $(eval $(call BuildPlugin,vp9,VP9 video codec,vp9,+libvpx))
+$(eval $(call BuildPlugin,webrtc-aec,WebRTC AEC module,webrtc_aec,+webrtc-audio-processing))
