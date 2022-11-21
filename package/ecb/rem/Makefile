@@ -50,14 +50,14 @@ define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/rem $(1)/usr/include
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/librem.{a,so} $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/librem.{a,so}* $(1)/usr/lib
 	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/librem.pc $(1)/usr/lib/pkgconfig/
 endef
 
 define Package/librem/install
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/librem.so $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/librem.so* $(1)/usr/lib
 endef
 
 $(eval $(call BuildPackage,librem))
