@@ -75,8 +75,11 @@ int rk_init(int idx, rk_t* rk) {
     }
 
     CAN_init(idx, &rk->can_bus);
-    rk->can_bus.transmit_half(&rk->can_bus, FIRMWARE_VERSION, DEVICE_MARKING_CODE);
-//    rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
+    rk->can_bus.transmit(&rk->can_bus, FIRMWARE_VERSION, FIRMWARE_SUBVERSION, DEVICE_MARKING_CODE);
+#ifndef SIMULATION
+    sleep(15);
+#endif
+    rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
     error_init(&rk->error_state);
 
     // address
@@ -718,13 +721,29 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             price[4] = req->params[3];
             float fueling_price_per_liter = strtof(price, NULL);
             self->fueling_price_per_liter = fueling_price_per_liter;
-            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
+//            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             if(tmp == 0) {
                 azt_tx_ack();
             } else {
                 azt_tx_can();
             }
 
+        case AZT_M2M_TELECOM_SET_GAS_DENSITY:
+            printf("%s RK. Address %d. AZT_M2M_TELECOM_REQUEST_GAS_DENSITY\n", self->side == left ? "Left" : "Right", self->address);
+            char density[6] = {0};
+            density[0] = req->params[0];
+            density[1] = '.';
+            density[2] = req->params[1];
+            density[3] = req->params[2];
+            density[4] = req->params[3];
+            float gas_density = strtof(price, NULL);
+            self->gas_density = gas_density;
+            tmp = set_config(self->config_filename_gas_density, density, strlen(density));
+            if(tmp == 0) {
+                azt_tx_ack();
+            } else {
+                azt_tx_can();
+            }
             break;
         case AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP:
             printf("%s RK. Address %d. AZT_REQUEST_VALVE_DISABLING_THRESHOLD_SETUP\n", self->side == left ? "Left" : "Right", self->address);
