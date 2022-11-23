@@ -44,7 +44,7 @@ baresip-mods:= \
 	v4l2 \
 	vp8 \
 	vp9 \
-	webrtc-aec
+	webrtc_aec 
 
 PKG_CONFIG_DEPENDS:= \
 	$(patsubst %,CONFIG_PACKAGE_baresip-mod-%,$(subst _,-,$(baresip-mods)))
@@ -94,7 +94,7 @@ baresip-mod-stdio       := USE_STDIO
 baresip-mod-vp8         := USE_VPX
 baresip-mod-vp9         := USE_VPX
 baresip-mod-v4l2        := USE_V4L2
-baresip-mod-webrtc-aec	:= USE_WEBRTC_AEC
+baresip-mod-webrtc_aec	:= USE_WEBRTC_AEC
 
 BARESIP_MOD_OPTIONS:= \
 	MOD_AUTODETECT= \
@@ -110,6 +110,7 @@ MAKE_FLAGS+= \
 	LIBRE_SO="$(STAGING_DIR)/usr/lib" \
 	LIBREM_INC="$(STAGING_DIR)/usr/include/rem" \
 	LIBREM_SO="$(STAGING_DIR)/usr/lib" \
+	WEBRTC_PATH="$(STAGING_DIR)/usr/include/webrtc_audio_processing" \
 	OS=linux \
 	RELEASE=1 \
 	SYSROOT="$(shell $(FIND) $(TOOLCHAIN_DIR) -path '*/include/pthread.h' | sed -ne '1s|/include/pthread.h||p')" \
@@ -123,7 +124,7 @@ define Package/baresip/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/baresip $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/usr/lib/baresip/modules
 	$(INSTALL_DATA) \
-		$(PKG_INSTALL_DIR)/usr/lib/baresip/modules/{account,contact,ice,menu,stun,turn}.so \
+		$(PKG_INSTALL_DIR)/usr/lib/baresip/modules/{account,auconv,auresamp,contact,ice,menu,stun,turn,uuid}.so \
 		$(1)/usr/lib/baresip/modules
 	$(INSTALL_DIR) $(1)/usr/share/baresip
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/baresip/* $(1)/usr/share/baresip
@@ -213,4 +214,4 @@ $(eval $(call BuildPlugin,vidloop,Video-loop test module,vidloop,))
 $(eval $(call BuildPlugin,vumeter,Display audio levels in console,vumeter,))
 $(eval $(call BuildPlugin,vp8,VP8 video codec,vp8,+libvpx))
 $(eval $(call BuildPlugin,vp9,VP9 video codec,vp9,+libvpx))
-$(eval $(call BuildPlugin,webrtc-aec,WebRTC AEC module,webrtc_aec,+webrtc-audio-processing))
+$(eval $(call BuildPlugin,webrtc_aec,WebRTC AEC module,webrtc_aec,+webrtc-audio-processing))
