@@ -1,0 +1,13 @@
+Index: baresip-2.9.0/modules/webrtc_aec/module.mk
+===================================================================
+--- baresip-2.9.0.orig/modules/webrtc_aec/module.mk
++++ baresip-2.9.0/modules/webrtc_aec/module.mk
+@@ -5,7 +5,7 @@
+ #
+ 
+ 
+-WEBRTC_PATH	:= /usr/include/webrtc_audio_processing
++#WEBRTC_PATH	:= /usr/include/webrtc_audio_processing
+ 
+ MOD		:= webrtc_aec
+ 
