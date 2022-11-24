@@ -12,7 +12,7 @@ static int rk_is_not_fault();
 static int rk_process(rk_t* self);
 static int rk_stop(rk_t* self);
 static int rk_fueling_scheduler(rk_t* self);
-static void int_to_string_azt(int val, char* res, int* cnt);
+static void int_to_string_azt(int val, char* res, int* cnt, int len);
 static void rk_indicate_error_message(rk_t* self);
 static int rk_check_state(rk_t* self);
 static void button_start_callback(rk_t* self, int code);
@@ -653,12 +653,20 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             cnt = 0;
             memset(responce, 0, sizeof(responce));
             tmp = (int)roundf(self->summator_volume * 100.0);
-            int_to_string_azt(tmp, responce, &cnt);
+            int_to_string_azt(tmp, responce, &cnt, 10);
             tmp = (int)roundf(self->summator_price * 100.0);
-            int_to_string_azt(tmp, responce, &cnt);
+            int_to_string_azt(tmp, responce, &cnt, 10);
             azt_tx(responce, cnt);
             printf("%s RK. Address %d. AZT_REQUEST_SUMMATORS_VALUE %.2f\r\n", self->side == left ? "Left" : "Right", self->address, self->summator_volume);
 //            printf("%s RK. summator_volume: %.2f. summator_price: %.2f\r\n", self->side == left ? "Left" : "Right", self->summator_volume, self->summator_price);
+            break;
+        case AZT_M2M_TELECOM_GET_GAS_DENSITY:
+            cnt = 0;
+            memset(responce, 0, sizeof(responce));
+            tmp = (int)roundf(self->gas_density * 1000.0);
+            int_to_string_azt(tmp, responce, &cnt, 4);
+            azt_tx(responce, cnt);
+            printf("%s RK. Address %d. AZT_REQUEST_GAS_DENSITY %.3f\r\n", self->side == left ? "Left" : "Right", self->address, self->gas_density);
             break;
         case AZT_REQUEST_TRK_TYPE:
 //            printf("%s RK. Address %d. AZT_REQUEST_TRK_TYPE\n", self->side == left ? "Left" : "Right", self->address);
@@ -736,7 +744,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             density[2] = req->params[1];
             density[3] = req->params[2];
             density[4] = req->params[3];
-            float gas_density = strtof(price, NULL);
+            float gas_density = strtof(density, NULL);
             self->gas_density = gas_density;
             tmp = set_config(self->config_filename_gas_density, density, strlen(density));
             if(tmp == 0) {
@@ -928,9 +936,15 @@ static void button_stop_callback(rk_t* self, int code)
     }
 }
 
-static void int_to_string_azt(int val, char* res, int* cnt) {
-    int div = 1000000000;
-    for(int i=0; i<10; i++) {
+static void int_to_string_azt(int val, char* res, int* cnt, int len) {
+    int div = 0;
+    switch(len) {
+		case 4: div = 1000; break;
+		case 10: div = 1000000000; break;
+		default: div = 1000000000; break;
+    }
+
+    for(int i=0; i<len; i++) {
         res[*cnt] = val / div + ASCII_ZERO;
 //        printf("%d / %d -> %c. cnt: %d\n", val, div, res[*cnt], *cnt);
         if(res[*cnt] > ASCII_ZERO) {
