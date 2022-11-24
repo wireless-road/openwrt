@@ -76,10 +76,7 @@ int rk_init(int idx, rk_t* rk) {
 
     CAN_init(idx, &rk->can_bus);
     rk->can_bus.transmit(&rk->can_bus, FIRMWARE_VERSION, FIRMWARE_SUBVERSION, DEVICE_MARKING_CODE);
-#ifndef SIMULATION
-    sleep(15);
-#endif
-    rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
+
     error_init(&rk->error_state);
 
     // address
@@ -191,13 +188,6 @@ int rk_init(int idx, rk_t* rk) {
     rk->fueling_price_per_liter = tmp;
 
     ret = in_4_20_ma_init(idx, &rk->in_4_20);
-    if(ret == -1) {
-#ifndef DEV_WITHOUT_4_20
-        printf("ERROR. %s RK. Input 4-20ma not connected\r\n", rk->side == left ? "Left" : "Right");
-        error_set(&rk->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
-        rk_indicate_error_message(rk);
-#endif
-    }
 
     rk->fueling_process_flag = 0;
     led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);
@@ -230,7 +220,7 @@ static int rk_check_state(rk_t* self) {
 
     if( (ret == IN_4_20_NOT_CONNECTED_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) )
     {
-    	printf("4-20ma disconnected ERROR. state %d\r\n", ret);
+    	printf("ERROR %s RK. 4-20ma disconnected ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
         error_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         error_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         error_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);
@@ -238,14 +228,14 @@ static int rk_check_state(rk_t* self) {
     }
     else if( (ret != IN_4_20_NOT_CONNECTED_ERROR) && error_is_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED))
     {
-    	printf("4-20ma connection restored. state %d\r\n", ret);
+    	printf("ERROR %s RK. 4-20ma connection restored. state %d\r\n", self->side == left ? "Left" : "Right", ret);
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
 
     if( (ret == IN_4_20_LOW_PRESSURE_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE) )
     {
-    	printf("4-20ma low pressure ERROR. state %d\r\n", ret);
+    	printf("ERROR %s RK. 4-20ma low pressure ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         error_set(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         error_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);
@@ -253,14 +243,14 @@ static int rk_check_state(rk_t* self) {
     }
     else if( (ret != IN_4_20_LOW_PRESSURE_ERROR) && error_is_set(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE))
     {
-    	printf("4-20ma low pressure error restored. state %d\r\n", ret);
+    	printf("ERROR %s RK. 4-20ma low pressure error restored. state %d\r\n", self->side == left ? "Left" : "Right", ret);
         error_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         rk_indicate_error_message(self);
     }
 
     if( (ret == IN_4_20_HIGH_PRESSURE_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE) )
     {
-    	printf("4-20ma high pressure ERROR. state %d\r\n", ret);
+    	printf("ERROR %s RK. 4-20ma high pressure ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         error_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         error_set(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);
@@ -268,7 +258,7 @@ static int rk_check_state(rk_t* self) {
     }
     else if( (ret != IN_4_20_HIGH_PRESSURE_ERROR) && error_is_set(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE))
     {
-    	printf("4-20ma high pressure error restored. state %d\r\n", ret);
+    	printf("ERROR %s RK. 4-20ma high pressure error restored. state %d\r\n", self->side == left ? "Left" : "Right", ret);
         error_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);
         rk_indicate_error_message(self);
     }
