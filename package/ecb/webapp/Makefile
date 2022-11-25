@@ -15,7 +15,13 @@ include $(INCLUDE_DIR)/package.mk
 define Package/ecb-webapp
   SECTION:=ECB
   CATEGORY:=ECB
-  DEPENDS:=+uhttpd +php7 +php7-cgi +php7-mod-calendar +php7-mod-fileinfo +php7-mod-session
+  DEPENDS:=+uhttpd \
+  			+php7 \
+			+php7-cgi \
+			+php7-mod-calendar \
+			+php7-mod-fileinfo \
+			+php7-mod-session \
+			+php7-mod-sockets
   TITLE:=ECB Web control application
   MAINTAINER:=Sergey Moryakov <sergey@nqnet.org>
 endef
