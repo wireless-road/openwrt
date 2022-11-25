@@ -1,0 +1,128 @@
+body {font-family: "Lato", sans-serif;
+
+}
+
+.sidebar {
+  height: 100%;
+  width: 250px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #556ae0;
+  overflow-x: hidden;
+  padding-top: 16px;
+}
+
+.sidebar a {
+  padding: 20px 8px 20px 16px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #e6ebf8;
+  display: block;
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgb(4, 20, 250);
+}
+
+.sidebar a:hover { 
+  color: #ffffff;
+}
+
+.sidebar logo-image{
+  max-width: 50%;
+  height: auto;
+  width: auto;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-top: -6px;
+}
+
+input[type='number']{
+  width: 178px;
+} 
+
+.main {
+  margin-left: 250px; /* Same as the width of the sidenav */
+  padding: 0px 0px;
+}
+
+.header {
+  margin-left: 250px; /* Same as the width of the sidenav */
+  overflow: hidden;
+  background-color: #556ae0;
+  color : white;
+  padding-left: 10px;
+}
+.header2 {
+  
+  overflow: hidden;
+  background-color: #556ae0;
+  color : white;
+  padding-left: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  border-style: solid;
+  width: 100%;
+}
+
+th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 10px;
+  text-align: left;
+  background-color: #556ae0;
+  color: white;
+}
+
+td {
+  text-align: left;
+  padding: 8px;
+  font-size: 14px;
+}
+
+tr:nth-child(even) {
+  background-color: #D6EEEE;
+}
+
+.button {
+  display: inline-block;
+  padding: 15px 25px;
+  font-size: 24px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #5b6af3;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 2px #999;
+}
+
+.button:hover {background-color: #011af5}
+
+.button:active {
+  background-color: #3cd462;
+  box-shadow: 0 2px #666;
+  transform: translateY(2px);
+}
+
+@media screen and (max-height: 450px) {
+  .sidebar {padding-top: 15px;}
+  .sidebar a {font-size: 18px;}
+}
+
+.footer {
+  text-align: center;
+  padding: 3px;
+  background-color: #556ae0;
+  color: rgba(18, 15, 15, 0.805);
+}
+
+.input[type='number']{
+  width: 80px;
+} 
