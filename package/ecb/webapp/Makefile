@@ -21,7 +21,8 @@ define Package/ecb-webapp
 			+php7-mod-calendar \
 			+php7-mod-fileinfo \
 			+php7-mod-session \
-			+php7-mod-sockets
+			+php7-mod-sockets \
+			+php7-mod-filter
   TITLE:=ECB Web control application
   MAINTAINER:=Sergey Moryakov <sergey@nqnet.org>
 endef
@@ -34,7 +35,7 @@ endef
 
 define Package/ecb-webapp/install
 	$(INSTALL_DIR) $(1)/www
-	$(CP) ./src/www/* $(1)/www/
+	$(CP) ./src/* $(1)/
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(CP) ./files/* $(1)/

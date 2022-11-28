@@ -102,7 +102,7 @@ function checkPassword() {
         fclose($myfile);
         system('/etc/init.d/aites_net start');
         system('mv /usr/bin/aites.log /usr/bin/aites_last.log');
-        system('/usr/bin/aitesbaresip -f /etc/baresip >> /usr/bin/aites.log &');
+        system('/usr/bin/baresip -f /etc/baresip >> /usr/bin/aites.log &');
       }
 ?>
 

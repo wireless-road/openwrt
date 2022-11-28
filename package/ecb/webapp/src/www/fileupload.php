@@ -71,15 +71,15 @@ if ( !isset($_SESSION['username'])) {
         // close socket
         socket_close($socket);
         // system('mv /usr/bin/aites.log /usr/bin/aites_last.log');
-        $file_pointer = "/usr/bin/aitesbaresip"; 
+        $file_pointer = "/usr/bin/baresip"; 
         if (!unlink($file_pointer)) { 
             echo ("$file_pointer cannot be deleted due to an error"); 
         } 
         // Rename new config to App config
-        rename("/usr/bin/aites","/usr/bin/aitesbaresip");
-        system('chmod 777 /usr/bin/aitesbaresip');
+        rename("/usr/bin/aites","/usr/bin/baresip");
+        system('chmod 770 /usr/bin/baresip');
         system('mv /usr/bin/aites.log /usr/bin/aites_last.log');
-        system('/usr/bin/aitesbaresip -f /etc/baresip >> /usr/bin/aites.log &');
+        system('/usr/bin/baresip -f /etc/baresip >> /usr/bin/aites.log &');
 
     }
     if(isset($_GET['failBin'])){

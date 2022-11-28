@@ -6,7 +6,7 @@ date_default_timezone_set("Asia/Calcutta");
 if ( ! isset($_SESSION['username'])) {
     header('Location: login.php');
 }
-$_SESSION['application_running'] = shell_exec("pidof  aitesbaresip");
+$_SESSION['application_running'] = shell_exec("pidof  baresip");
 if(isset($_POST['btnReboot'])){
     shell_exec('reboot');    
 }
