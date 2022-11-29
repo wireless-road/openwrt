@@ -9,7 +9,7 @@
 	external-vbus-divider;
 	phys = <&usbphy1>;
 	phy-names = "usb-phy";
-	maximum-speed;
+	maximum-speed = "full-speed";
 	status = "okay";
 };
 
@@ -19,6 +19,7 @@
 	external-vbus-divider;
 	phys = <&usbphy2>;
 	phy-names = "usb-phy";
+	maximum-speed = "full-speed";
 	status = "okay";
 };
 
