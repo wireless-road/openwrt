@@ -80,8 +80,8 @@ if ( !isset($_SESSION['username'])) {
         socket_write($socket, $message, strlen($message)) or die("Could not send data to server\n");
         // close socket
         socket_close($socket);        
-	    system('mv /usr/bin/aites.log /usr/bin/aites_last.log');
-        system('/usr/bin/baresip -f /etc/baresip >> /usr/bin/aites.log &');
+	    //system('mv /usr/bin/aites.log /usr/bin/aites_last.log');
+        system('/etc/init.d/baresip restart');
     } 
 
     $inputfile = file('/usr/bin/AppConfig.ini');

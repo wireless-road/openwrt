@@ -37,8 +37,10 @@ define Package/ecb-webapp/install
 	$(INSTALL_DIR) $(1)/www
 	$(CP) ./src/* $(1)/
 	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(CP) ./files/* $(1)/
+	$(INSTALL_BIN) ./files/etc/init.d/aites_net.init $(1)/etc/init.d/aites_net
 
 endef
 

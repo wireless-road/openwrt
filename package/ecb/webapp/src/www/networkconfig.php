@@ -101,8 +101,8 @@ function checkPassword() {
         fprintf($myfile, "%s\n", $newValues[4]);
         fclose($myfile);
         system('/etc/init.d/aites_net start');
-        system('mv /usr/bin/aites.log /usr/bin/aites_last.log');
-        system('/usr/bin/baresip -f /etc/baresip >> /usr/bin/aites.log &');
+        //system('mv /usr/bin/aites.log /usr/bin/aites_last.log');
+        system('/etc/init.d/baresip restart');
       }
 ?>
 

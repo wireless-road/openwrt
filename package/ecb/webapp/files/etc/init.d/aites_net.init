@@ -1,0 +1,35 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2014 OpenWrt.org
+
+START=94
+STOP=15
+
+start() {
+    ip=`head -n 1 /usr/bin/ipaddr`
+    mac=`head -n 2 /usr/bin/ipaddr | tail -n 1`
+    gtway=`head -n 3 /usr/bin/ipaddr | tail -n 1`
+    sbmask=`head -n 4 /usr/bin/ipaddr | tail -n 1`
+    dns=`head -n 5 /usr/bin/ipaddr | tail -n 1`
+    dummy="-"
+    echo "$ip"
+    echo "$mac"
+    echo "$gtway"
+    echo "$sbmask"
+    echo "$dns"
+    echo "$dummy"
+#    ifconfig eth0 down
+    ifconfig br-lan hw ether "$mac"
+    ifconfig br-lan netmask "$sbmask"
+    ifconfig br-lan "$ip"
+#    ifconfig eth0 up
+    if [ $gtway != $dummy ]
+    then
+        route del default
+        route add default gw "$gtway" br-lan
+    fi
+}
+
+stop() {
+    echo "Stop."
+}
+
