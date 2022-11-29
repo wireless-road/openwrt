@@ -30,10 +30,10 @@ start_service() {
     -f /etc/$DAEMON \
     $OPTIONS
   procd_set_param pidfile /var/run/${DAEMON}.pid
-  # forward stderr to logd
+  #forward stderr to logd
   procd_set_param stderr 1
-  # forward stdout to logd
-  #procd_set_param stdout 1
-  procd_set_param user $DAEMON
+  #forward stdout to logd
+  procd_set_param stdout 1
+  #procd_set_param user $DAEMON
   procd_close_instance
 }
