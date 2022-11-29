@@ -10,6 +10,9 @@ $_SESSION['application_running'] = shell_exec("pidof  baresip");
 if(isset($_POST['btnReboot'])){
     shell_exec('reboot');    
 }
+if(isset($_POST['btnReload'])){
+    shell_exec('/etc/init.d/baresip restart');    
+}
 
     $devicefile=file("deviceinfo");
     $devparam= array();
@@ -206,7 +209,7 @@ if(isset($_POST['btnReboot'])){
     ?>
     <br><br>
     <table>
-        <tr><th colspan="3">ECB Status <?php echo "(  Last Updated :"; echo date('H:i:s d-m-Y'); echo " )";?></th></tr>
+        <tr><th colspan="4">ECB Status <?php echo "(  Last Updated :"; echo date('H:i:s d-m-Y'); echo " )";?></th></tr>
         <tr><td text-align='center'>
         <?php 
             if ( isset($_SESSION['application_running'] )) {
@@ -222,6 +225,11 @@ if(isset($_POST['btnReboot'])){
         <td>
             <form name="reboot" method="post" action="#">
                 <button class="button" input type = "submit" name = "btnReboot" value = "Submit">Reboot</button> 
+            </form>
+        </td>
+        <td>
+            <form name="reload" method="post" action="#">
+                <button class="button" input type = "submit" name = "btnReload" value = "Submit">Reload App</button> 
             </form>
         </td>
         </tr>
