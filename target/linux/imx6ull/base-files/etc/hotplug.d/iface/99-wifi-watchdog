@@ -1,4 +1,4 @@
 #!/bin/sh
-if [ "${ACTION}" = "ifdown" -a "${INTERFACE}" = "wwan" ]; then
+if [ "${ACTION}" = "ifdown" -a "${DEVICENAME}" = "sta0" ]; then
 	/etc/wifi-watchdog.sh "${INTERFACE}"
 fi

@@ -22,18 +22,14 @@ lorawan_gateway_ethernet_bridged)
 	;;
 
 audio_stream_ethernet)
-	uci delete network.@device[0]
-	uci set network.@device[0]=device	
-	uci set network.@device[0].name='br-lan'
-	uci set network.@device[0].type='bridge'
-	uci add_list network.@device[0].ports='eth0'
-	uci add_list network.@device[0].ports='eth1'
+	uci set network.lan=interface
+	uci set network.lan.device='br-lan'
 	uci set network.lan.proto='static'
 	uci set network.lan.ipaddr='192.168.1.10'
 	uci set network.lan.netmask='255.255.255.0'
 	;;
 esac
-
+uci commit network
 board_config_flush
 
 exit 0

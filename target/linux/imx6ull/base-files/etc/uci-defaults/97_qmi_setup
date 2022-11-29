@@ -7,15 +7,15 @@ board=$(board_name)
 board_config_update
 
 case "$board" in
-gs | lorawan_gateway_3g)
+gs | lorawan_gateway_3g |\
+    audio_stream_ethernet)
     uci set network.wwan=interface
     uci set network.wwan.ifname='wwan0'
     uci set network.wwan.proto='qmi'
     uci set network.wwan.device='/dev/cdc-wdm0'
-    uci set network.wwan.apn='internet.emt.ee'
+    uci set network.wwan.apn='internet'
     uci set network.wwan.auth='none'
-    uci set network.wwan.ifname='wwan0'
-    uci set network.wwan.autoconnect='0'
+    uci set network.wwan.autoconnect='1'
     ;;
 
 *)
