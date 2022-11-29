@@ -2,8 +2,8 @@ state.mx6ulwm8960 {
 	control.1 {
 		iface MIXER
 		name 'Capture Volume'
-		value.0 35
-		value.1 35
+		value.0 55
+		value.1 55
 		comment {
 			access 'read write'
 			type INTEGER
@@ -11,8 +11,8 @@ state.mx6ulwm8960 {
 			range '0 - 63'
 			dbmin -1725
 			dbmax 3000
-			dbvalue.0 900
-			dbvalue.1 900
+			dbvalue.0 2400
+			dbvalue.1 2400
 		}
 	}
 	control.2 {
