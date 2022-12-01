@@ -189,7 +189,6 @@
 			>;
 		};
 		
-		
 		pinctrl_wdog: wdoggrp {
 			fsl,pins = <
 				MX6UL_PAD_LCD_RESET__WDOG1_WDOG_ANY    0x30b0
@@ -228,7 +227,6 @@
 &uart5 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart5>;
-	rts-gpios = <&gpio4 25 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
