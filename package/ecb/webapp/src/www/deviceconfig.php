@@ -100,6 +100,7 @@ $macerror="";
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="font-awesome.min.css">
 <link rel="stylesheet" href="aites.css">
+<link rel="stylesheet" href="fa-solid.min.css">
 </head>
 <body>
     <div class="sidebar">

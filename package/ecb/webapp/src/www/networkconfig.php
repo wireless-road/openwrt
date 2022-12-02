@@ -79,7 +79,7 @@ function checkPassword() {
         }
         // Rename new config to App config
         rename("tmpConfig.ini","/usr/bin/AppConfig.ini");
-        $output = shell_exec('sudo chmod 777 /usr/bin/AppConfig.ini');
+        $output = shell_exec('sudo chmod 666 /usr/bin/AppConfig.ini');
         // $host    = "127.0.0.1";
         // $port    = 5500;
         // $message = "KILL";
@@ -111,6 +111,7 @@ function checkPassword() {
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="font-awesome.min.css">
+<link rel="stylesheet" href="fa-solid.min.css">
 <link rel="stylesheet" href="aites.css">
 </head>
 <body>
