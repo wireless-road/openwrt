@@ -70,8 +70,12 @@ int delay_to_display_fw_version(rk_t* left_rk, rk_t* right_rk) {
 			if(show_time_cnt > 500) {
 				show_time_flag = 1;
 				show_time_cnt = 0;
-				left_rk->can_bus.transmit(&left_rk->can_bus, 0.00, 0.00, 0.00);
-				right_rk->can_bus.transmit(&right_rk->can_bus, 0.00, 0.00, 0.00);
+				if(left_rk->enabled) {
+					left_rk->can_bus.transmit(&left_rk->can_bus, 0.00, 0.00, 0.00);
+				}
+				if(right_rk->enabled) {
+					right_rk->can_bus.transmit(&right_rk->can_bus, 0.00, 0.00, 0.00);
+				}
 			}
 			return 1;
     	} else if(show_time_flag == 1) {
