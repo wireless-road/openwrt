@@ -109,6 +109,7 @@ struct rk_t {
     delay_counter_t counter_reset_cmd;  // счетчик выжидания результатов расходомера при остановке по команде с GasKit
     int cnt;
     int store_prev_summators_flag;
+    int fueling_approved_by_human;  // заправщик нажал на кнопку "СТАРТ", подтерждая тем самым, что можно начинать заправку (шланг вставлен в ТС)
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"

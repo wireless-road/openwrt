@@ -302,8 +302,10 @@ static int rk_process(rk_t* self) {
         	self->fueling_process_flag = 0;
             break;
         case trk_enabled_fueling_process:
-        	self->fueling_process_flag = 1;
-            rk_fueling_scheduler(self);
+        	if(self->fueling_approved_by_human == 1) {
+        		self->fueling_process_flag = 1;
+            	rk_fueling_scheduler(self);
+        	}
             break;
         case trk_enabled_fueling_process_local:
         	self->fueling_process_flag = 1;
@@ -394,6 +396,7 @@ static void rk_stop_fueling_process(rk_t* self, int* cnt) {
 	relay_middle_off(&self->relay);
     self->state = trk_disabled_fueling_finished;
     self->state_issue = trk_state_issue_less_or_equal_dose;
+    self->fueling_approved_by_human = 0;  // сбрасываем флаг нажатия на кнопку "Старт"
     *cnt = 0;
 }
 
@@ -888,7 +891,8 @@ static void rk_start_fueling_process(rk_t* self)
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
     printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
     self->fueling_current_price = 0.00;
-    relay_middle_on(&self->relay);
+    printf("!!!%s RK. Waiting for human to approve fueling\n", self->side == left ? "Left" : "Right");
+//    relay_middle_on(&self->relay);
 }
 
 static void rk_start_local_fueling_process(rk_t* self)
@@ -914,7 +918,9 @@ static void button_start_callback(rk_t* self, int code)
     		printf("%s RK. LOCAL FUELING not possible in %d state.\r\n", self->side == left ? "Left" : "Right", self->state);
     	}
     } else {
-    	printf("%s RK. LOCAL FUELING not allowed\r\n", self->side == left ? "Left" : "Right");
+    	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
+    	self->fueling_approved_by_human = 1;
+    	relay_middle_on(&self->relay);
     }
 }
 
