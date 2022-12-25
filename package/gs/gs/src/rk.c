@@ -467,9 +467,8 @@ static int rk_fueling_scheduler(rk_t* self) {
             self->store_prev_summators_flag = 0;
         	printf("%s RK. FUELING FINISHED #1. FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->side == left ? "Left" : "Right", self->flomac_mass_flowrate);
         }
-        else if(self->state == trk_enabled_fueling_process_local) {
-        	// 3. Нажата кнопка СТОП в случае, если заправка начата по нажатию кнопки СТАРТ.
-        	if(self->stop_button_pressed_flag == 1) {
+        else if(self->stop_button_pressed_flag == 1) {
+        	// 3. Нажата кнопка СТОП.
             	rk_fueling_log(self, self->cnt, 1);
             	if(!counter_is_started(&self->counter_stop_btn)) {
             		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
@@ -481,13 +480,14 @@ static int rk_fueling_scheduler(rk_t* self) {
             			counter_reset(&self->counter_stop_btn);
                 		rk_stop_fueling_process(self, &self->cnt);
                 		self->stop_button_pressed_flag = 0;
-                		self->fueling_current_volume = 0.00;
+                		if(self->state == trk_enabled_fueling_process_local) {
+                			self->fueling_current_volume = 0.00;
+                		}
                     	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
             		} else {
             		}
             	}
         	}
-        }
         else if(self->reset_command_received_flag) {
         	// 4. Пришла команда "СТОП" с GasKit
         	if(!counter_is_started(&self->counter_reset_cmd)) {
@@ -927,8 +927,7 @@ static void button_start_callback(rk_t* self, int code)
 static void button_stop_callback(rk_t* self, int code)
 {
     printf("%s RK. stop btn clbk\r\n", self->side == left ? "Left" : "Right");
-    if( (self->state == trk_enabled_fueling_process_local) &&
-    		(self->stop_button_pressed_flag == 0) ){
+    if (self->stop_button_pressed_flag == 0) {
     	self->stop_button_pressed_flag = 1;
     }
 }
