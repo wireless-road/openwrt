@@ -725,6 +725,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             } else {
                 azt_tx_can();
             }
+            break;
 
         case AZT_M2M_TELECOM_SET_GAS_DENSITY:
             printf("%s RK. Address %d. AZT_M2M_TELECOM_REQUEST_GAS_DENSITY\n", self->side == left ? "Left" : "Right", self->address);
