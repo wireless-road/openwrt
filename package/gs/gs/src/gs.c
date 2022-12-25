@@ -36,9 +36,11 @@ int main(int argc, char* argv[])
             right_rk.azt_req_hndl(azt_request(), &right_rk);
         }
 
+#ifndef SIMULATION
       	if(delay_to_display_fw_version(&left_rk, &right_rk)) {
         	continue;
         }
+#endif
 
         if(left_rk.enabled) {
 			if(left_rk.is_not_fault(&left_rk)) {
