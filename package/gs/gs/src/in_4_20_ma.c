@@ -56,7 +56,7 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     atomic_init(&in_4_20->value, 0);
     _Atomic int* value = (_Atomic int*)&in_4_20->value;
     atomic_store(value, ret);
-    pthread_create(&in_4_20->thread_id, NULL, in_4_20_ma_read_thread, in_4_20);
+//    pthread_create(&in_4_20->thread_id, NULL, in_4_20_ma_read_thread, in_4_20);
 
     if(ret < INPUT_NOT_CONNECTED_THRESHOLD_VALUE) {
         return -1;
@@ -102,6 +102,23 @@ int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {
         usleep(300000);
     }
 }
+
+int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
+	in_4_20_t* in_4_20_left = in_4_20s[0];
+	in_4_20_t* in_4_20_right = in_4_20s[1];
+	_Atomic int* value_left = (_Atomic int*)&in_4_20_left->value;
+	_Atomic int* value_right = (_Atomic int*)&in_4_20_right->value;
+    while(1) {
+    	int ret = parse_integer_config(in_4_20_left->value_filename);
+    	atomic_store(value_left, ret);
+        usleep(5000);
+        int ret2 = parse_integer_config(in_4_20_right->value_filename);
+    	atomic_store(value_right, ret2);
+        printf("4-20: %d and %d\r\n", ret, ret2);
+        usleep(250000);
+    }
+}
+
 
 float in_4_20_ma_convert_raw_to_ma(int value) {
 	float res = (value - 2100) / 537.5 + 4.0;

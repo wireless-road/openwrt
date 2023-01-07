@@ -12,6 +12,7 @@
 #include "buttons.h"
 
 static int delay_to_display_fw_version(rk_t* left_rk, rk_t* right_rk);
+struct in_4_20_t* in_4_20s[2];
 
 int main(int argc, char* argv[])
 {
@@ -23,6 +24,10 @@ int main(int argc, char* argv[])
     rk_t left_rk, right_rk;
     rk_init(1, &left_rk);
     rk_init(2, &right_rk);
+
+    in_4_20s[0] = &left_rk.in_4_20;
+    in_4_20s[1] = &right_rk.in_4_20;
+    pthread_create(&left_rk.in_4_20.thread_id, NULL, in_4_20_ma_read_thread_both, (void *) &in_4_20s);
 	buttons_init(&left_rk,
                  &right_rk);
 
