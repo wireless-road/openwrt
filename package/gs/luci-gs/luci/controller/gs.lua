@@ -102,13 +102,17 @@ function gs_state_get()
  	local value_1 = tonumber(nixio.fs.readfile("/tmp/gs_in_4_20_channel1"):sub(1,-1))
 	local raw_value_0 = value_0
 	local raw_value_1 = value_1
-	if value_0 < 100 then
-	    value_0 = 'broken'
+	if value_0 < -400 then
+	    value_0 = 'перепутаны полюса'
+	elseif value_0 < 100 then
+	    value_0 = 'обрыв цепи'
 	else
 	    value_0 = string.format( "%.1f mA (%d)", (value_0 - 2100) / 537.5 + 4.0, value_0)
 	end
-	if value_1 < 100 then
-	    value_1 = 'broken'
+	if value_1 < -400 then
+	    value_1 = 'перепутаны полюса'
+	elseif value_1 < 100 then
+	    value_1 = 'обрыв цепи'
 	else
 	    value_1 = string.format( "%.1f mA (%d)", (value_1 - 2100) / 537.5 + 4.0, value_1)
 	end
