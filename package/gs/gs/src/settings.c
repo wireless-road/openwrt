@@ -91,3 +91,21 @@ int set_config(char* filename, char* data, int len) {
     close(fd);
     return 0;
 }
+
+int set_int_config(char* filename, int value) {
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC );
+    if (fd < 0) {
+        printf("Error %i trying to open RK config file (to overwrite it) %s: %s\n", errno, filename, strerror(errno));
+        return -1;
+    }
+
+    char data[10] = {0};
+    sprintf(data, "%d", value);
+    int ret = write(fd, data, strlen(data));
+    if (ret == -1) {
+        printf("Error %i trying to write to RK config file %s: %s\n", errno, filename, strerror(errno));
+        return -1;
+    }
+    close(fd);
+    return 0;
+}

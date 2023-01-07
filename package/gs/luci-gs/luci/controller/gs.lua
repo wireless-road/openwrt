@@ -1,7 +1,7 @@
--- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.22:/usr/lib/lua/luci/controller/gs.lua
--- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.22:/usr/lib/lua/luci/view/gs.htm
--- scp package/gs/luci-gs/styles/gs.css root@192.168.31.22:/www/luci-static/resources/gs.css
--- scp package/gs/gs/files/gpio_conf.json root@192.168.31.22:/etc/gpio_conf.json
+-- scp package/gs/luci-gs/luci/controller/gs.lua root@192.168.31.240:/usr/lib/lua/luci/controller/gs.lua
+-- scp package/gs/luci-gs/luci/view/gs.htm root@192.168.31.240:/usr/lib/lua/luci/view/gs.htm
+-- scp package/gs/luci-gs/styles/gs.css root@192.168.31.240:/www/luci-static/resources/gs.css
+-- scp package/gs/gs/files/gpio_conf.json root@192.168.31.240:/etc/gpio_conf.json
 
 module("luci.controller.gs", package.seeall)
 
@@ -98,8 +98,8 @@ function gs_state_get()
 	result.settings_left = {}
 	result.settings_right = {}
 	local gpios = {}
-	local value_0 = tonumber(nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage0_raw"):sub(1,-2))
-	local value_1 = tonumber(nixio.fs.readfile("/sys/bus/iio/devices/iio\:device0/in_voltage1_raw"):sub(1,-2))
+ 	local value_0 = tonumber(nixio.fs.readfile("/tmp/gs_in_4_20_channel0"):sub(1,-1))
+ 	local value_1 = tonumber(nixio.fs.readfile("/tmp/gs_in_4_20_channel1"):sub(1,-1))
 	local raw_value_0 = value_0
 	local raw_value_1 = value_1
 	if value_0 < 100 then

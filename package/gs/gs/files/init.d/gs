@@ -13,6 +13,8 @@ TGT="/mnt/gs"
 TGT_DIR="/mnt/gs/1"
 
 init_storage() {
+    echo 860 > /sys/bus/iio/devices/iio\:device0/in_voltage0_sampling_frequency
+    echo 860 > /sys/bus/iio/devices/iio\:device0/in_voltage1_sampling_frequency
     echo -n "Mounting SD..."
     if [ -d ${TGT_DIR} ]; then
 	echo "Already mounted"

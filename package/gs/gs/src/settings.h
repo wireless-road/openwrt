@@ -21,5 +21,6 @@ int parse_integer_config(char* filename);
 int parse_true_false_config(char* filename);
 int parse_float_config(char* filename, float* res);
 int set_config(char* filename, char* data, int len);
+int set_int_config(char* filename, int value);
 
 #endif // SETTINGS_H

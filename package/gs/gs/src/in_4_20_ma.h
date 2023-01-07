@@ -37,6 +37,7 @@ struct in_4_20_t {
     float value_converted;
     char channel_idx_filename[CONFIG_FILENAME_MAX_LENGTH];
     char value_filename[CONFIG_FILENAME_MAX_LENGTH];
+    char ram_value_filename[CONFIG_FILENAME_MAX_LENGTH];
     float pressure_low_threshold;
     int pressure_low_threshold_raw;
     float pressure_high_threshold;
@@ -46,6 +47,7 @@ struct in_4_20_t {
 };
 
 #define VALUE_FILENAME                  		"/sys/bus/iio/devices/iio:device0/in_voltage%d_raw"
+#define VALUE_RAM_FILENAME						"/tmp/gs_in_4_20_channel%d"
 
 #define DEF_CONFIG_FILE_CHANNEL_IDX            	"/etc/gs/%d/in_4_20_channel_idx"
 

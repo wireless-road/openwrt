@@ -43,6 +43,13 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
     in_4_20->pressure_high_threshold = tmp;
     in_4_20->pressure_high_threshold_raw = in_4_20_ma_convert_ma_to_raw(in_4_20->pressure_high_threshold);
 
+    // RAM memory value
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, VALUE_RAM_FILENAME, in_4_20->channel_idx);
+    memset(in_4_20->ram_value_filename, 0, sizeof(in_4_20->ram_value_filename));
+    strcpy(in_4_20->ram_value_filename, filename);
+    printf("ram value filename: %s\r\n", in_4_20->ram_value_filename);
+
     // value
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, VALUE_FILENAME, in_4_20->channel_idx);
@@ -104,18 +111,37 @@ int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {
 }
 
 int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
+	int ret01 = 0;
+	int ret02 = 0;
+	int ret11 = 0;
+	int ret12 = 0;
 	in_4_20_t* in_4_20_left = in_4_20s[0];
 	in_4_20_t* in_4_20_right = in_4_20s[1];
 	_Atomic int* value_left = (_Atomic int*)&in_4_20_left->value;
 	_Atomic int* value_right = (_Atomic int*)&in_4_20_right->value;
     while(1) {
-    	int ret = parse_integer_config(in_4_20_left->value_filename);
-    	atomic_store(value_left, ret);
-        usleep(5000);
-        int ret2 = parse_integer_config(in_4_20_right->value_filename);
-    	atomic_store(value_right, ret2);
-        printf("4-20: %d and %d\r\n", ret, ret2);
-        usleep(250000);
+
+    	ret01 = parse_integer_config(in_4_20_right->value_filename);
+//    	ret01 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage0_raw");
+    	usleep(300000);
+    	ret02 = parse_integer_config(in_4_20_right->value_filename);
+//    	ret02 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage0_raw");
+    	atomic_store(value_right, ret02);
+    	set_int_config(in_4_20_right->ram_value_filename, ret02);
+        usleep(300000);
+
+    	ret11 = parse_integer_config(in_4_20_left->value_filename);
+//    	ret11 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage1_raw");
+    	usleep(300000);
+    	ret12 = parse_integer_config(in_4_20_left->value_filename);
+//    	ret12 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage1_raw");
+    	atomic_store(value_left, ret12);
+    	set_int_config(in_4_20_left->ram_value_filename, ret12);
+        usleep(300000);
+
+//        printf("4-20: %d, **%d** and %d, **%d**\r\n", ret01, ret02, ret11, ret12);
+        printf("4-20: %d and %d\r\n", ret02, ret12);
+
     }
 }
 
