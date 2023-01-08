@@ -218,10 +218,31 @@ static int rk_check_state(rk_t* self) {
     // 4-20ma checkout
     int ret = in_4_20_ma_check_state(&self->in_4_20);
 
+    if( (ret == IN_4_20_SWAPPED_WIRES_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES) )
+    {
+      	printf("ERROR %s RK. 4-20ma swapped wires ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
+        error_set(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES);
+      	error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
+        error_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
+        error_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);
+        rk_indicate_error_message(self);
+    }
+    else if( (ret != IN_4_20_SWAPPED_WIRES_ERROR) && error_is_set(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES))
+    {
+      	printf("ERROR %s RK. 4-20ma swapped wires error restored. state %d\r\n", self->side == left ? "Left" : "Right", ret);
+       	error_clear(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES);
+       	if(ret == IN_4_20_NOT_CONNECTED_ERROR) {
+       		// to be automatically cleaned by setting disconnection error
+       	} else {
+       		rk_indicate_error_message(self);
+       	}
+    }
+
     if( (ret == IN_4_20_NOT_CONNECTED_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED) )
     {
     	printf("ERROR %s RK. 4-20ma disconnected ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
         error_set(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
+    	error_clear(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES);
         error_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         error_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);
         rk_indicate_error_message(self);
@@ -236,6 +257,7 @@ static int rk_check_state(rk_t* self) {
     if( (ret == IN_4_20_LOW_PRESSURE_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE) )
     {
     	printf("ERROR %s RK. 4-20ma low pressure ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
+    	error_clear(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES);
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         error_set(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         error_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);
@@ -251,6 +273,7 @@ static int rk_check_state(rk_t* self) {
     if( (ret == IN_4_20_HIGH_PRESSURE_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE) )
     {
     	printf("ERROR %s RK. 4-20ma high pressure ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
+    	error_clear(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES);
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         error_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         error_set(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE);

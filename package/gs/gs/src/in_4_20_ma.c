@@ -75,7 +75,11 @@ int in_4_20_ma_check_state(in_4_20_t* in_4_20)
 {
 	int val = atomic_load(&in_4_20->value);
 
-    if(val < INPUT_NOT_CONNECTED_THRESHOLD_VALUE)
+	if(val < SWAPPED_WIRES_THRESHOLD_VALUE)
+	{
+		in_4_20->state = IN_4_20_SWAPPED_WIRES_ERROR;
+	}
+	else if(val < INPUT_NOT_CONNECTED_THRESHOLD_VALUE)
     {
     	in_4_20->state = IN_4_20_NOT_CONNECTED_ERROR;
     }

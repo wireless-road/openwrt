@@ -26,6 +26,7 @@
 
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
+#define SWAPPED_WIRES_THRESHOLD_VALUE			-400 // negative ADC value means wires swapped by mistake and need to be fixed
 #define INPUT_NOT_CONNECTED_THRESHOLD_VALUE     100
 
 typedef struct in_4_20_t in_4_20_t;
@@ -58,6 +59,7 @@ struct in_4_20_t {
 #define IN_4_20_NOT_CONNECTED_ERROR				-1
 #define IN_4_20_LOW_PRESSURE_ERROR				-2
 #define IN_4_20_HIGH_PRESSURE_ERROR				-3
+#define IN_4_20_SWAPPED_WIRES_ERROR				-4
 #define IN_4_20_NO_ERROR						0
 
 #define RAW_PRESSURE_THRESHOLD_GAP				50

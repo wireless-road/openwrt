@@ -27,10 +27,11 @@ struct error_t {
 };
 
 typedef enum {
-    ERROR_INPUT_4_20_NOT_CONNECTED = 0,
-    ERROR_MODBUS_NOT_CONNECTED = 1,
-	ERROR_INPUT_4_20_LOW_PRESSURE = 2,
-	ERROR_INPUT_4_20_HIGH_PRESSURE = 3,
+    ERROR_INPUT_4_20_NOT_CONNECTED = 0, // обрыв цепи 4-20мА // 90001
+    ERROR_MODBUS_NOT_CONNECTED = 1,  // массомер не на связи  // 90002
+	ERROR_INPUT_4_20_LOW_PRESSURE = 2,  // низкое давление по 4-20мА // 90004
+	ERROR_INPUT_4_20_HIGH_PRESSURE = 3,  // высокое давление по 4-20мА // 90008
+	ERROR_INPUT_4_20_SWAPPED_WIRES = 4,  // перепутаны провода на 4-20мА  // 90016
 	ERROR_UNKNOWN = 8
 }errorCodes;
 
