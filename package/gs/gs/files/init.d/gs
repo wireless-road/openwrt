@@ -12,9 +12,19 @@ SD="/dev/mmcblk0p1"
 TGT="/mnt/gs"
 TGT_DIR="/mnt/gs/1"
 
-init_storage() {
+init_ads1115() {
     echo 860 > /sys/bus/iio/devices/iio\:device0/in_voltage0_sampling_frequency
     echo 860 > /sys/bus/iio/devices/iio\:device0/in_voltage1_sampling_frequency
+}
+
+init_selfcheck_file() {
+	if [ ! -e "/tmp/gs_selfcheck" ]; then
+		echo "self check file created"
+		echo 0 > /tmp/gs_selfcheck
+	fi
+}
+
+init_storage() {
     echo -n "Mounting SD..."
     if [ -d ${TGT_DIR} ]; then
 	echo "Already mounted"
@@ -77,6 +87,8 @@ stop_gs() {
     :
 }
 start_service() {
+	init_selfcheck_file
+	init_ads1115
     init_storage
     run_gs
 }

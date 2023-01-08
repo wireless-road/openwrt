@@ -13,9 +13,14 @@
 
 static int delay_to_display_fw_version(rk_t* left_rk, rk_t* right_rk);
 struct in_4_20_t* in_4_20s[2];
+int display_fw_ver_delay = 250;
 
 int main(int argc, char* argv[])
 {
+	int selfcheck_mode = parse_integer_config(CONFIG_FILE_SELFCHECK_MODE);
+	if(selfcheck_mode)
+		display_fw_ver_delay = 1;
+
 	int ret = azt_init();
 	if (ret == -1) {
 		return 1;
@@ -24,6 +29,8 @@ int main(int argc, char* argv[])
     rk_t left_rk, right_rk;
     rk_init(1, &left_rk);
     rk_init(2, &right_rk);
+    left_rk.selfcheck_mode = selfcheck_mode;
+    right_rk.selfcheck_mode = selfcheck_mode;
 
     in_4_20s[0] = &left_rk.in_4_20;
     in_4_20s[1] = &right_rk.in_4_20;
@@ -75,7 +82,7 @@ int delay_to_display_fw_version(rk_t* left_rk, rk_t* right_rk) {
     	show_time_cnt++;
     	if(show_time_flag == 0) {
     		printf("displaying FW version started %d\r\n", show_time_cnt);
-			if(show_time_cnt > 250) {
+			if(show_time_cnt > display_fw_ver_delay) {
 				show_time_flag = 1;
 				show_time_cnt = 0;
 				if(left_rk->enabled) {

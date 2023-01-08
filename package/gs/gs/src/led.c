@@ -78,6 +78,8 @@ int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
 
     led->normal_led_state = off;
     led->error_led_state = off;
+    set_config(led->normal_led_filename, "0", 1);
+    set_config(led->error_led_filename, "0", 1);
     if(led->enabled) {
     	pthread_create(&led->thread_id, NULL, led_indicate_thread, led);
     }
@@ -128,6 +130,6 @@ static int led_indicate_thread(led_t* led) {
     			}
     		}
     	}
-        sleep(1);
+        sleep(3);
     }
 }

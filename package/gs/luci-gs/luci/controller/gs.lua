@@ -152,6 +152,7 @@ function gs_state_get()
     local valves_amount = nixio.fs.readfile("/mnt/gs/1/setting_valves_amount"):sub(1,-2)
     local led_enabled = nixio.fs.readfile("/mnt/gs/1/led_enabled"):sub(1,-2)
     local modbus_port = nixio.fs.readfile("/mnt/gs/1/modbus_port"):sub(1,-2)
+    local selfcheck_mode = nixio.fs.readfile("/tmp/gs_selfcheck"):sub(1,-2)
 
     local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     local relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -278,6 +279,14 @@ function gs_state_get()
 	        field_type = "dropdown",
 	        field_options = { ["4"]='разъем А', ["5"]='разъем B' }
 	    },
+	    {
+	        name = "selfcheck_mode",
+	        value = selfcheck_mode,
+	        label = "режим самодиагностики",
+	        explanation = "Режим работы колонки для проверки корректности ее сборки.",
+	        field_type = "dropdown",
+	        field_options = { ["1"]='ВКЛ', ["0"]='ВЫКЛ' }
+	    }
 	}
 
     is_enabled = nixio.fs.readfile("/mnt/gs/2/isEnabled"):sub(1,-2)
@@ -295,6 +304,7 @@ function gs_state_get()
     valves_amount = nixio.fs.readfile("/mnt/gs/2/setting_valves_amount"):sub(1,-2)
     led_enabled = nixio.fs.readfile("/mnt/gs/2/led_enabled"):sub(1,-2)
     modbus_port = nixio.fs.readfile("/mnt/gs/2/modbus_port"):sub(1,-2)
+    selfcheck_mode = nixio.fs.readfile("/tmp/gs_selfcheck"):sub(1,-2)
 
     relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
@@ -421,7 +431,15 @@ function gs_state_get()
 	        explanation = "Разъем, к которому подключен массомер согласно маркировке на корпусе устройства.",
 	        field_type = "dropdown",
 	        field_options = { ["4"]='разъем А', ["5"]='разъем B' }
-	    }
+	    },
+	    {
+	        name = "selfcheck_mode",
+	        value = selfcheck_mode,
+	        label = "режим самодиагностики",
+	        explanation = "Режим работы колонки для проверки корректности ее сборки.",
+	        field_type = "dropdown",
+	        field_options = { ["1"]='ВКЛ', ["0"]='ВЫКЛ' }
+	    },
 	}
 
 	local tmp = {}
@@ -537,12 +555,17 @@ function gs_settings_set()
         param = 'led_enabled'
     elseif param == 'modbus_port' then
         param = 'modbus_port'
+    elseif param == 'selfcheck_mode' then
+        param = 'selfcheck_mode'
     else
         luci.http.prepare_content("text/plain; charset=utf-8")
         luci.http.write('ERROR. unknown param: ' .. param);
     end
 
     local file = '/mnt/gs/'.. side .. '/' .. param
+    if param == 'selfcheck_mode' then
+        file = '/tmp/gs_selfcheck'
+    end
 
     luci.sys.exec('echo ' .. value .. ' > ' .. file)
 

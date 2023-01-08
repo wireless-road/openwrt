@@ -110,6 +110,7 @@ struct rk_t {
     int cnt;
     int store_prev_summators_flag;
     int fueling_approved_by_human;  // заправщик нажал на кнопку "СТАРТ", подтерждая тем самым, что можно начинать заправку (шланг вставлен в ТС)
+    int selfcheck_mode;  // флаг работы в режиме самодиагностики. Задается из веб-интерфейса через файл /tmp/gs_selfcheck. Используется на производстве для первичной проверки корректности сборки колонки.
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
@@ -136,6 +137,8 @@ struct rk_t {
 #define CONFIG_FILE_RELAY_CUT_OFF_TIMING        	"/mnt/gs/%d/setting_relay_cut_off_timing"
 #define CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE  "/mnt/gs/%d/setting_mass_flow_rate_threshold_value"
 #define CONFIG_FILE_VALVES_AMOUNT  					"/mnt/gs/%d/setting_valves_amount"
+
+#define CONFIG_FILE_SELFCHECK_MODE				"/tmp/gs_selfcheck"
 
 int rk_init(int idx, rk_t* rk);
 

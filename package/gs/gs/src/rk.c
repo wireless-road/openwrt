@@ -932,6 +932,14 @@ static void rk_start_local_fueling_process(rk_t* self)
 static void button_start_callback(rk_t* self, int code)
 {
     printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
+
+    if(self->selfcheck_mode) {
+    	printf("%s RK. selfcheckmode. Light green led\r\n", self->side == left ? "Left" : "Right");
+    	set_config(self->led.normal_led_filename, "1", 1);
+    	self->can_bus.transmit(&self->can_bus, 888888.88f, 8888.88f, 888888.88f);
+    	return;
+    }
+
     if(self->pagz_mode_enabled) {
     	printf("%s RK. LOCAL FUELING started by pressing start button\r\n", self->side == left ? "Left" : "Right");
 
@@ -941,15 +949,25 @@ static void button_start_callback(rk_t* self, int code)
     		printf("%s RK. LOCAL FUELING not possible in %d state.\r\n", self->side == left ? "Left" : "Right", self->state);
     	}
     } else {
-    	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
-    	self->fueling_approved_by_human = 1;
-    	relay_middle_on(&self->relay);
+    	if(self->state == trk_enabled_fueling_process) {
+        	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
+        	self->fueling_approved_by_human = 1;
+    		relay_middle_on(&self->relay);
+    	}
     }
 }
 
 static void button_stop_callback(rk_t* self, int code)
 {
     printf("%s RK. stop btn clbk\r\n", self->side == left ? "Left" : "Right");
+
+    if(self->selfcheck_mode) {
+    	printf("%s RK. selfcheckmode. Light red led\r\n", self->side == left ? "Left" : "Right");
+    	set_config(self->led.error_led_filename, "1", 1);
+    	self->can_bus.transmit(&self->can_bus, 444444.44f, 4444.44f, 444444.44f);
+    	return;
+    }
+
     if (self->stop_button_pressed_flag == 0) {
     	self->stop_button_pressed_flag = 1;
     }
