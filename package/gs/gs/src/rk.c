@@ -965,7 +965,7 @@ static void button_stop_callback(rk_t* self, int code)
     if(self->selfcheck_mode) {
     	printf("%s RK. selfcheckmode. Light red led\r\n", self->side == left ? "Left" : "Right");
     	set_config(self->led.error_led_filename, "1", 1);
-    	self->can_bus.transmit(&self->can_bus, 444444.44f, 4444.44f, 444444.44f);
+    	self->can_bus.transmit(&self->can_bus, self->address, 4444.44f, 444444.44f);
     	return;
     }
 
