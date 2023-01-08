@@ -1,0 +1,26 @@
+Description: extending duration of delay
+ This patch addresses 2 delays, influencing time of returninga latest
+ stored in register value.
+  1) instead 10% of { duration_previous + duration_latest } reworked to 20% of that time as extra await.
+  this is required as was previously shown that second consequetial reading returns @proper@ value
+  2) usleep_range now has changed upper range to make it more relaxed in firing interrupt
+Author: IFG konara@ya.ru
+Origin: upstream
+Last-Update: 2023-01-09 
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: linux-5.4.168/drivers/iio/adc/ti-ads1015.c
+===================================================================
+--- linux-5.4.168.orig/drivers/iio/adc/ti-ads1015.c
++++ linux-5.4.168/drivers/iio/adc/ti-ads1015.c
+@@ -375,8 +375,8 @@ int ads1015_get_adc_result(struct ads101
+ 		dr_old = (old & ADS1015_CFG_DR_MASK) >> ADS1015_CFG_DR_SHIFT;
+ 		conv_time = DIV_ROUND_UP(USEC_PER_SEC, data->data_rate[dr_old]);
+ 		conv_time += DIV_ROUND_UP(USEC_PER_SEC, data->data_rate[dr]);
+-		conv_time += conv_time / 10; /* 10% internal clock inaccuracy */
+-		usleep_range(conv_time, conv_time + 1);
++		conv_time += conv_time / 5; /* 20% internal clock inaccuracy */
++		usleep_range(conv_time, conv_time + conv_time/10);
+ 		data->conv_invalid = false;
+ 	}
+ 
