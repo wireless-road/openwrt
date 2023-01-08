@@ -19,7 +19,7 @@ Index: linux-5.4.168/drivers/iio/adc/ti-ads1015.c
  		conv_time += DIV_ROUND_UP(USEC_PER_SEC, data->data_rate[dr]);
 -		conv_time += conv_time / 10; /* 10% internal clock inaccuracy */
 -		usleep_range(conv_time, conv_time + 1);
-+		conv_time += conv_time / 4; /* 20% internal clock inaccuracy */
++		conv_time += conv_time / 2; /* 50% internal clock inaccuracy */
 +		usleep_range(conv_time, conv_time + conv_time/10);
  		data->conv_invalid = false;
  	}
