@@ -952,6 +952,7 @@ static void button_start_callback(rk_t* self, int code)
     	if(self->state == trk_enabled_fueling_process) {
         	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
         	self->fueling_approved_by_human = 1;
+        	self->stop_button_pressed_flag = 0;  // нажатие на кнопку СТАРТ сбрасывает нажатие на кнопку СТОП
     		relay_middle_on(&self->relay);
     	}
     }
