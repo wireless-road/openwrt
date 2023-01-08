@@ -74,7 +74,8 @@ int delay_to_display_fw_version(rk_t* left_rk, rk_t* right_rk) {
     if(show_time_flag != 2) {
     	show_time_cnt++;
     	if(show_time_flag == 0) {
-			if(show_time_cnt > 500) {
+    		printf("displaying FW version started %d\r\n", show_time_cnt);
+			if(show_time_cnt > 250) {
 				show_time_flag = 1;
 				show_time_cnt = 0;
 				if(left_rk->enabled) {

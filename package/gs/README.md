@@ -9,3 +9,5 @@
 ###### файлы для обновления при апгрейде
 - `/usr/bin/gs` 
 - `/usr/lib/lua/luci/controller/gs.lua`
+- `/mnt/gs/1/firmware_subversion`
+
