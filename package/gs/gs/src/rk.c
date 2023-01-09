@@ -416,7 +416,7 @@ static int rk_fueling_calculate_summators(rk_t* self) {
 
 static void rk_stop_fueling_process(rk_t* self, int* cnt) {
 	relay_high_off(&self->relay);
-	relay_middle_off(&self->relay);
+	relay_low_off(&self->relay);
     self->state = trk_disabled_fueling_finished;
     self->state_issue = trk_state_issue_less_or_equal_dose;
     self->fueling_approved_by_human = 0;  // сбрасываем флаг нажатия на кнопку "Старт"
@@ -497,7 +497,7 @@ static int rk_fueling_scheduler(rk_t* self) {
             		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
             		counter_start(&self->counter_stop_btn);
             		relay_high_off(&self->relay);
-            		relay_middle_off(&self->relay);
+            		relay_low_off(&self->relay);
             	} else {
             		if(counter_tick(&self->counter_stop_btn)) {
             			counter_reset(&self->counter_stop_btn);
@@ -517,7 +517,7 @@ static int rk_fueling_scheduler(rk_t* self) {
             	printf("%s RK. FUELING FINISHED #4. Reset command received. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
         		counter_start(&self->counter_reset_cmd);
         		relay_high_off(&self->relay);
-        		relay_middle_off(&self->relay);
+        		relay_low_off(&self->relay);
         	} else {
         		if(counter_tick(&self->counter_reset_cmd)) {
         			counter_reset(&self->counter_reset_cmd);
@@ -915,7 +915,6 @@ static void rk_start_fueling_process(rk_t* self)
     printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
     self->fueling_current_price = 0.00;
     printf("!!!%s RK. Waiting for human to approve fueling\n", self->side == left ? "Left" : "Right");
-//    relay_middle_on(&self->relay);
 }
 
 static void rk_start_local_fueling_process(rk_t* self)
@@ -926,7 +925,7 @@ static void rk_start_local_fueling_process(rk_t* self)
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
     printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
     self->fueling_current_price = 0.00;
-    relay_middle_on(&self->relay);
+    relay_low_on(&self->relay);
 }
 
 static void button_start_callback(rk_t* self, int code)
@@ -953,7 +952,7 @@ static void button_start_callback(rk_t* self, int code)
         	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
         	self->fueling_approved_by_human = 1;
         	self->stop_button_pressed_flag = 0;  // нажатие на кнопку СТАРТ сбрасывает нажатие на кнопку СТОП
-    		relay_middle_on(&self->relay);
+    		relay_low_on(&self->relay);
     	}
     }
 }
