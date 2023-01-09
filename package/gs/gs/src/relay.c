@@ -64,6 +64,9 @@ int relay_low_on(relay_t* relay)
 	if(!ret) {
 		relay->relay_low_state = relay_on;
 	}
+#ifdef SIMULATION
+	simulation_open_valve();
+#endif
 	return ret;
 }
 
@@ -82,6 +85,9 @@ int relay_low_off(relay_t* relay)
 	if(!ret) {
 		relay->relay_low_state = relay_off;
 	}
+#ifdef SIMULATION
+	simulation_close_valve();
+#endif
 	return ret;
 }
 

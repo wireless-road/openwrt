@@ -144,6 +144,7 @@ function gs_state_get()
     local can_address = nixio.fs.readfile("/mnt/gs/1/can_deviceAddress"):sub(1,-2)
     local flomac_address = nixio.fs.readfile("/mnt/gs/1/modbus_address"):sub(1,-2)
     local gaskit_address = nixio.fs.readfile("/mnt/gs/1/address"):sub(1,-2)
+    local relay_low_gpio = nixio.fs.readfile("/mnt/gs/1/relay_low_number"):sub(1,-2)
     local relay_middle_gpio = nixio.fs.readfile("/mnt/gs/1/relay_middle_number"):sub(1,-2)
     local relay_high_gpio = nixio.fs.readfile("/mnt/gs/1/relay_high_number"):sub(1,-2)
     local is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/1/isPAGZmodeEnabled"):sub(1,-2)
@@ -154,6 +155,7 @@ function gs_state_get()
     local modbus_port = nixio.fs.readfile("/mnt/gs/1/modbus_port"):sub(1,-2)
     local selfcheck_mode = nixio.fs.readfile("/tmp/gs_selfcheck"):sub(1,-2)
 
+    local relay_low_number = gpio_number_to_relay_code(relay_low_gpio)
     local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     local relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
 
@@ -214,6 +216,14 @@ function gs_state_get()
 	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон.",
 	        field_type = "text",
 	        field_options = {}
+	    },
+	    {
+	        name = "relay_low_number",
+	        value = relay_low_number,
+	        label = "клапан нижнего давления",
+	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан нижнего давления.",
+	        field_type = "dropdown",
+	        field_options = { ["K1"]='K1', ["K2"]='K2', ["K3"]='K3', ["K4"]='K4', ["K5"]='K5', ["K6"]='K6' }
 	    },
 	    {
 	        name = "relay_middle_number",
@@ -296,6 +306,7 @@ function gs_state_get()
     can_address = nixio.fs.readfile("/mnt/gs/2/can_deviceAddress"):sub(1,-2)
     flomac_address = nixio.fs.readfile("/mnt/gs/2/modbus_address"):sub(1,-2)
     gaskit_address = nixio.fs.readfile("/mnt/gs/2/address"):sub(1,-2)
+    relay_low_gpio = nixio.fs.readfile("/mnt/gs/2/relay_low_number"):sub(1,-2)
     relay_middle_gpio = nixio.fs.readfile("/mnt/gs/2/relay_middle_number"):sub(1,-2)
     relay_high_gpio = nixio.fs.readfile("/mnt/gs/2/relay_high_number"):sub(1,-2)
     is_pagz_mode_enabled = nixio.fs.readfile("/mnt/gs/2/isPAGZmodeEnabled"):sub(1,-2)
@@ -306,6 +317,7 @@ function gs_state_get()
     modbus_port = nixio.fs.readfile("/mnt/gs/2/modbus_port"):sub(1,-2)
     selfcheck_mode = nixio.fs.readfile("/tmp/gs_selfcheck"):sub(1,-2)
 
+    relay_low_number = gpio_number_to_relay_code(relay_low_gpio)
     relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
     relay_high_number = gpio_number_to_relay_code(relay_high_gpio)
 
@@ -367,6 +379,14 @@ function gs_state_get()
 	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон.",
 	        field_type = "text",
 	        field_options = {}
+	    },
+	    {
+	        name = "relay_low_number",
+	        value = relay_low_number,
+	        label = "клапан нижнего давления",
+	        explanation = "кодовое обозначение реле в распиновке Блока Управления, на которое назначен клапан нижнего давления.",
+	        field_type = "dropdown",
+	        field_options = { ["K1"]='K1', ["K2"]='K2', ["K3"]='K3', ["K4"]='K4', ["K5"]='K5', ["K6"]='K6' }
 	    },
 	    {
 	        name = "relay_middle_number",
@@ -537,6 +557,9 @@ function gs_settings_set()
     elseif param == 'relay_middle_line' then
         param = 'relay_middle_number'
         value = relay_code_to_gpio_number(value)
+    elseif param == 'relay_low_number' then
+        param = 'relay_low_number'
+        value = relay_code_to_gpio_number(value)
     elseif param == 'relay_middle_number' then
         param = 'relay_middle_number'
         value = relay_code_to_gpio_number(value)
@@ -567,6 +590,8 @@ function gs_settings_set()
         file = '/tmp/gs_selfcheck'
     end
 
+    luci.sys.exec('echo ' .. value .. ' > ' .. '/tmp/log.txt')
+    luci.sys.exec('echo ' .. file .. ' >> ' .. '/tmp/log.txt')
     luci.sys.exec('echo ' .. value .. ' > ' .. file)
 
     local result = {
