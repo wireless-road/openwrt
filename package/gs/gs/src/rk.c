@@ -469,7 +469,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
         	rk_fueling_log(self, self->cnt, 1);
 
-        	if((self->valves_amount == TWO_VALVE) && (!relay_high_is_on(&self->relay)))
+        	if((self->valves_amount == TWO_VALVE) && (!relay_middle_is_on(&self->relay)))
         	{
         		// Если схема заправки - двухклапанная и верхний клапан еще не открыт, - то открываем его и продолжаем заправку
         		relay_middle_on(&self->relay);
