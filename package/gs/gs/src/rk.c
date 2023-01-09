@@ -415,7 +415,7 @@ static int rk_fueling_calculate_summators(rk_t* self) {
 }
 
 static void rk_stop_fueling_process(rk_t* self, int* cnt) {
-	relay_high_off(&self->relay);
+	relay_middle_off(&self->relay);
 	relay_low_off(&self->relay);
     self->state = trk_disabled_fueling_finished;
     self->state_issue = trk_state_issue_less_or_equal_dose;
@@ -472,7 +472,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         	if((self->valves_amount == TWO_VALVE) && (!relay_high_is_on(&self->relay)))
         	{
         		// Если схема заправки - двухклапанная и верхний клапан еще не открыт, - то открываем его и продолжаем заправку
-        		relay_high_on(&self->relay);
+        		relay_middle_on(&self->relay);
         		self->cnt = 0;
         		printf("%s RK. FUELING PROCESS. HIGH VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
         		return;
@@ -496,7 +496,7 @@ static int rk_fueling_scheduler(rk_t* self) {
             	if(!counter_is_started(&self->counter_stop_btn)) {
             		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
             		counter_start(&self->counter_stop_btn);
-            		relay_high_off(&self->relay);
+            		relay_middle_off(&self->relay);
             		relay_low_off(&self->relay);
             	} else {
             		if(counter_tick(&self->counter_stop_btn)) {
@@ -516,7 +516,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         	if(!counter_is_started(&self->counter_reset_cmd)) {
             	printf("%s RK. FUELING FINISHED #4. Reset command received. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
         		counter_start(&self->counter_reset_cmd);
-        		relay_high_off(&self->relay);
+        		relay_middle_off(&self->relay);
         		relay_low_off(&self->relay);
         	} else {
         		if(counter_tick(&self->counter_reset_cmd)) {
