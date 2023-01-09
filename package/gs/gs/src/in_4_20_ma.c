@@ -5,9 +5,11 @@
 
 int in_4_20_ma_read_thread(in_4_20_t* in_4_20);
 
-int in_4_20_ma_init(int idx, in_4_20_t* in_4_20) {
+int in_4_20_ma_init(int idx, in_4_20_t* in_4_20, int enabled) {
 
     char filename[FILENAME_MAX_SIZE];
+
+    in_4_20->enabled = enabled;
 
     // channel_idx
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -115,37 +117,42 @@ int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {
 }
 
 int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
-	int ret01 = 0;
-	int ret02 = 0;
-	int ret11 = 0;
-	int ret12 = 0;
+	int ret_right_1 = 0;
+	int ret_right_2 = 0;
+	int ret_left_1 = 0;
+	int ret_left_2 = 0;
 	in_4_20_t* in_4_20_left = in_4_20s[0];
 	in_4_20_t* in_4_20_right = in_4_20s[1];
 	_Atomic int* value_left = (_Atomic int*)&in_4_20_left->value;
 	_Atomic int* value_right = (_Atomic int*)&in_4_20_right->value;
     while(1) {
 
-    	ret01 = parse_integer_config(in_4_20_right->value_filename);
-//    	ret01 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage0_raw");
-    	usleep(300000);
-    	ret02 = parse_integer_config(in_4_20_right->value_filename);
-//    	ret02 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage0_raw");
-    	atomic_store(value_right, ret02);
-    	set_int_config(in_4_20_right->ram_value_filename, ret02);
-        usleep(300000);
+    	if(in_4_20_right->enabled) {
+    		ret_right_1 = parse_integer_config(in_4_20_right->value_filename);
+			usleep(300000);
+			ret_right_2 = parse_integer_config(in_4_20_right->value_filename);
+			atomic_store(value_right, ret_right_2);
+			set_int_config(in_4_20_right->ram_value_filename, ret_right_2);
+			usleep(300000);
+    	}
 
-    	ret11 = parse_integer_config(in_4_20_left->value_filename);
-//    	ret11 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage1_raw");
-    	usleep(300000);
-    	ret12 = parse_integer_config(in_4_20_left->value_filename);
-//    	ret12 = parse_integer_config("/sys/bus/iio/devices/iio:device0/in_voltage1_raw");
-    	atomic_store(value_left, ret12);
-    	set_int_config(in_4_20_left->ram_value_filename, ret12);
-        usleep(300000);
+    	if(in_4_20_left->enabled) {
+    		ret_left_1 = parse_integer_config(in_4_20_left->value_filename);
+			usleep(300000);
+			ret_left_2 = parse_integer_config(in_4_20_left->value_filename);
+			atomic_store(value_left, ret_left_2);
+			set_int_config(in_4_20_left->ram_value_filename, ret_left_2);
+			usleep(300000);
+    	}
 
-//        printf("4-20: %d, **%d** and %d, **%d**\r\n", ret01, ret02, ret11, ret12);
-        printf("4-20: %d and %d\r\n", ret02, ret12);
+    	if(in_4_20_left->enabled && in_4_20_right->enabled) {
+    		printf("4-20: LEFT RK (chnl idx %d) %d. RIGHT RK (chnl idx %d) %d\r\n", in_4_20_left->channel_idx, ret_left_2, in_4_20_right->channel_idx, ret_right_2 );
+    	} else if(in_4_20_left->enabled) {
+    		printf("4-20: LEFT RK (chnl idx %d) %d.\r\n", in_4_20_left->channel_idx, ret_left_2 );
 
+    	} else if(in_4_20_right->enabled) {
+    		printf("4-20: RIGHT RK (chnl idx %d) %d\r\n", in_4_20_right->channel_idx, ret_right_2 );
+    	}
     }
 }
 

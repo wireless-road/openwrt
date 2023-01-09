@@ -187,7 +187,7 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->fueling_price_per_liter = tmp;
 
-    ret = in_4_20_ma_init(idx, &rk->in_4_20);
+    ret = in_4_20_ma_init(idx, &rk->in_4_20, rk->enabled);
 
     rk->fueling_process_flag = 0;
     led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);

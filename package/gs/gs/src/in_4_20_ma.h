@@ -45,6 +45,7 @@ struct in_4_20_t {
     int pressure_high_threshold_raw;
     int state;
     pthread_t thread_id;
+    int enabled;
 };
 
 #define VALUE_FILENAME                  		"/sys/bus/iio/devices/iio:device0/in_voltage%d_raw"
@@ -64,7 +65,7 @@ struct in_4_20_t {
 
 #define RAW_PRESSURE_THRESHOLD_GAP				50
 
-int in_4_20_ma_init(int idx, in_4_20_t* in_4_20);
+int in_4_20_ma_init(int idx, in_4_20_t* in_4_20, int enabled);
 int in_4_20_ma_read(in_4_20_t* in_4_20);
 int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s);
 int in_4_20_ma_check_state(in_4_20_t* in_4_20);
