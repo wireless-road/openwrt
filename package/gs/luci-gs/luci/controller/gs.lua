@@ -98,11 +98,28 @@ function gs_state_get()
 	result.settings_left = {}
 	result.settings_right = {}
 	local gpios = {}
- 	local value_0 = tonumber(nixio.fs.readfile("/tmp/gs_in_4_20_channel0"):sub(1,-1))
- 	local value_1 = tonumber(nixio.fs.readfile("/tmp/gs_in_4_20_channel1"):sub(1,-1))
+	local tmp = ""
+	local value_0 = 0
+	local value_1 = 0
+	tmp = nixio.fs.readfile("/tmp/gs_in_4_20_channel0")
+	if (tmp == nil) then
+	    value_0 = 'disabled'
+	else
+	    value_0 = tonumber(tmp:sub(1,-1))
+	end
+
+	tmp = nixio.fs.readfile("/tmp/gs_in_4_20_channel1")
+	if (tmp == nil) then
+	    value_1 = "disabled"
+	else
+	    value_1 = tonumber(tmp:sub(1,-1))
+	end
+
 	local raw_value_0 = value_0
 	local raw_value_1 = value_1
-	if value_0 < -400 then
+	if value_0 == 'disabled' then
+	    value_0 = 'отключен'
+	elseif value_0 < -400 then
 	    value_0 = 'перепутаны полюса'
 	elseif value_0 < 100 then
 	    value_0 = 'обрыв цепи'
