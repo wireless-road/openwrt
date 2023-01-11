@@ -41,8 +41,14 @@ typedef enum {
 } trk_state_issue_t;
 
 
+#define NO_FUELING_CURRENTLY			0
+#define FIRST_VALVE_FUELING_STAGE		1
+#define SECOND_VALVE_FUELING_STAGE		2
+#define THIRD_VALVE_FUELING_STAGE		3
+
 #define SINGLE_VALVE	1
 #define TWO_VALVE		2
+#define THREE_VALVE		3
 
 #define CONFIG_FILENAME_MAX_LENGTH      64
 
@@ -111,6 +117,7 @@ struct rk_t {
     int store_prev_summators_flag;
     int fueling_approved_by_human;  // заправщик нажал на кнопку "СТАРТ", подтерждая тем самым, что можно начинать заправку (шланг вставлен в ТС)
     int selfcheck_mode;  // флаг работы в режиме самодиагностики. Задается из веб-интерфейса через файл /tmp/gs_selfcheck. Используется на производстве для первичной проверки корректности сборки колонки.
+    int current_valve_number;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"

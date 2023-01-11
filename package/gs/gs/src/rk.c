@@ -22,6 +22,14 @@ static void rk_start_local_fueling_process(rk_t* self);
 static void rk_stop_fueling_process(rk_t* self, int* cnt);
 static int rk_fueling_log_results(rk_t* self);
 
+static void valve_low_on(rk_t* self);
+static void valve_middle_on(rk_t* self);
+static void valve_high_on(rk_t* self);
+// Нет отдельных функций для отключения каждой линии по отдельности,
+// поскольку включении каждой следующей линии подразумевает отключение всех линий, которые должны быть выключены,
+// а имеено, включение третьей линии автоматически означает выключение второй линии
+static void valve_all_off(rk_t* self);
+
 //static int valves_amount = 1;  // To-Do: implement config file and web interface
 
 char tmp[RX_BUF_SIZE] = {0};
@@ -41,6 +49,8 @@ int rk_init(int idx, rk_t* rk) {
     rk->fueling_interrupted_volume = 0.00;
     rk->fueling_current_price = 0.00;
     rk->fueling_interrupted_price = 0.00;
+
+    rk->current_valve_number = 0.00;
 
     // isEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -415,8 +425,7 @@ static int rk_fueling_calculate_summators(rk_t* self) {
 }
 
 static void rk_stop_fueling_process(rk_t* self, int* cnt) {
-	relay_middle_off(&self->relay);
-	relay_low_off(&self->relay);
+	valve_all_off(self);
     self->state = trk_disabled_fueling_finished;
     self->state_issue = trk_state_issue_less_or_equal_dose;
     self->fueling_approved_by_human = 0;  // сбрасываем флаг нажатия на кнопку "Старт"
@@ -469,13 +478,40 @@ static int rk_fueling_scheduler(rk_t* self) {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
         	rk_fueling_log(self, self->cnt, 1);
 
-        	if((self->valves_amount == TWO_VALVE) && (!relay_middle_is_on(&self->relay)))
-        	{
-        		// Если схема заправки - двухклапанная и верхний клапан еще не открыт, - то открываем его и продолжаем заправку
-        		relay_middle_on(&self->relay);
-        		self->cnt = 0;
-        		printf("%s RK. FUELING PROCESS. HIGH VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
-        		return;
+//        	if((self->valves_amount == TWO_VALVE) && (!relay_middle_is_on(&self->relay)))
+//        	{
+//        		// Если схема заправки - двухклапанная и верхний клапан еще не открыт, - то открываем его и продолжаем заправку
+//        		relay_middle_on(&self->relay);
+//        		self->cnt = 0;
+//        		printf("%s RK. FUELING PROCESS. HIGH VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
+//        		return;
+//        	}
+
+        	if(self->valves_amount > SINGLE_VALVE) {
+        		switch (self->current_valve_number) {
+        		case FIRST_VALVE_FUELING_STAGE:
+        			if(self->valves_amount > self->current_valve_number) {
+        				valve_middle_on(self);
+                		self->cnt = 0;
+                		printf("%s RK. FUELING PROCESS. MIDDLE VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
+                		return;
+        			}
+        			break;
+        		case SECOND_VALVE_FUELING_STAGE:
+        			if(self->valves_amount > self->current_valve_number) {
+        				valve_high_on(self);
+                		self->cnt = 0;
+                		printf("%s RK. FUELING PROCESS. HIGH VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
+                		return;
+        			}
+        			break;
+        		case THIRD_VALVE_FUELING_STAGE:
+            		printf("%s RK. FUELING PROCESS. LAST (HIGH) VALVE ALREADY OPENED\r\n", self->side == left ? "Left" : "Right");
+        			break;
+        		default:
+        			printf("%s RK. ERROR. FUELING PROCESS. Unknown valve OPENED\r\n", self->side == left ? "Left" : "Right", self->valves_amount);
+        			break;
+        		}
         	}
 
         	if(self->state == trk_enabled_fueling_process_local) {
@@ -496,8 +532,7 @@ static int rk_fueling_scheduler(rk_t* self) {
             	if(!counter_is_started(&self->counter_stop_btn)) {
             		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
             		counter_start(&self->counter_stop_btn);
-            		relay_middle_off(&self->relay);
-            		relay_low_off(&self->relay);
+            		valve_all_off(self);
             	} else {
             		if(counter_tick(&self->counter_stop_btn)) {
             			counter_reset(&self->counter_stop_btn);
@@ -516,8 +551,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         	if(!counter_is_started(&self->counter_reset_cmd)) {
             	printf("%s RK. FUELING FINISHED #4. Reset command received. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
         		counter_start(&self->counter_reset_cmd);
-        		relay_middle_off(&self->relay);
-        		relay_low_off(&self->relay);
+        		valve_all_off(self);
         	} else {
         		if(counter_tick(&self->counter_reset_cmd)) {
         			counter_reset(&self->counter_reset_cmd);
@@ -925,7 +959,7 @@ static void rk_start_local_fueling_process(rk_t* self)
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
     printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
     self->fueling_current_price = 0.00;
-    relay_low_on(&self->relay);
+    valve_low_on(self);
 }
 
 static void button_start_callback(rk_t* self, int code)
@@ -952,7 +986,7 @@ static void button_start_callback(rk_t* self, int code)
         	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
         	self->fueling_approved_by_human = 1;
         	self->stop_button_pressed_flag = 0;  // нажатие на кнопку СТАРТ сбрасывает нажатие на кнопку СТОП
-    		relay_low_on(&self->relay);
+        	valve_low_on(self);
     	}
     }
 }
@@ -990,4 +1024,36 @@ static void int_to_string_azt(int val, char* res, int* cnt, int len) {
         div /= 10;
         (*cnt)++;
     }
+}
+
+static void valve_low_on(rk_t* self)
+{
+	// нижняя линия включена всегда в процессе заправки
+	relay_low_on(&self->relay);
+	self->current_valve_number = FIRST_VALVE_FUELING_STAGE;
+}
+
+static void valve_middle_on(rk_t* self)
+{
+	// средняя линия включается следом за нижней, когда расход топлива снижается до порогового.
+	// Нижняя линия при этом остается включенной
+	relay_middle_on(&self->relay);
+	self->current_valve_number = SECOND_VALVE_FUELING_STAGE;
+}
+
+static void valve_high_on(rk_t* self)
+{
+	// высокая линия включается ВМЕСТО средней, когда расход топлива снова снижается до порогового
+	// Нижняя линия при этом остается включенной
+	relay_middle_off(&self->relay);
+	relay_high_on(&self->relay);
+	self->current_valve_number = THIRD_VALVE_FUELING_STAGE;
+}
+
+static void valve_all_off(rk_t* self)
+{
+	relay_high_off(&self->relay);
+	relay_middle_off(&self->relay);
+	relay_low_off(&self->relay);
+	self->current_valve_number = NO_FUELING_CURRENTLY;
 }

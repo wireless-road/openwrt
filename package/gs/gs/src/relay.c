@@ -118,9 +118,6 @@ int relay_middle_off(relay_t* relay)
 	if(!ret) {
 		relay->relay_middle_state = relay_off;
 	}
-#ifdef SIMULATION
-	simulation_close_valve();
-#endif
 	return ret;
 }
 
@@ -151,8 +148,5 @@ int relay_high_off(relay_t* relay)
 	if(!ret) {
 		relay->relay_high_state = relay_off;
 	}
-#ifdef SIMULATION
-	simulation_close_high_valve();
-#endif
 	return ret;
 }
