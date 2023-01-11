@@ -38,14 +38,15 @@ Index: linux-5.4.168/drivers/iio/adc/ti-ads1015.c
  		ret = regmap_write(data->regmap, ADS1015_CFG_REG, cfg);
  		if (ret)
  			return ret;
-@@ -375,8 +379,8 @@ int ads1015_get_adc_result(struct ads101
+@@ -375,8 +379,9 @@ int ads1015_get_adc_result(struct ads101
  		dr_old = (old & ADS1015_CFG_DR_MASK) >> ADS1015_CFG_DR_SHIFT;
  		conv_time = DIV_ROUND_UP(USEC_PER_SEC, data->data_rate[dr_old]);
  		conv_time += DIV_ROUND_UP(USEC_PER_SEC, data->data_rate[dr]);
 -		conv_time += conv_time / 10; /* 10% internal clock inaccuracy */
 -		usleep_range(conv_time, conv_time + 1);
-+		conv_time += conv_time / 2; /* 50% internal clock inaccuracy */
-+		usleep_range(conv_time, conv_time + conv_time/10);
++		conv_time += conv_time / 10; /* 50% internal clock inaccuracy */
++		conv_time = DIV_ROUND_UP(conv_time, USEC_PER_MSEC);
++		msleep(conv_time);
  		data->conv_invalid = false;
  	}
  
