@@ -11,8 +11,11 @@ float simulate_mass_inventory_value() {
 
 	if(simulation_valve_opened_flag) {
 		simulation_mass_inventory_value += 0.01;
-		simulation_mass_rate_value -= 1.0;
-
+//		simulation_mass_rate_value -= 1.0; // Заправка 1 литра по 1-линейной схеме
+//		simulation_mass_rate_value -= 2.5; // Заправка 1 литра по 2-линейной схеме
+		simulation_mass_rate_value -= 5.5; // Заправка 1 литра по 3-линейной схеме
+//		simulation_mass_rate_value -= 7.5; // Заправка 1 литра не успевает произойти. Происходит заправка до полного на третьей линии.
+//		simulation_mass_rate_value -= 9.0; // Заправка 1 литра не успевает произойти. Происходит заправка до полного на третьей линии.
 	}
 	return simulation_mass_inventory_value;
 }
