@@ -43,6 +43,8 @@ int rk_init(int idx, rk_t* rk) {
 
     rk->btn_clbk_start = button_start_callback;
     rk->btn_clbk_stop = button_stop_callback;
+    rk->start_button_pressed_flag = 0;
+    rk->start_button_delay_cnt = 0;
     rk->stop_button_pressed_flag = 0;
     rk->reset_command_received_flag = 0;
 
@@ -336,6 +338,25 @@ static int rk_process(rk_t* self) {
         	self->fueling_process_flag = 0;
             break;
         case trk_enabled_fueling_process:
+        	if(self->start_button_pressed_flag) {
+        		self->start_button_delay_cnt++;
+        		if(self->stop_button_pressed_flag) {
+        			self->start_button_pressed_flag = 0;
+        			self->start_button_delay_cnt = 0;
+            		rk_stop_fueling_process(self, &self->cnt);
+            		self->stop_button_pressed_flag = 0;
+        			printf("%s RK. Fueling not started due to stop button being pressed: %d\r\n", self->side == left ? "Left" : "Right");
+        		}
+        		if(self->start_button_delay_cnt > DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING) {
+        			self->start_button_pressed_flag = 0;
+        			self->start_button_delay_cnt = 0;
+        			button_start_handler(self);
+        		} else {
+        			if(self->start_button_delay_cnt % 10 == 0)
+						printf("%s RK. Delay before starting fueling: %d\r\n", self->side == left ? "Left" : "Right",
+								DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING - self->start_button_delay_cnt);
+        		}
+        	}
         	if(self->fueling_approved_by_human == 1) {
         		self->fueling_process_flag = 1;
             	rk_fueling_scheduler(self);
@@ -947,7 +968,7 @@ static void rk_start_fueling_process(rk_t* self)
     self->state = trk_enabled_fueling_process;
     self->fueling_current_volume = 0.00;
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
-    printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
+    printf("flomac inventory mass starting value: %f. summator_volume: %.2f\r\n", self->flomac_inv_mass_starting_value, self->summator_volume);
     self->fueling_current_price = 0.00;
     printf("!!!%s RK. Waiting for human to approve fueling\n", self->side == left ? "Left" : "Right");
 }
@@ -974,7 +995,9 @@ static void button_start_callback(rk_t* self, int code)
     	return;
     }
 
-    button_start_handler(self);
+    if(self->state == trk_enabled_fueling_process) {
+    	self->start_button_pressed_flag = 1;
+    }
 }
 
 static void button_start_handler(rk_t* self)

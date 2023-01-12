@@ -41,6 +41,8 @@ typedef enum {
 } trk_state_issue_t;
 
 
+#define DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING	200
+
 #define NO_FUELING_CURRENTLY			0
 #define FIRST_VALVE_FUELING_STAGE		1
 #define SECOND_VALVE_FUELING_STAGE		2
@@ -104,6 +106,8 @@ struct rk_t {
     void (*btn_clbk_start)(int);
     void (*btn_clbk_stop)(int);
     int stop_button_pressed_flag;
+    int start_button_pressed_flag;
+    int start_button_delay_cnt;
     int reset_command_received_flag;
     led_t led;
     relay_t relay;
