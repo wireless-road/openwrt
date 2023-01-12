@@ -562,6 +562,8 @@ static int rk_fueling_scheduler(rk_t* self) {
                 		self->stop_button_pressed_flag = 0;
                 		if(self->state == trk_enabled_fueling_process_local) {
                 			self->fueling_current_volume = 0.00;
+                		} else {
+                			self->store_prev_summators_flag = 0;
                 		}
                     	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
             		} else {
