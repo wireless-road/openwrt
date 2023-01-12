@@ -451,6 +451,8 @@ static void rk_stop_fueling_process(rk_t* self, int* cnt) {
     self->state = trk_disabled_fueling_finished;
     self->state_issue = trk_state_issue_less_or_equal_dose;
     self->fueling_approved_by_human = 0;  // сбрасываем флаг нажатия на кнопку "Старт"
+    self->start_button_pressed_flag = 0;
+    self->start_button_delay_cnt = 0;
     *cnt = 0;
 }
 
