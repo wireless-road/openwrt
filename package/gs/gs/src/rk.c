@@ -55,6 +55,8 @@ int rk_init(int idx, rk_t* rk) {
 
     rk->current_valve_number = 0.00;
 
+    rk->in_4_20.enabled = 0;
+
     // isEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_IS_ENABLED, idx);
