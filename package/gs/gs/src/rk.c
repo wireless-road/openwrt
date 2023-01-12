@@ -17,6 +17,7 @@ static void rk_indicate_error_message(rk_t* self);
 static int rk_check_state(rk_t* self);
 static void button_start_callback(rk_t* self, int code);
 static void button_stop_callback(rk_t* self, int code);
+static void button_start_handler(rk_t* self);
 static void rk_start_fueling_process(rk_t* self);
 static void rk_start_local_fueling_process(rk_t* self);
 static void rk_stop_fueling_process(rk_t* self, int* cnt);
@@ -973,6 +974,11 @@ static void button_start_callback(rk_t* self, int code)
     	return;
     }
 
+    button_start_handler(self);
+}
+
+static void button_start_handler(rk_t* self)
+{
     if(self->pagz_mode_enabled) {
     	printf("%s RK. LOCAL FUELING started by pressing start button\r\n", self->side == left ? "Left" : "Right");
 
