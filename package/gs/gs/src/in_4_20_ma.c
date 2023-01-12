@@ -50,7 +50,6 @@ int in_4_20_ma_init(int idx, in_4_20_t* in_4_20, int enabled) {
     sprintf(filename, VALUE_RAM_FILENAME, in_4_20->channel_idx);
     memset(in_4_20->ram_value_filename, 0, sizeof(in_4_20->ram_value_filename));
     strcpy(in_4_20->ram_value_filename, filename);
-    printf("ram value filename: %s\r\n", in_4_20->ram_value_filename);
 
     // value
     memset(filename, 0, FILENAME_MAX_SIZE);
