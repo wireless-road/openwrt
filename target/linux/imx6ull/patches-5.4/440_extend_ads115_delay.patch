@@ -29,7 +29,15 @@ Index: linux-5.4.168/drivers/iio/adc/ti-ads1015.c
  
  /* Comparator queue and disable field */
  #define ADS1015_CFG_COMP_DISABLE	3
-@@ -366,6 +368,8 @@ int ads1015_get_adc_result(struct ads101
+@@ -342,6 +344,7 @@ int ads1015_get_adc_result(struct ads101
+ 	int ret, pga, dr, dr_old, conv_time;
+ 	unsigned int old, mask, cfg;
+ 
++printk("entered ads1015_get_adc_result with chan =%d", chan);
+ 	if (chan < 0 || chan >= ADS1015_CHANNELS)
+ 		return -EINVAL;
+ 
+@@ -366,6 +369,8 @@ int ads1015_get_adc_result(struct ads101
  
  	cfg = (old & ~mask) | (cfg & mask);
  	if (old != cfg) {
@@ -38,7 +46,7 @@ Index: linux-5.4.168/drivers/iio/adc/ti-ads1015.c
  		ret = regmap_write(data->regmap, ADS1015_CFG_REG, cfg);
  		if (ret)
  			return ret;
-@@ -375,8 +379,9 @@ int ads1015_get_adc_result(struct ads101
+@@ -375,11 +380,15 @@ int ads1015_get_adc_result(struct ads101
  		dr_old = (old & ADS1015_CFG_DR_MASK) >> ADS1015_CFG_DR_SHIFT;
  		conv_time = DIV_ROUND_UP(USEC_PER_SEC, data->data_rate[dr_old]);
  		conv_time += DIV_ROUND_UP(USEC_PER_SEC, data->data_rate[dr]);
@@ -46,7 +54,13 @@ Index: linux-5.4.168/drivers/iio/adc/ti-ads1015.c
 -		usleep_range(conv_time, conv_time + 1);
 +		conv_time += conv_time / 5 ; /* 20% internal clock inaccuracy */
 +		conv_time = DIV_ROUND_UP(conv_time, USEC_PER_MSEC);
++printk("before msleep with conv_time=%d", conv_time);
 +		msleep(conv_time);
++printk("after sleep");
  		data->conv_invalid = false;
  	}
+ 
++printk("right before exit from adc_get_Result");
+ 	return regmap_read(data->regmap, ADS1015_CONV_REG, val);
+ }
  
