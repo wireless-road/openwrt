@@ -158,6 +158,7 @@ function gs_state_get()
     local density = nixio.fs.readfile("/mnt/gs/1/setting_gas_density"):sub(1,-2)
     local relay_cut_off = nixio.fs.readfile("/mnt/gs/1/setting_relay_cut_off_timing"):sub(1,-2)
     local mass_flow_threshold = nixio.fs.readfile("/mnt/gs/1/setting_mass_flow_rate_threshold_value"):sub(1,-2)
+    local mass_flow_brake_error_threshold = nixio.fs.readfile("/mnt/gs/1/setting_mass_flow_rate_break_error_threshold"):sub(1,-2)
     local can_address = nixio.fs.readfile("/mnt/gs/1/can_deviceAddress"):sub(1,-2)
     local flomac_address = nixio.fs.readfile("/mnt/gs/1/modbus_address"):sub(1,-2)
     local gaskit_address = nixio.fs.readfile("/mnt/gs/1/address"):sub(1,-2)
@@ -231,7 +232,15 @@ function gs_state_get()
 	        name = "mass flow rate threshold",
 	        value = mass_flow_threshold,
 	        label = "расход газа при полном баке",
-	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон.",
+	        explanation = "уровень массового расхода газа при полном баке.",
+	        field_type = "text",
+	        field_options = {}
+	    },
+	    {
+	        name = "mass flow rate brake error threshold",
+	        value = mass_flow_brake_error_threshold,
+	        label = "расход газа при обрыве шланга",
+	        explanation = "значение расхода газа при обрыве шланга.",
 	        field_type = "text",
 	        field_options = {}
 	    },
@@ -321,6 +330,7 @@ function gs_state_get()
     density = nixio.fs.readfile("/mnt/gs/2/setting_gas_density"):sub(1,-2)
     relay_cut_off = nixio.fs.readfile("/mnt/gs/2/setting_relay_cut_off_timing"):sub(1,-2)
     mass_flow_threshold = nixio.fs.readfile("/mnt/gs/2/setting_mass_flow_rate_threshold_value"):sub(1,-2)
+    mass_flow_brake_error_threshold = nixio.fs.readfile("/mnt/gs/2/setting_mass_flow_rate_break_error_threshold"):sub(1,-2)
     can_address = nixio.fs.readfile("/mnt/gs/2/can_deviceAddress"):sub(1,-2)
     flomac_address = nixio.fs.readfile("/mnt/gs/2/modbus_address"):sub(1,-2)
     gaskit_address = nixio.fs.readfile("/mnt/gs/2/address"):sub(1,-2)
@@ -396,6 +406,14 @@ function gs_state_get()
 	        value = mass_flow_threshold,
 	        label = "расход газа при полном баке",
 	        explanation = "уровень массового расхода газа при достижении которого Блок Управления поймет, что бак полон.",
+	        field_type = "text",
+	        field_options = {}
+	    },
+	    {
+	        name = "mass flow rate brake error threshold",
+	        value = mass_flow_brake_error_threshold,
+	        label = "расход газа при обрыве шланша",
+	        explanation = "значение расхода газа при обрыве шланга.",
 	        field_type = "text",
 	        field_options = {}
 	    },
@@ -565,6 +583,8 @@ function gs_settings_set()
         param = 'setting_relay_cut_off_timing'
     elseif param == 'mass flow rate threshold' then
         param = 'setting_mass_flow_rate_threshold_value'
+    elseif param == 'mass flow rate brake error threshold' then
+        param = 'setting_mass_flow_rate_break_error_threshold'
     elseif param == 'enabled' then
         param = 'isEnabled'
     elseif param == 'flomac address' then
