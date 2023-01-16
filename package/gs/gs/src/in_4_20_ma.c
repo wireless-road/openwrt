@@ -84,10 +84,10 @@ int in_4_20_ma_check_state(in_4_20_t* in_4_20)
     {
     	in_4_20->state = IN_4_20_NOT_CONNECTED_ERROR;
     }
-    else if (val < in_4_20->pressure_low_threshold_raw)
+/*    else if (val < in_4_20->pressure_low_threshold_raw)
     {
     	in_4_20->state = IN_4_20_LOW_PRESSURE_ERROR;
-    }
+    }*/
     else if (val > in_4_20->pressure_high_threshold_raw)
     {
     	in_4_20->state = IN_4_20_HIGH_PRESSURE_ERROR;
