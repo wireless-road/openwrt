@@ -5,6 +5,7 @@
 static int CAN_socket_init(char* interface);
 static int CAN_send(can_t* self, float volume, float price, float totalPrice);
 static int CAN_send_half(can_t* self, float volume, float totalPrice);
+static int CAN_send_price_only(can_t* self, float totalPrice);
 
 int CAN_init(int idx, can_t* can) {
 
@@ -43,6 +44,7 @@ int CAN_init(int idx, can_t* can) {
 
     can->transmit = CAN_send;
     can->transmit_half = CAN_send_half;
+    can->transmit_price_only = CAN_send_price_only;
 }
 
 static int CAN_socket_init(char* interface) {
@@ -127,6 +129,23 @@ static int CAN_send_half(can_t* self, float volume, float totalPrice) {
         if (errno != EAGAIN)
             fprintf(stderr, "CAN write error: %s\n", strerror(errno));
     }
+
+}
+
+static int CAN_send_price_only(can_t* self, float price) {
+    // prepare data
+    char frame2_data[4] = {0};
+    memset(frame2_data, 0, sizeof(frame2_data));
+    memcpy(frame2_data, &price, sizeof(price));
+
+    // send frame for lower row data
+    self->frame.can_id = self->deviceAddress + 1;
+    self->frame.can_dlc = sizeof (frame2_data);
+    memcpy(&self->frame.data, frame2_data, sizeof(frame2_data));
+
+    if (write(self->fd, &self->frame, sizeof(self->frame)) != sizeof(self->frame))
+        if (errno != EAGAIN)
+            fprintf(stderr, "CAN write error: %s\n", strerror(errno));
 
 }
 
