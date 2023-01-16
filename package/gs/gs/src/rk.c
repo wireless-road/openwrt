@@ -90,8 +90,11 @@ int rk_init(int idx, rk_t* rk) {
     }
 
     CAN_init(idx, &rk->can_bus);
+#ifndef SIMULATION
     rk->can_bus.transmit(&rk->can_bus, FIRMWARE_VERSION, FIRMWARE_SUBVERSION, DEVICE_MARKING_CODE);
-
+#else
+    rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
+#endif
     error_init(&rk->error_state);
 
     // address
@@ -352,6 +355,7 @@ static int rk_process(rk_t* self) {
         		if(self->start_button_delay_cnt > DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING) {
         			self->start_button_pressed_flag = 0;
         			self->start_button_delay_cnt = 0;
+        			printf("%s RK. Fueling start delay finished. Begin fueling: %d\r\n", self->side == left ? "Left" : "Right");
         			button_start_handler(self);
         		} else {
         			if(self->start_button_delay_cnt % 10 == 0)
@@ -689,7 +693,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE:
-            printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
+            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_FULL_FUELING_VALUE:
 //            printf("%s RK. Address %d. AZT_REQUEST_FULL_FUELING_VALUE\n", self->side == left ? "Left" : "Right", self->address);
@@ -799,17 +803,17 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         case AZT_REQUEST_PRICE_PER_LITER_SETUP:
             printf("%s RK. Address %d. AZT_REQUEST_PRICE_PER_LITER_SETUP\n", self->side == left ? "Left" : "Right", self->address);
 
-            char price[6] = {0};
+            char price[7] = {0};
             price[0] = req->params[0];
             price[1] = req->params[1];
             price[2] = '.';
             price[3] = req->params[2];
             price[4] = req->params[3];
-            float fueling_price_per_liter = strtof(price, NULL);
-            self->fueling_price_per_liter = fueling_price_per_liter;
+            self->fueling_price_per_liter = strtof(price, NULL);
 //            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             if(tmp == 0) {
                 azt_tx_ack();
+                self->can_bus.transmit_price_only(&self->can_bus, self->fueling_price_per_liter);
             } else {
                 azt_tx_can();
             }
@@ -894,13 +898,13 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_TRK_ADDRESS_CHANGE:
-            printf("!!!%s RK. Address %d. AZT_REQUEST_TRK_ADDRESS_CHANGE\n", self->side == left ? "Left" : "Right", self->address);
+            printf("%s RK. Address %d. AZT_REQUEST_TRK_ADDRESS_CHANGE\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_COMMON_PARAMETERS_SETUP:
-            printf("!!!%s RK. Address %d. AZT_REQUEST_COMMON_PARAMETERS_SETUP\n", self->side == left ? "Left" : "Right", self->address);
+            printf("%s RK. Address %d. AZT_REQUEST_COMMON_PARAMETERS_SETUP\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_CURRENT_TRANSACTION:
-            printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_TRANSACTION\n", self->side == left ? "Left" : "Right", self->address);
+            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_TRANSACTION\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_READ_PARAMS:
 //            printf("%s RK. Address %d. AZT_REQUEST_READ_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
@@ -959,10 +963,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             }
             break;
         case AZT_REQUEST_WRITE_PARAMS:
-            printf("!!!%s RK. Address %d. AZT_REQUEST_WRITE_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
+            printf("%s RK. Address %d. AZT_REQUEST_WRITE_PARAMS\n", self->side == left ? "Left" : "Right", self->address);
             break;
         case AZT_REQUEST_CURRENT_DOSE_READING:
-            printf("!!!%s RK. Address %d. AZT_REQUEST_CURRENT_DOSE_READING\n", self->side == left ? "Left" : "Right", self->address);
+            printf("%s RK. Address %d. AZT_REQUEST_CURRENT_DOSE_READING\n", self->side == left ? "Left" : "Right", self->address);
             break;
         default:
             break;
@@ -976,7 +980,7 @@ static void rk_start_fueling_process(rk_t* self)
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
     printf("flomac inventory mass starting value: %f. summator_volume: %.2f\r\n", self->flomac_inv_mass_starting_value, self->summator_volume);
     self->fueling_current_price = 0.00;
-    printf("!!!%s RK. Waiting for human to approve fueling\n", self->side == left ? "Left" : "Right");
+    printf("%s RK. Waiting for human to approve fueling\n", self->side == left ? "Left" : "Right");
 }
 
 static void rk_start_local_fueling_process(rk_t* self)
