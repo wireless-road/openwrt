@@ -539,7 +539,7 @@ static int rk_fueling_scheduler(rk_t* self) {
             		printf("%s RK. FUELING PROCESS. LAST (HIGH) VALVE ALREADY OPENED\r\n", self->side == left ? "Left" : "Right");
         			break;
         		default:
-        			printf("%s RK. ERROR. FUELING PROCESS. Unknown valve OPENED\r\n", self->side == left ? "Left" : "Right", self->valves_amount);
+        			printf("%s RK. ERROR. FUELING PROCESS. Unknown valve OPENED: %d\r\n", self->side == left ? "Left" : "Right", self->valves_amount);
         			break;
         		}
         	}
