@@ -591,7 +591,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         }
         else if(self->stop_button_pressed_flag == 1) {
         	// 3. Нажата кнопка СТОП.
-            	rk_fueling_log(self, self->cnt, 1);
+            	rk_fueling_log(self, self->cnt, 0);
             	if(!counter_is_started(&self->counter_stop_btn)) {
             		printf("%s RK. FUELING FINISHED #3. Stop button pressed. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
             		counter_start(&self->counter_stop_btn);
@@ -599,6 +599,7 @@ static int rk_fueling_scheduler(rk_t* self) {
             	} else {
             		if(counter_tick(&self->counter_stop_btn)) {
             			counter_reset(&self->counter_stop_btn);
+            			rk_fueling_log(self, self->cnt, 1);
                 		rk_stop_fueling_process(self, &self->cnt);
                 		self->stop_button_pressed_flag = 0;
                 		if(self->state == trk_enabled_fueling_process_local) {
