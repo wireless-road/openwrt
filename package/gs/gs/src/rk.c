@@ -172,6 +172,17 @@ int rk_init(int idx, rk_t* rk) {
     }
     rk->mass_flow_rate_threshold_value = tmp;
 
+    // mass_flow_rate_break_error
+    memset(filename, 0, FILENAME_MAX_SIZE);
+    sprintf(filename, CONFIG_FILE_MASS_FLOW_RATE_BREAK_ERROR, idx);
+    memset(rk->config_filename_mass_flow_rate_break_error, 0, sizeof(rk->config_filename_mass_flow_rate_break_error));
+    strcpy(rk->config_filename_mass_flow_rate_break_error, filename);
+    ret = parse_float_config(filename, &tmp);
+    if(ret == -1) {
+        return -1;
+    }
+    rk->mass_flow_rate_break_error = tmp;
+
     // valves_amount
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_VALVES_AMOUNT, idx);
@@ -318,7 +329,20 @@ static int rk_check_state(rk_t* self) {
         error_clear(&self->error_state, ERROR_MODBUS_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
+
 #endif
+
+    // контроль обрыва шланга
+    if( (self->flomac_mass_flowrate >= self->mass_flow_rate_break_error)
+    		&& error_is_clear(&self->error_state, ERROR_HIGH_FLOW_MASS_RATE) ){
+    	printf("FLOW RATE ERROR. %.2f\r\n", self->flomac_mass_flowrate);
+        error_set(&self->error_state, ERROR_HIGH_FLOW_MASS_RATE);
+        rk_indicate_error_message(self);
+    } else if( (self->flomac_mass_flowrate < self->mass_flow_rate_break_error) && error_is_set(&self->error_state, ERROR_HIGH_FLOW_MASS_RATE)) {
+    	printf("FLOW RATE restored %.2f\r\n", self->flomac_mass_flowrate);
+        error_clear(&self->error_state, ERROR_HIGH_FLOW_MASS_RATE);
+        rk_indicate_error_message(self);
+    }
 
     return self->error_state.code == 0;
 }
@@ -486,11 +510,13 @@ static int rk_fueling_scheduler(rk_t* self) {
         self->store_prev_summators_flag = 1;
     }
 
+    self->flomac_mass_flowrate = atomic_load(&self->modbus.mass_flowrate);
+
     if(self->fueling_dose_in_liters > 0.00) {
 
         if(self->fueling_current_volume < self->fueling_dose_in_liters) {
             self->flomac_inv_mass = atomic_load(&self->modbus.summator_mass);
-            self->flomac_mass_flowrate = atomic_load(&self->modbus.mass_flowrate);
+//            self->flomac_mass_flowrate = atomic_load(&self->modbus.mass_flowrate);
             self->pressure_4_20ma_raw = atomic_load(&self->in_4_20.value);
             self->pressure_4_20ma = in_4_20_ma_convert_raw_to_ma(self->pressure_4_20ma_raw);
             self->fueling_current_volume = (self->flomac_inv_mass - self->flomac_inv_mass_starting_value) / self->gas_density;
