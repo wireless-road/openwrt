@@ -342,23 +342,30 @@ static int rk_process(rk_t* self) {
         case trk_authorization_cmd:
 //        	self->fueling_process_flag = 0;
         	if(self->start_button_pressed_flag) {
-        		self->start_button_delay_cnt++;
-        		if(self->stop_button_pressed_flag) {
-        			self->start_button_pressed_flag = 0;
-        			self->start_button_delay_cnt = 0;
-            		rk_stop_fueling_process(self, &self->cnt);
-            		self->stop_button_pressed_flag = 0;
-        			printf("%s RK. Fueling not started due to stop button being pressed: %d\r\n", self->side == left ? "Left" : "Right");
-        		}
-        		if(self->start_button_delay_cnt > DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING) {
-        			self->start_button_pressed_flag = 0;
-        			self->start_button_delay_cnt = 0;
-        			printf("%s RK. Fueling start delay finished. Begin fueling: %d\r\n", self->side == left ? "Left" : "Right");
-        			button_start_handler(self);
-        		} else {
-        			if(self->start_button_delay_cnt % 10 == 0)
-						printf("%s RK. Delay before starting fueling: %d\r\n", self->side == left ? "Left" : "Right",
-								DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING - self->start_button_delay_cnt);
+        		if (self->pagz_mode_enabled) {
+					self->start_button_delay_cnt++;
+					if(self->stop_button_pressed_flag) {
+						self->start_button_pressed_flag = 0;
+						self->start_button_delay_cnt = 0;
+						rk_stop_fueling_process(self, &self->cnt);
+						self->stop_button_pressed_flag = 0;
+						printf("%s RK. Fueling not started due to stop button being pressed: %d\r\n", self->side == left ? "Left" : "Right");
+					}
+					if(self->start_button_delay_cnt > DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING) {
+						self->start_button_pressed_flag = 0;
+						self->start_button_delay_cnt = 0;
+						printf("%s RK. Fueling start delay finished. Begin fueling: %d\r\n", self->side == left ? "Left" : "Right");
+						button_start_handler(self);
+					} else {
+						if(self->start_button_delay_cnt % 10 == 0)
+							printf("%s RK. Delay before starting fueling: %d\r\n", self->side == left ? "Left" : "Right",
+									DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING - self->start_button_delay_cnt);
+					}
+        		} else {  // в режиме ПАГЗ задержка после нажатия на кнопку СТАРТ не нужна
+					self->start_button_pressed_flag = 0;
+					self->start_button_delay_cnt = 0;
+					printf("%s RK. Fueling started.\r\n", self->side == left ? "Left" : "Right");
+					button_start_handler(self);
         		}
         	}
             break;
