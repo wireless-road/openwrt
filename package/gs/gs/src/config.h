@@ -4,9 +4,9 @@
 #define DEVICE_MARKING_CODE	1010.01f
 #define FIRMWARE_SUBVERSION	0.05f
 
-#define DEV_WITHOUT_4_20	1
-#define DEV_WITHOUT_FLOMAC	1
-#define SIMULATION			1
+//#define DEV_WITHOUT_4_20	1
+//#define DEV_WITHOUT_FLOMAC	1
+//#define SIMULATION			1
 
 // define IN_4_20_MA_LOG	1
 
