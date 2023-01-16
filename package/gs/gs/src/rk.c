@@ -371,7 +371,7 @@ static int rk_process(rk_t* self) {
             break;
         case trk_enabled_fueling_process:
         	if(self->fueling_approved_by_human == 1) {
-        		self->fueling_process_flag = 1;
+        		self->fueling_process_flag = 0;
             	rk_fueling_scheduler(self);
         	}
             break;
