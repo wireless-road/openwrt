@@ -153,8 +153,8 @@ int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
     	} else if(in_4_20_right->enabled) {
     		printf("4-20: RIGHT RK (chnl idx %d) %d\r\n", in_4_20_right->channel_idx, ret_right_2 );
     	}
+#endif
     }
-#endef
 }
 
 
