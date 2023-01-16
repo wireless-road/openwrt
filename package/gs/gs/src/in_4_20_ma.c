@@ -144,6 +144,7 @@ int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
 			usleep(300000);
     	}
 
+#ifdef IN_4_20_MA_LOG
     	if(in_4_20_left->enabled && in_4_20_right->enabled) {
     		printf("4-20: LEFT RK (chnl idx %d) %d. RIGHT RK (chnl idx %d) %d\r\n", in_4_20_left->channel_idx, ret_left_2, in_4_20_right->channel_idx, ret_right_2 );
     	} else if(in_4_20_left->enabled) {
@@ -153,6 +154,7 @@ int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
     		printf("4-20: RIGHT RK (chnl idx %d) %d\r\n", in_4_20_right->channel_idx, ret_right_2 );
     	}
     }
+#endef
 }
 
 
