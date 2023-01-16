@@ -340,9 +340,7 @@ static int rk_process(rk_t* self) {
         	self->fueling_process_flag = 0;
             break;
         case trk_authorization_cmd:
-        	self->fueling_process_flag = 0;
-            break;
-        case trk_enabled_fueling_process:
+//        	self->fueling_process_flag = 0;
         	if(self->start_button_pressed_flag) {
         		self->start_button_delay_cnt++;
         		if(self->stop_button_pressed_flag) {
@@ -363,6 +361,8 @@ static int rk_process(rk_t* self) {
 								DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING - self->start_button_delay_cnt);
         		}
         	}
+            break;
+        case trk_enabled_fueling_process:
         	if(self->fueling_approved_by_human == 1) {
         		self->fueling_process_flag = 1;
             	rk_fueling_scheduler(self);
@@ -554,7 +554,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         	}
         	rk_stop_fueling_process(self, &self->cnt);
             self->store_prev_summators_flag = 0;
-        	printf("%s RK. FUELING FINISHED #1. FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->side == left ? "Left" : "Right", self->flomac_mass_flowrate);
+        	printf("%s RK. FUELING FINISHED #2. FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->side == left ? "Left" : "Right", self->flomac_mass_flowrate);
         }
         else if(self->stop_button_pressed_flag == 1) {
         	// 3. Нажата кнопка СТОП.
@@ -975,7 +975,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
 static void rk_start_fueling_process(rk_t* self)
 {
-    self->state = trk_enabled_fueling_process;
+//    self->state = trk_enabled_fueling_process;
     self->fueling_current_volume = 0.00;
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
     printf("flomac inventory mass starting value: %f. summator_volume: %.2f\r\n", self->flomac_inv_mass_starting_value, self->summator_volume);
@@ -1005,7 +1005,7 @@ static void button_start_callback(rk_t* self, int code)
     	return;
     }
 
-    if(self->state == trk_enabled_fueling_process) {
+    if(self->state == trk_authorization_cmd) {
     	self->start_button_pressed_flag = 1;
     }
 }
@@ -1021,8 +1021,9 @@ static void button_start_handler(rk_t* self)
     		printf("%s RK. LOCAL FUELING not possible in %d state.\r\n", self->side == left ? "Left" : "Right", self->state);
     	}
     } else {
-    	if(self->state == trk_enabled_fueling_process) {
+    	if(self->state == trk_authorization_cmd) {
         	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
+        	self->state = trk_enabled_fueling_process;
         	self->fueling_approved_by_human = 1;
         	self->stop_button_pressed_flag = 0;  // нажатие на кнопку СТАРТ сбрасывает нажатие на кнопку СТОП
         	valve_low_on(self);
