@@ -443,7 +443,7 @@ function gs_state_get()
 	        name = "low_pressure_threshold",
 	        value = low_pressure_threshold,
 	        label = "MIN давление (мА)",
-	        explanation = "давление (мА) ниже данного значения рассматривается как ошибка",
+	        explanation = "УСТАРЕЛО. НЕ ИСПОЛЬЗУЕТСЯ. давление (мА) ниже данного значения рассматривается как ошибка",
 	        field_type = "text",
 	        field_options = {}
 	    },

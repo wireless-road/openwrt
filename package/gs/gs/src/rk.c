@@ -271,7 +271,7 @@ static int rk_check_state(rk_t* self) {
         error_clear(&self->error_state, ERROR_INPUT_4_20_NOT_CONNECTED);
         rk_indicate_error_message(self);
     }
-
+/*
     if( (ret == IN_4_20_LOW_PRESSURE_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE) )
     {
     	printf("ERROR %s RK. 4-20ma low pressure ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
@@ -287,7 +287,7 @@ static int rk_check_state(rk_t* self) {
         error_clear(&self->error_state, ERROR_INPUT_4_20_LOW_PRESSURE);
         rk_indicate_error_message(self);
     }
-
+*/
     if( (ret == IN_4_20_HIGH_PRESSURE_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_HIGH_PRESSURE) )
     {
     	printf("ERROR %s RK. 4-20ma high pressure ERROR. state %d\r\n", self->side == left ? "Left" : "Right", ret);
