@@ -340,7 +340,7 @@ static int rk_process(rk_t* self) {
         	self->fueling_process_flag = 0;
             break;
         case trk_authorization_cmd:
-//        	self->fueling_process_flag = 0;
+        	self->fueling_process_flag = 1;
         	if(self->start_button_pressed_flag) {
         		if (self->pagz_mode_enabled) {
 					self->start_button_delay_cnt++;

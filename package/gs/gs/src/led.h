@@ -26,6 +26,11 @@
 
 #define INPUT_NOT_CONNECTED_THRESHOLD_VALUE     100
 
+#define LIGHT_ON	"1"
+#define LIGHT_OFF	"0"
+
+#define LEN_1		1
+
 typedef struct led_t led_t;
 
 typedef enum {

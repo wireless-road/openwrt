@@ -78,8 +78,8 @@ int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
 
     led->normal_led_state = off;
     led->error_led_state = off;
-    set_config(led->normal_led_filename, "0", 1);
-    set_config(led->error_led_filename, "0", 1);
+    set_config(led->normal_led_filename, LIGHT_OFF, 1);
+    set_config(led->error_led_filename, LIGHT_OFF, 1);
     if(led->enabled) {
     	pthread_create(&led->thread_id, NULL, led_indicate_thread, led);
     }
@@ -94,22 +94,22 @@ static int led_indicate_thread(led_t* led) {
     		//printf("LED. Error: %d\r\n", *led->error_flag);
     		if(led->normal_led_state == on) {
     			led->normal_led_state = off;
-    			set_config(led->normal_led_filename, "0", 1);
+    			set_config(led->normal_led_filename, LIGHT_OFF, LEN_1);
     		}
 
     		if(led->error_led_state == off) {
     			//printf("LED. Error. ON.\r\n");
     			led->error_led_state = on;
-    			set_config(led->error_led_filename, "1", 1);
+    			set_config(led->error_led_filename, LIGHT_ON, LEN_1);
     		} else {
     			//printf("LED. Error. OFF.\r\n");
     			led->error_led_state = off;
-    			set_config(led->error_led_filename, "0", 1);
+    			set_config(led->error_led_filename, LIGHT_OFF, LEN_1);
     		}
     	} else {
     		if(led->error_led_state == on) {
     			led->error_led_state = off;
-    			set_config(led->error_led_filename, "0", 1);
+    			set_config(led->error_led_filename, LIGHT_OFF, LEN_1);
     		}
 
     		if(*led->normal_flag) {
@@ -117,19 +117,23 @@ static int led_indicate_thread(led_t* led) {
 				if(led->normal_led_state == off) {
 //					printf("LED. Fueling. ON.\r\n");
 					led->normal_led_state = on;
-					set_config(led->normal_led_filename, "1", 1);
+					set_config(led->normal_led_filename, LIGHT_ON, LEN_1);
 				} else {
 //					printf("LED. Fueling. OFF.\r\n");
 					led->normal_led_state = off;
-					set_config(led->normal_led_filename, "0", 1);
+					set_config(led->normal_led_filename, LIGHT_OFF, LEN_1);
 				}
     		} else {
-    			if(led->normal_led_state == off) {
+/*    			if(led->normal_led_state == off) {
     				led->normal_led_state = on;
-    				set_config(led->normal_led_filename, "1", 1);
+    				set_config(led->normal_led_filename, LIGHT_ON, LEN_1);
+    			}*/
+    			if(led->normal_led_state == on) {  // зеленый светодиод теперь сигнализирует только о текущем процессе заправки
+    				led->normal_led_state = off;
+    				set_config(led->normal_led_filename, LIGHT_OFF, LEN_1);
     			}
     		}
     	}
-        sleep(3);
+        sleep(1);
     }
 }
