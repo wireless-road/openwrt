@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-// 11 standart id
+// 11 bit standart id
 //  id bit number        10 9 8 7 6 5    4 3 2 1 0
 //  id bit structure   |   dev addr   |  cmd code  |
 
@@ -37,24 +37,26 @@
 #define	STATE_APP					(1U)
 #define	STATE_BOOTLOADER			(2U)
 
-#define ERR_OK			(0U)
-#define ERR_ERR			(0xFFU)
+#define ERR_OK						(0U)
+#define ERR_ERR						(0xFFU)
 
-#define RESTART_DELAY	(40U)
-#define	BOOT_WR_LEN		(2U)
-#define BOOT_RD_LEN		(2U)
+#define RESTART_DELAY				(40U)
+#define	BOOT_WR_LEN					(2U)
+#define BOOT_RD_LEN					(2U)
 
-#define GO_APP_TIMEOUT	(40U)
-#define RESTART_TIMEOUT	(40U)
+#define GO_APP_TIMEOUT				(40U)
+#define RESTART_TIMEOUT				(40U)
 
-#define RW_SIZE			(8U)
+#define RW_SIZE						(8U)
 
-#define	START_APP_ADDR	(0x08004000U)
-#define	END_APP_ADDR	(0x08010000U)
-#define MCU_MEM_SZ		(END_APP_ADDR - START_APP_ADDR)
-#define	ERASE_INC_ADDR	(1024U)
-#define	WRITE_INC_ADDR	(8U)
+#define	START_APP_ADDR				(0x08004000U)
+#define	END_APP_ADDR				(0x08010000U)
+#define MCU_MEM_SZ					(END_APP_ADDR - START_APP_ADDR)
+#define	ERASE_INC_ADDR				(1024U)
+#define	WRITE_INC_ADDR				(8U)
 #define	LEN_INFO_FILE_POSITION		(0x108U)
+#define BUILD_DATE_POS				(0x110UL)
+#define BUILD_NUMBER_POS			(0x118UL)
 
 typedef struct {
 	uint8_t status;

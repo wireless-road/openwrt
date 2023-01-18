@@ -55,32 +55,34 @@ int CAN_socker_init(char* interface) {
 }
 
 void print_usage(char *prg) {
-    printf("\nUsage: %s -l <port> -d <port> -i <can interface>\n", prg);
+    printf("\nUsage: %s -a <device address> -i <can interface> -f <file name>\n", prg);
     printf("   Version 0.93\n");
     printf("\n");
-    printf("         -l <port>           listening UDP port for the server - default 15731\n");
-    printf("         -d <port>           destination UDP port for the server - default 15730\n");
-    printf("         -i <can int>        can interface - default can0\n");
-    printf("         -f                  running in foreground\n\n");
-    printf("         -v                  verbose output (in foreground)\n\n");
+    printf("         -a <device address> device address\n");
+    printf("         -i <can interface>  name of can interface\n");
+    printf("         -f <file name>      file name for update indicator board\n");
+    printf("         -v                  verbose output (in foreground)\n");
+    printf("\n");
 }
 
-void parse_args(int argc, char **argv) {
+int parse_args(int argc, char **argv) {
     int opt;
-    while ((opt = getopt(argc, argv, "a:f:r:i:h?")) != -1) {
+    int arg_cnt = 0;
+    while ((opt = getopt(argc, argv, "a:f:i:h?")) != -1) {
         switch (opt) {
             case 'a':
             	can_addr = strtoul(optarg, (char **)NULL, 10);
             	can_addr <<= CAN_ADDR_BIT_POSITION;
 				can_addr &= CAN_ADDR_MASK;
+				++arg_cnt;
                 break;
             case 'i':
                 strncpy(can_interface, optarg, sizeof(can_interface));
+				++arg_cnt;
                 break;
             case 'f':
 				strncpy(file_name, optarg, sizeof(file_name));
-                break;
-            case 'r':
+				++arg_cnt;
                 break;
             case 'h':
             case '?':
@@ -92,6 +94,8 @@ void parse_args(int argc, char **argv) {
                 exit(EXIT_FAILURE);
         }
     }
+
+    return arg_cnt;
 }
 
 int32_t send_to_can(int can_sc, struct can_frame* frame)
@@ -188,24 +192,27 @@ int main(int argc, char **argv) {
     int sc;		// CAN socket
     uint32_t addr;
 
-    printf("--------------------------------------------------------\n");
-    printf("------ HELLO CAN bootloader ----------------------------\n");
-    printf("--------------------------------------------------------\n");    
+    printf("\n");
+    printf("----------------------------------------------\n");
+    printf("------------ HELLO CAN bootloader ------------\n");
+    printf("----------------------------------------------\n");
+    printf("\n");
 
-    parse_args(argc, argv);
+    int32_t res = parse_args(argc, argv);
+
+    if(res < 3)
+    {
+    	printf("not enough arguments\n");
+    	print_usage(basename(argv[0]));
+    	exit(EXIT_FAILURE);
+
+    }
 
     printf("can_interface - %s\n", can_interface);
     printf("file_name - %s\n", file_name);
     printf("can addr - %u\n", can_addr);
 
-    if(can_addr > CAN_ADD_MAX)
-    {
-    	printf("wrong CAN address\n");
-    	printf("Exit\n");
-		return 0;
-    }
-
-    int32_t res = can_protocol_set_file(file_name);
+    res = can_protocol_set_file(file_name);
 
     if(res != 0)
     {

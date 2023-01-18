@@ -35,6 +35,9 @@ static FILE* f_read;
 static uint32_t f_len;
 static uint32_t crc32;
 uint32_t rd_crc32;
+uint32_t fw_build_date;
+uint32_t fw_build_number;
+uint32_t cmd_snd_cnt;
 
 void can_protocol_set_file_len(uint32_t len)
 {
@@ -115,6 +118,45 @@ int32_t can_protocol_set_file(char* file_name)
 
 	f_len = (uint32_t)file_len;
 
+	// read build data and build vercion
+	res = fseek(f_read, BUILD_DATE_POS, SEEK_SET);
+	if(res)
+	{
+		fclose(f_read);
+		printf("can not seek position 1.1\n");
+		return -1;
+	}
+
+	bytes_read = fread(&fw_build_date, sizeof(fw_build_date), 1, f_read);
+	if(bytes_read != 1)
+	{
+		printf("bytes_read - %u\n", bytes_read);
+		printf("can not read build date\n");
+		fclose(f_read);
+		return -1;
+	}
+
+	res = fseek(f_read, BUILD_NUMBER_POS, SEEK_SET);
+	if(res)
+	{
+		fclose(f_read);
+		printf("can not seek position 1.1\n");
+		return -1;
+	}
+
+	bytes_read = fread(&fw_build_number, sizeof(fw_build_number), 1, f_read);
+	if(bytes_read != 1)
+	{
+		printf("bytes_read - %u\n", bytes_read);
+		printf("can not read build number\n");
+		fclose(f_read);
+		return -1;
+	}
+
+	fw_build_number &= 0xFFFFUL;  // to uint16_t value
+
+	//---------------------------------
+
 	res = fseek (f_read, 0, SEEK_SET);
 	if(res)
 	{
@@ -128,6 +170,7 @@ int32_t can_protocol_set_file(char* file_name)
 
 void can_protocol_make_connect_cmd(uint32_t caddr, struct can_frame* p_frame)
 {
+	cmd_snd_cnt = 0;
 	p_frame->can_id = caddr + CMD_GET_STATE;
 	p_frame->can_dlc = 0;
 }
@@ -149,19 +192,57 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 					printf("Dev state\n");
 					if(p_answ->status == STATE_BOOTLOADER)
 					{
-						printf("BOOTLOADER state\n");
-						printf("Send set erase address cmd\n");
-						p_frame->can_id = caddr + CMD_SET_ADDR;
-						addr = START_APP_ADDR;
-						memcpy(p_frame->data, &addr, sizeof(addr));
-						p_frame->can_dlc = sizeof(addr);
+						printf("     BOOTLOADER state\n");
+						if(p_answ->build_date == 0xFFFFFFFFUL)
+						{
+							printf("     device build data   --------\n");
+						}else{
+							printf("     device build data   %u\n", p_answ->build_date);
+						}
+						if(p_answ->build_number == 0xFFFFUL)
+						{
+							printf("     device build number ----\n");
+						}else{
+							printf("     device build number %u\n", p_answ->build_number);
+						}
+						printf("     fw build data       %u\n", fw_build_date);
+						printf("     fw build number     %u\n", fw_build_number);
 
-						proto_state = ST_BOOT_SET_ERASE_ADDR;
+						char resp = 0;
+						do{
+							printf("do you want continue ? (y/n): ");
+							fflush(stdout);
+							scanf("%c", &resp);
+							if((resp == 'n') || (resp == 'N'))
+							{
+								printf("update process aborted\n");
+								if(p_answ->build_date == 0xFFFFFFFFUL)
+								{
+									ret_val = 3U;
+								}else{
+									proto_state = ST_BOOT_TO_APP;
+									p_frame->can_id = caddr + CMD_GO_APP;
+									p_frame->can_dlc = 0;
+									ret_val = 1U;
+								}
+							}
+							if((resp == 'y') || (resp == 'Y'))
+							{
+								printf("Send set erase address cmd\n");
+								p_frame->can_id = caddr + CMD_SET_ADDR;
+								addr = START_APP_ADDR;
+								memcpy(p_frame->data, &addr, sizeof(addr));
+								p_frame->can_dlc = sizeof(addr);
 
-						ret_val = 1U;
+								proto_state = ST_BOOT_SET_ERASE_ADDR;
+
+								ret_val = 1U;
+							}
+							fflush(stdin);
+						}while((resp != 'n') && (resp != 'y') && (resp != 'N') && (resp != 'Y'));
 					}else if(p_answ->status == STATE_APP)
 					{
-						printf("APPLICATION state\n");
+						printf("     APPLICATION state\n");
 						printf("Send go to bootloader cmd\n");
 						p_frame->can_id = caddr + CMD_FW_UPDATE;
 						p_frame->can_dlc = 0;
@@ -223,11 +304,13 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 					{
 						if(addr < END_APP_ADDR)
 						{
-								addr += ERASE_INC_ADDR;
-								p_frame->can_id = caddr + CMD_ERASE;
-								p_frame->can_dlc = 0;
-								ret_val = 1U;
+							fprintf(stderr, ".");
+							addr += ERASE_INC_ADDR;
+							p_frame->can_id = caddr + CMD_ERASE;
+							p_frame->can_dlc = 0;
+							ret_val = 1U;
 						}else{
+							printf("\n");
 							printf("erase OK\n");
 							p_frame->can_id = caddr + CMD_SET_ADDR;
 							addr = START_APP_ADDR;
@@ -283,6 +366,12 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 					{
 						if(addr < f_len)
 						{
+							++cmd_snd_cnt;
+							if(cmd_snd_cnt == 64)
+							{
+								fprintf(stderr, ".");
+								cmd_snd_cnt = 0;
+							}
 							size_t bytes_read = fread(rcv_data, 1, RW_SIZE, f_read);
 
 							crc32 = stm32_sw_crc32_by_byte(crc32, rcv_data, bytes_read);
@@ -294,6 +383,8 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 							proto_state = ST_BOOT_WRITE;
 							ret_val = 1U;
 						}else{
+							cmd_snd_cnt = 0;
+							printf("\n");
 							printf("write CRC32, crc32 = 0x%08X\n", crc32);
 							p_frame->can_id = caddr + CMD_WRITE;
 							memcpy(p_frame->data, &crc32, sizeof(crc32));
@@ -320,7 +411,7 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 						uint32_t res = fseek(f_read, 0, SEEK_SET);
 						if(res)
 						{
-							printf("can not seek position 1\n");
+							printf("can not seek position 3\n");
 							ret_val = 2U;
 						}else{
 							printf("set start read address\n");
@@ -347,7 +438,7 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 					t_std_answer* p_answ = (t_std_answer*)rcv_data;
 					if(p_answ->_err == ERR_OK)
 					{
-						printf("start read\n");
+						printf("start verify\n");
 						p_frame->can_id = caddr + CMD_READ;
 						p_frame->can_dlc = 0;
 						proto_state = ST_BOOT_READ;
@@ -367,6 +458,13 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 				{
 					if(p_frame->can_dlc)
 					{
+						++cmd_snd_cnt;
+						if(cmd_snd_cnt == 64)
+						{
+							fprintf(stderr, ".");
+							cmd_snd_cnt = 0;
+						}
+
 						memcpy(rcv_data, p_frame->data, p_frame->can_dlc);
 						uint8_t rd_data[RW_SIZE];
 						addr += p_frame->can_dlc;
@@ -378,23 +476,19 @@ uint32_t can_protocol(uint32_t caddr, struct can_frame* p_frame)
 							p_frame->can_id = caddr + CMD_READ;
 							p_frame->can_dlc = 0;
 							ret_val = 1U;
+							if(addr == f_len)
+							{
+								printf("\n");
+								printf("verify CRC32\n");
+
+								proto_state = ST_BOOT_READ_CRC32;
+							}
 						}else{
 							printf("verify error at adddress - 0x%08X\n", (addr + START_APP_ADDR));
 							ret_val = 2U;
 						}
-
-						if(addr == f_len)
-						{
-							printf("read CRC32\n");
-
-							p_frame->can_id = caddr + CMD_READ;
-							p_frame->can_dlc = 0;
-
-							proto_state = ST_BOOT_READ_CRC32;
-							ret_val = 1U;
-						}
 					}else{
-						printf("reading breaking\n");
+						printf("verify breaking\n");
 						ret_val = 2U;
 					}
 				}
