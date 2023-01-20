@@ -395,7 +395,7 @@ static int rk_process(rk_t* self) {
             break;
         case trk_enabled_fueling_process:
         	if(self->fueling_approved_by_human == 1) {
-        		self->fueling_process_flag = 0;
+        		self->fueling_process_flag = 1;
             	rk_fueling_scheduler(self);
         	}
             break;
@@ -847,7 +847,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 //            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             if(tmp == 0) {
                 azt_tx_ack();
-                self->can_bus.transmit_price_only(&self->can_bus, self->fueling_price_per_liter);
+                self->can_bus.transmit(&self->can_bus,
+                           0.00,
+                           self->fueling_price_per_liter,
+                           0.00);
             } else {
                 azt_tx_can();
             }
