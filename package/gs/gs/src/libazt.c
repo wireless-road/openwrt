@@ -119,7 +119,7 @@ int azt_request_parser_sub(char* rx_buf, int rx_buf_len, int *idx) {
 
 //    azt_req_clean(&azt_req);
 //    azt_req_extract(&azt_req, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
-    if(azt_reqs_cnt < AZT_REQUESTS_BUF_SIZE-1) {
+    if(azt_reqs_cnt < AZT_REQUESTS_BUF_SIZE) {
     	azt_req_extract(azt_reqs+azt_reqs_cnt, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
     	azt_reqs_cnt++;
     }
