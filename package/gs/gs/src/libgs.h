@@ -2,7 +2,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <gpiod.h>
+// #include <gpiod.h>
 #include <modbus/modbus.h>
 #include <modbus/modbus-rtu.h>
 #include <pthread.h>
