@@ -12,6 +12,8 @@
 
 #include "libazt_ll.h"
 
+#include "config.h"
+
 #define TRK_DEFAULT_ADDRESS 0x01
 
 #define COMPLIMENTARY(a)(0x7F & (~a))
@@ -106,7 +108,9 @@ int azt_tx(char* data, int cnt);
 int azt_tx_nak(void);
 int azt_tx_ack(void);
 int azt_tx_can(void);
-azt_request_t* azt_request(void);
+//azt_request_t* azt_request(void);
+azt_request_t* azt_requests(int i);
+int azt_requests_counter(void);
 void azt_deinit();
 
 #endif //SRC_LIBAZT_H

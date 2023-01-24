@@ -40,12 +40,18 @@ int main(int argc, char* argv[])
 
     int azt_req_flag = 0;
 
+    int req_cnt = 0;
     while(1) {
 		buttons_handler(&left_rk, &right_rk);
         azt_req_flag = azt_rx_handler();
         if(azt_req_flag) {
-            left_rk.azt_req_hndl(azt_request(), &left_rk);
-            right_rk.azt_req_hndl(azt_request(), &right_rk);
+//            left_rk.azt_req_hndl(azt_request(), &left_rk);
+//            right_rk.azt_req_hndl(azt_request(), &right_rk);
+        	req_cnt = azt_requests_counter();
+        	for(int i=0; i<req_cnt; i++) {
+        		left_rk.azt_req_hndl(azt_requests(i), &left_rk);
+        		right_rk.azt_req_hndl(azt_requests(i), &right_rk);
+        	}
         }
 
 #ifndef SIMULATION

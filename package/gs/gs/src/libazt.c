@@ -8,30 +8,54 @@ static int azt_validate_complimentary_bytes(char* rx_buf, int starting_symbol_id
 static azt_validate_crc(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx, int crc_symbol_idx);
 static int azt_calculate_crc(char* buf, int starting_symbol_idx, int ending_symbol_idx);
 static void azt_req_extract(azt_request_t* azt_req, char* rx_buf, int azt_request_cmd_idx, int ending_symbol_idx, int address);
+static azt_reqs_clean(void);
 static azt_req_clean(azt_request_t* req);
+int azt_request_parser_sub(char* rx_buf, int rx_buf_len, int *idx);
 
 char azt_request_params[AZT_REQUEST_PARAMS_MAX_AMOUNT] = {0};
 int azt_request_params_cnt = 0;
 
-azt_request_t azt_req;
+#define AZT_REQUESTS_BUF_SIZE	5
+//azt_request_t azt_req;
+azt_request_t azt_reqs[AZT_REQUESTS_BUF_SIZE];
+int azt_reqs_cnt = 0;
 
 void azt_request_parser(char* rx_buf, int rx_buf_len) {
-//    printf("\n");
-//    for(int i = 0; i<rx_buf_len; i++) {
-//        printf("%02X ", rx_buf[i]);
-//    }
-//    printf("\n");
+#ifdef AZT_PROTOCOL_LOG
+	printf("\n");
+	for(int i = 0; i<rx_buf_len; i++) {
+		printf("%02X ", rx_buf[i]);
+	}
+	printf("\n");
+#endif
+	int idx = 0;
+	int res = 0;
 
+	azt_reqs_clean();
+	while(idx < rx_buf_len - 1) {
+		res = azt_request_parser_sub(rx_buf, rx_buf_len, &idx);
+		if(res == -1) {
+			return;
+		}
+	}
+}
+
+int azt_request_parser_sub(char* rx_buf, int rx_buf_len, int *idx) {
+
+	int i = *idx;
     // Check for starting byte idx
     int starting_symbol_idx = -1;
-    for(int i = 0; i<rx_buf_len; i++) {
+    for(i = *idx; i<rx_buf_len; i++) {
         if(rx_buf[i] == AZT_RQST_DEL_SYMBOL) {
             starting_symbol_idx = i+1;
             break;
         }
     }
     if(starting_symbol_idx == -1) { // No DEL symbol detected, skip the whole packet
-        return;
+#ifdef AZT_PROTOCOL_LOG
+    	printf("\twrong starting sym\r\n");
+#endif
+        return -1;
     }
 
 
@@ -43,27 +67,44 @@ void azt_request_parser(char* rx_buf, int rx_buf_len) {
             break;
         }
     }
+
     if(ending_symbol_idx == -1) {
-        return;  // Ending symbols not found
+#ifdef AZT_PROTOCOL_LOG
+    	printf("\twrong ending sym\r\n");
+#endif
+        return -1;  // Ending symbols not found
     }
 
     int crc_symbol_idx = ending_symbol_idx+2;
     if(crc_symbol_idx >= rx_buf_len) {
-        return;
+#ifdef AZT_PROTOCOL_LOG
+    	printf("\twrong crc sym\r\n");
+#endif
+        return -1;
     }
 
     int ret = azt_validate_complimentary_bytes(rx_buf, starting_symbol_idx, ending_symbol_idx);
     if(ret == -1) {
-        return;  // Broken packet. Wrong complimentary bytes
+#ifdef AZT_PROTOCOL_LOG
+    	printf("\twrong comp byte\r\n");
+#endif
+        return -1;  // Broken packet. Wrong complimentary bytes
     }
     ret = azt_validate_crc(rx_buf, starting_symbol_idx, ending_symbol_idx, crc_symbol_idx);
     if(ret == -1) {
-        return;  // Broken packet. Wrong complimentary bytes
+#ifdef AZT_PROTOCOL_LOG
+    	printf("\twrong crc\r\n");
+#endif
+        return -1;  // Broken packet. Wrong complimentary bytes
     }
 
     int address = azt_calculate_address(rx_buf, starting_symbol_idx);
     if(address == -1) {
-        return;
+#ifdef AZT_PROTOCOL_LOG
+    	printf("\twrong address %d <--> %d\r\n", starting_symbol_idx, ending_symbol_idx);
+#endif
+    	*idx = ending_symbol_idx + 2;
+        return 0;
     }
 
     int azt_request_cmd_idx = starting_symbol_idx+3;
@@ -71,9 +112,16 @@ void azt_request_parser(char* rx_buf, int rx_buf_len) {
     memset(azt_request_params, 0, AZT_REQUEST_PARAMS_MAX_AMOUNT);
     azt_request_params_cnt = 0;
 
-    azt_req_clean(&azt_req);
-    azt_req_extract(&azt_req, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
+#ifdef AZT_PROTOCOL_LOG
+	printf("\tcorrect %d <-> %d\r\n", starting_symbol_idx, ending_symbol_idx + 2);
+#endif
+    *idx = ending_symbol_idx + 2;
 
+//    azt_req_clean(&azt_req);
+//    azt_req_extract(&azt_req, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
+    azt_req_extract(azt_reqs+azt_reqs_cnt, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
+    azt_reqs_cnt++;
+    return 0;
 }
 
 
@@ -102,10 +150,17 @@ int azt_rx_handler(void) {
     return 0;
 }
 
-azt_request_t* azt_request(void) {
-    return &azt_req;
+//azt_request_t* azt_request(void) {
+//    return &azt_req;
+//}
+
+azt_request_t* azt_requests(int i) {
+    return azt_reqs + i;
 }
 
+int azt_requests_counter(void) {
+	return azt_reqs_cnt;
+}
 
 char tx_buf[256];
 int tx_buf_len = 0;
@@ -195,6 +250,13 @@ int azt_tx(char* data, int cnt) {
 //////////////////////////////////////////////////////////////////////////////////////
 /////////// local functions  /////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
+static azt_reqs_clean(void) {
+	for(int i=0; i<AZT_REQUESTS_BUF_SIZE; i++) {
+		azt_req_clean(azt_reqs+i);
+	}
+	azt_reqs_cnt = 0;
+}
+
 static azt_req_clean(azt_request_t* req) {
     req->cmd = 0;
     req->params_cnt = 0;
@@ -225,6 +287,7 @@ static int azt_calculate_address(char* rx_buf, int address_shift_byte_idx)
             break;
         }
     }
+
     if(address_shift == -1) {
         return -1;  // Wrong shift address byte
     }

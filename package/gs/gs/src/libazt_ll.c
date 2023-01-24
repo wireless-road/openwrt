@@ -6,10 +6,11 @@
 static int azt_port_fd = 0;
 static int azt_rts_fd = 0;
 
-char read_buf[256];
+#define PACKETS_BUF_LEN		256
+char read_buf[PACKETS_BUF_LEN];
 int read_buf_len = 0;
 
-char packet_buf[64];
+char packet_buf[PACKETS_BUF_LEN];
 int packet_buf_len = 0;
 
 void (*request_parser)(char*, int);
@@ -100,8 +101,17 @@ int azt_port_read(void) {
         }
     }
     else {
-        memcpy(packet_buf+packet_buf_len, read_buf, read_buf_len);
-        packet_buf_len += read_buf_len;
+    	if(packet_buf_len + read_buf_len < PACKETS_BUF_LEN) {
+			memcpy(packet_buf+packet_buf_len, read_buf, read_buf_len);
+			packet_buf_len += read_buf_len;
+    	} else {
+    		if(packet_buf_len > 0) {
+                (*request_parser)(packet_buf, packet_buf_len);
+                memset(&packet_buf, 0, sizeof(packet_buf));
+                packet_buf_len = 0;
+                return 1;
+    		}
+    	}
     }
     return 0;
 }
