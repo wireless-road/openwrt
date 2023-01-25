@@ -419,6 +419,11 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
 
 int gs_scan(gs_conninfo_t *conninfo)
 {
+    return gs_scan_ext(conninfo, 247);
+}
+
+int gs_scan_ext(gs_conninfo_t *conninfo, int maxAddrModBUS)
+{
     modbus_t *ctx;
     int ret;
     char port[16];
@@ -450,7 +455,7 @@ int gs_scan(gs_conninfo_t *conninfo)
         return NULL;
     }
 
-    for(int i=0; i<247; i++) {
+    for(int i=0; i<maxAddrModBUS; i++) {
         modbus_set_slave(ctx, i);
         ret = gs_get_version(ctx);
         printf("Slave address %d responce: %d\r\n", i, ret);
