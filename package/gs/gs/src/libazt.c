@@ -5,11 +5,11 @@
 void azt_request_parser(char* rx_buf, int rx_buf_len);
 static int azt_calculate_address(char* rx_buf, int starting_symbol_idx);
 static int azt_validate_complimentary_bytes(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx);
-static azt_validate_crc(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx, int crc_symbol_idx);
+static int azt_validate_crc(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx, int crc_symbol_idx);
 static int azt_calculate_crc(char* buf, int starting_symbol_idx, int ending_symbol_idx);
 static void azt_req_extract(azt_request_t* azt_req, char* rx_buf, int azt_request_cmd_idx, int ending_symbol_idx, int address);
-static azt_reqs_clean(void);
-static azt_req_clean(azt_request_t* req);
+static void azt_reqs_clean(void);
+static void azt_req_clean(azt_request_t* req);
 int azt_request_parser_sub(char* rx_buf, int rx_buf_len, int *idx);
 
 char azt_request_params[AZT_REQUEST_PARAMS_MAX_AMOUNT] = {0};
@@ -252,14 +252,14 @@ int azt_tx(char* data, int cnt) {
 //////////////////////////////////////////////////////////////////////////////////////
 /////////// local functions  /////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
-static azt_reqs_clean(void) {
+static void azt_reqs_clean(void) {
 	for(int i=0; i<AZT_REQUESTS_BUF_SIZE; i++) {
 		azt_req_clean(azt_reqs+i);
 	}
 	azt_reqs_cnt = 0;
 }
 
-static azt_req_clean(azt_request_t* req) {
+static void azt_req_clean(azt_request_t* req) {
     req->cmd = 0;
     req->params_cnt = 0;
     memset(req->params, 0, AZT_REQUEST_PARAMS_MAX_AMOUNT);
@@ -321,7 +321,7 @@ static int azt_validate_complimentary_bytes(char* rx_buf, int starting_symbol_id
     return 0;
 }
 
-static azt_validate_crc(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx, int crc_symbol_idx) {
+static int azt_validate_crc(char* rx_buf, int starting_symbol_idx, int ending_symbol_idx, int crc_symbol_idx) {
     int res = 0;
     for(int i=starting_symbol_idx+1; i<=ending_symbol_idx; i+=2) {
         res ^= rx_buf[i];
