@@ -3,7 +3,7 @@
 #define FILENAME_MAX_SIZE   64
 #define RX_BUF_SIZE         64
 
-static int led_indicate_thread(led_t* led);
+static void * led_indicate_thread(void* arg);
 
 int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
 
@@ -86,7 +86,8 @@ int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
     return 0;
 }
 
-static int led_indicate_thread(led_t* led) {
+static void * led_indicate_thread(void* arg) {
+    led_t * led = (led_t*)arg;
 //	printf("LED NORMAL gpio filename: %s\r\n", led->normal_led_filename);
 //	printf("LED ERROR gpio filename: %s\r\n", led->error_led_filename);
     while(1) {

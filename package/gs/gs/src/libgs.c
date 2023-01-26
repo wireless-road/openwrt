@@ -3,7 +3,7 @@
 #define FILENAME_MAX_SIZE   64
 #define RX_BUF_SIZE         64
 
-static void gs_thread(gs_conninfo_t* conninfo);
+static void *gs_thread(void *);
 
 static int gs_read_reg(modbus_t *ctx, int reg, int count, uint16_t *buffer)
 {
@@ -36,7 +36,7 @@ int gs_set_modbus_baudrate(gs_conninfo_t* conninfo, Flomac_Baudrate_t baudrate_)
 
     modbus_t *ctx = conninfo->ctx;
 
-    if (gs_read_reg(ctx, R_MMI_MBUS_MAP, 1, &device_mode) == -1)
+    if (gs_read_reg(ctx, R_MMI_MBUS_MAP, 1, (uint16_t *) &device_mode) == -1)
     {
         return -1;
     }
@@ -47,14 +47,14 @@ int gs_set_modbus_baudrate(gs_conninfo_t* conninfo, Flomac_Baudrate_t baudrate_)
 
     	printf("Baudrate changing step 1. set Flomac mode\r\n");
     	// change mode from MMI to Flomac
-    	if(gs_write_reg(ctx, R_MMI_MBUS_MAP, 1, &mode) == -1) {
+    	if(gs_write_reg(ctx, R_MMI_MBUS_MAP, 1, (uint16_t*)&mode) == -1) {
     		printf("MB error. write failed\r\n");
     	}
     }
 
     printf("Baudrate changing step 2. set baudrate\r\n");
     // set Baudrate
-    if(gs_write_reg(ctx, REG_F_BAUDRATE, 1, &baudrate) == -1) {
+    if(gs_write_reg(ctx, REG_F_BAUDRATE, 1, (uint16_t *)&baudrate) == -1) {
     	printf("MB error. write failed\r\n");
     }
 
@@ -80,7 +80,7 @@ int gs_set_modbus_baudrate(gs_conninfo_t* conninfo, Flomac_Baudrate_t baudrate_)
     	// change mode back from Flomac to MMI
     	int mode = Mode_MMI;
     	usleep(100000);
-    	if(gs_write_reg(ctx, R_MMI_MBUS_MAP, 1, &mode) == -1) {
+    	if(gs_write_reg(ctx, R_MMI_MBUS_MAP, 1, (uint16_t*) &mode) == -1) {
     	}
     	usleep(100000);
     }
@@ -95,12 +95,12 @@ int gs_get_version(modbus_t *ctx)
     int device_mode = 0;
     int sw_revision = 0;
 
-    if (gs_read_reg(ctx, R_MMI_MBUS_MAP, 1, &device_mode) == -1)
+    if (gs_read_reg(ctx, R_MMI_MBUS_MAP, 1, (uint16_t*) &device_mode) == -1)
     {
         return -1;
     }
 
-    if (gs_read_reg(ctx, R_MMI_SW_VER, 1, &sw_revision) == -1)
+    if (gs_read_reg(ctx, R_MMI_SW_VER, 1, (uint16_t*) &sw_revision) == -1)
     {
         return -1;
     }
@@ -152,7 +152,7 @@ int gs_get_all_units(modbus_t *ctx, measure_units_t *measure_units)
 
     uint16_t buf[8];
     p = (uint16_t *)measure_units;
-    if (gs_read_reg(ctx, R_MMI_UNITS_BASE, 8, &buf) == -1)
+    if (gs_read_reg(ctx, R_MMI_UNITS_BASE, 8, &buf[0]) == -1)
         return -1;
     for (int i = 0; i < 8; i++)
     {
@@ -162,6 +162,9 @@ int gs_get_all_units(modbus_t *ctx, measure_units_t *measure_units)
 
     return 0;
 }
+
+// forward declaration
+int gs_get_mass_summator_only(modbus_t *, measurements_t *);
 
 int gs_get_measurements(modbus_t *ctx, measurements_t *measurements, int* counter)
 {
@@ -184,7 +187,7 @@ int gs_get_all_measurements(modbus_t *ctx, measurements_t *measurements)
     float *p;
     p = (float *)measurements;
     uint16_t buf[20];
-    if (gs_read_reg(ctx, R_MMI_MEASUREMENTS_BASE, 20, &buf) == -1) {
+    if (gs_read_reg(ctx, R_MMI_MEASUREMENTS_BASE, 20, buf) == -1) {
         return -1;
     }
     for (int i = 0; i < 20; i += 2)
@@ -201,7 +204,7 @@ int gs_get_mass_summator_only(modbus_t *ctx, measurements_t *measurements)
     p = (float *)measurements;
     p = p+9;
     uint16_t buf[2];
-    if (gs_read_reg(ctx, R_MMI_DENSITY, 2, &buf) == -1) {
+    if (gs_read_reg(ctx, R_MMI_DENSITY, 2, buf) == -1) {
         return -1;
     }
     for (int i = 0; i < 2; i += 2)
@@ -216,7 +219,7 @@ int gs_set_mass_units(modbus_t *ctx, int mass_units)
 {
     uint8_t ret;
     uint16_t readback_value;
-    ret = modbus_write_and_read_registers(ctx, R_MMI_MASS_U, 1, &mass_units,
+    ret = modbus_write_and_read_registers(ctx, R_MMI_MASS_U, 1, (uint16_t*)&mass_units,
                                           R_MMI_MASS_U, 1, &readback_value);
     if ((mass_units == readback_value) || !ret)
         return 0;
@@ -228,7 +231,7 @@ int gs_set_volume_units(modbus_t *ctx, int volume_units)
 {
     uint8_t ret;
     uint16_t readback_value;
-    ret = modbus_write_and_read_registers(ctx, R_MMI_VOLUME_U, 1, &volume_units,
+    ret = modbus_write_and_read_registers(ctx, R_MMI_VOLUME_U, 1, (uint16_t*) &volume_units,
                                           R_MMI_VOLUME_U, 1, &readback_value);
     if ((volume_units == readback_value) || !ret)
         return 0;
@@ -322,7 +325,8 @@ V_TOTAL: %.2f. M_INV: %.2f. V_INV: %.2f\r\n",
 }
 
 
-static void gs_thread(gs_conninfo_t* conninfo) {
+static void *gs_thread(void* arg) {
+gs_conninfo_t* conninfo = (gs_conninfo_t*) arg;
     int ret;
     _Atomic float* mass = (_Atomic float*)&conninfo->summator_mass;
     _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
@@ -374,6 +378,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
             atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);
         }
     }
+    return NULL;
 }
 
 int gs_check_state(gs_conninfo_t* conninfo) {
@@ -384,10 +389,10 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
 {
     modbus_t *ctx;
     int ret;
-    char port[16];
+    char port[60];
 
     conninfo->measurements_read_counter = 0;
-    sprintf(&port, "/dev/ttymxc%d", conninfo->port);
+    sprintf(port, "/dev/ttymxc%d", conninfo->port);
 //    printf("Connecting to %s...\n", port);
 //    printf("Connecting using baudrate: %d\n", conninfo->baudrate);
     ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
@@ -417,24 +422,19 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
     return ctx;
 }
 
-int gs_scan(gs_conninfo_t *conninfo)
-{
-    return gs_scan_ext(conninfo, 247);
-}
-
 int gs_scan_ext(gs_conninfo_t *conninfo, int maxAddrModBUS)
 {
     modbus_t *ctx;
     int ret;
-    char port[16];
+    char port[61];
 
-    sprintf(&port, "/dev/ttymxc%d", conninfo->port);
+    sprintf(port, "/dev/ttymxc%d", conninfo->port);
     printf("Connecting to %s...\n", port);
     ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
     if (ctx == NULL)
     {
         fprintf(stderr, "Unable to create the libmodbus context\n");
-        return ctx;
+        return -2;
     }
 
     modbus_set_response_timeout(ctx, 0, 100000);
@@ -445,14 +445,14 @@ int gs_scan_ext(gs_conninfo_t *conninfo, int maxAddrModBUS)
     {
         fprintf(stderr, "Error setting mode to RS485!\n");
         modbus_free(ctx);
-        return NULL;
+        return -3;
     }
 
     if (modbus_connect(ctx) == -1)
     {
         fprintf(stderr, "Connection failed: %s\n", modbus_strerror(errno));
         modbus_free(ctx);
-        return NULL;
+        return -4;
     }
 
     for(int i=0; i<maxAddrModBUS; i++) {
@@ -466,6 +466,11 @@ int gs_scan_ext(gs_conninfo_t *conninfo, int maxAddrModBUS)
     }
 
     return -1;
+}
+
+int gs_scan(gs_conninfo_t *conninfo)
+{
+    return gs_scan_ext(conninfo, 247);
 }
 
 void gs_close(modbus_t *ctx)

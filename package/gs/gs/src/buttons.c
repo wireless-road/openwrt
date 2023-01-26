@@ -29,7 +29,7 @@ void buttons_init(rk_t* left, rk_t* right){
     callback1 = left->btn_clbk_stop;
     callback2 = right->btn_clbk_start;
     callback3 = right->btn_clbk_stop;
-    return 0;
+    return;
 }
 
 int buttons_handler(rk_t* left, rk_t* right){

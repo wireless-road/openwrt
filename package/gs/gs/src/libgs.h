@@ -63,7 +63,7 @@ typedef struct gs_conninfo {
 } gs_conninfo_t;
 
 /* port handling */
-//int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo);
+int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo);
 modbus_t* gs_init(gs_conninfo_t *conninfo);
 int gs_scan(gs_conninfo_t *conninfo);
 void gs_close(modbus_t *ctx);

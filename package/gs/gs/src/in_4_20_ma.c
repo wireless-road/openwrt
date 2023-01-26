@@ -115,7 +115,8 @@ int in_4_20_ma_read_thread(in_4_20_t* in_4_20) {
     }
 }
 
-int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
+void * in_4_20_ma_read_thread_both(void * arg) {
+    struct in_4_20_t ** in_4_20s = (struct in_4_20_t**)arg;
 	int ret_right_1 = 0;
 	int ret_right_2 = 0;
 	int ret_left_1 = 0;
@@ -155,6 +156,7 @@ int in_4_20_ma_read_thread_both(struct in_4_20_t**  in_4_20s) {
     	}
 #endif
     }
+    return NULL;
 }
 
 

@@ -104,8 +104,8 @@ struct rk_t {
     in_4_20_t in_4_20;
     error_t error_state;
     gs_conninfo_t modbus;
-    void (*btn_clbk_start)(int);
-    void (*btn_clbk_stop)(int);
+    void (*btn_clbk_start)(rk_t*, int);
+    void (*btn_clbk_stop)(rk_t*, int);
     int stop_button_pressed_flag;
     int start_button_pressed_flag;
     int start_button_delay_cnt;
