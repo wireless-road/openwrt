@@ -22,8 +22,8 @@ test_modbus: $(OBJ)
 test_modbus2: $(OBJ)
 	$(CC) -o test_modbus2 test_modbus2.o $(LDFLAGS)
 
-test_can: test_can.o libgs.o
-	$(CC) -o  $@ $< $(CFLAGS) $(LDFLAGS)
+test_can: test_can.o can.o settings.o
+	$(CC) -o  $@ $? $(CFLAGS) $(LDFLAGS)
 
 .PHONY: clean
 
