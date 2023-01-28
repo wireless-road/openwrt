@@ -28,7 +28,7 @@ typedef struct can_t can_t;
 
 struct can_t {
     int busNumber;
-    char bus[4];
+    char bus[20];
     int deviceAddress;
     char config_filename_bus_number[CONFIG_FILENAME_MAX_LENGTH];
     char config_filename_device_address[CONFIG_FILENAME_MAX_LENGTH];
@@ -46,5 +46,6 @@ struct can_t {
 #define CONFIG_FILE_CAN_DEVICE_ADDRESS              "/mnt/gs/%d/can_deviceAddress"
 
 int CAN_init(int idx, can_t* can);
+int CAN_init_ex(can_t* can, int, int);
 
 #endif  // CAN_H
