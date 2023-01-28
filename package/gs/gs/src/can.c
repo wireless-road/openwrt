@@ -10,6 +10,7 @@ static int CAN_send_price_only(can_t* self, float totalPrice);
 int CAN_init(int idx, can_t* can) {
 
     char filename[FILENAME_MAX_SIZE];
+    int busNumber, deviceAddr;
 
     // busNumber
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -20,15 +21,7 @@ int CAN_init(int idx, can_t* can) {
     if(ret == -1) {
         return -1;
     }
-    can->busNumber = ret;
-
-    sprintf(can->bus, "can%d", can->busNumber);
-
-    can->fd = CAN_socket_init(can->bus);
-
-    if(can->fd == -1) {
-        return -1;
-    }
+    busNumber = ret;
 
     // deviceBaseAddress
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -40,11 +33,30 @@ int CAN_init(int idx, can_t* can) {
     if(ret == -1) {
         return -1;
     }
-    can->deviceAddress = ret;
+    deviceAddr = ret;
+
+    return CAN_init_ex(can, busNumber, deviceAddr);
+}
+
+int CAN_init_ex( can_t* can, const int busNum, const int da)
+{
+    can->busNumber = busNum;
+
+    sprintf(can->bus, "can%d", can->busNumber);
+
+    can->fd = CAN_socket_init(can->bus);
+
+    if(can->fd == -1) {
+        return -1;
+    }
+
+    can->deviceAddress = da;
 
     can->transmit = CAN_send;
     can->transmit_half = CAN_send_half;
     can->transmit_price_only = CAN_send_price_only;
+
+    return 0;
 }
 
 static int CAN_socket_init(char* interface) {
