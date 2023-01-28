@@ -222,7 +222,7 @@ int rk_init(int idx, rk_t* rk) {
     led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);
 
     rk->modbus.side = rk->side;
-    ret = gs_init_pthreaded(idx, &rk->modbus, rk->side);
+    ret = gs_init_pthreaded(idx, &rk->modbus);
     if(ret == -1) {
     	printf("ERROR %s RK. Modbus (flomac) initialization failed\r\n", rk->side == left ? "Left" : "Right");
     	return -1;
@@ -373,12 +373,12 @@ static int rk_process(rk_t* self) {
 						self->start_button_delay_cnt = 0;
 						rk_stop_fueling_process(self, &self->cnt);
 						self->stop_button_pressed_flag = 0;
-						printf("%s RK. Fueling not started due to stop button being pressed: %d\r\n", self->side == left ? "Left" : "Right");
+						printf("%s RK. Fueling not started due to stop button being pressed: %d\r\n", self->side == left ? "Left" : "Right",  self->start_button_delay_cnt );
 					}
 					if(self->start_button_delay_cnt > DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING) {
 						self->start_button_pressed_flag = 0;
 						self->start_button_delay_cnt = 0;
-						printf("%s RK. Fueling start delay finished. Begin fueling: %d\r\n", self->side == left ? "Left" : "Right");
+						printf("%s RK. Fueling start delay finished. Begin fueling: %d\r\n", self->side == left ? "Left" : "Right", self->start_button_delay_cnt );
 						button_start_handler(self);
 					} else {
 						if(self->start_button_delay_cnt % 10 == 0)
@@ -557,7 +557,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         				valve_middle_on(self);
                 		self->cnt = 0;
                 		printf("%s RK. FUELING PROCESS. MIDDLE VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
-                		return;
+                		return 1;
         			}
         			break;
         		case SECOND_VALVE_FUELING_STAGE:
@@ -565,7 +565,7 @@ static int rk_fueling_scheduler(rk_t* self) {
         				valve_high_on(self);
                 		self->cnt = 0;
                 		printf("%s RK. FUELING PROCESS. HIGH VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
-                		return;
+                		return 2;
         			}
         			break;
         		case THIRD_VALVE_FUELING_STAGE:
@@ -627,7 +627,7 @@ static int rk_fueling_scheduler(rk_t* self) {
                 	self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
                 	rk_stop_fueling_process(self, &self->cnt);
                 	printf("%s RK. FUELING FINISHED #4. Reset command received\r\n", self->side == left ? "Left" : "Right");
-                	return;
+                	return 3;
         		} else {
         		}
         	}
@@ -652,11 +652,13 @@ static int rk_fueling_scheduler(rk_t* self) {
         }
     } else {
     }
+
+    return 0;
 }
 
 static int azt_req_handler(azt_request_t* req, rk_t* self)
 {
-	static reset_current_fueling_values_flag = FALSE;
+	static int reset_current_fueling_values_flag = FALSE;
 
     if(!self->enabled) {
     	return 0;

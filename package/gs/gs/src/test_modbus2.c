@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <termios.h>
+#include <stdlib.h>
 
 //#include "libgs.h"
 //#include "libazt.h"
@@ -31,9 +32,9 @@ char read_buf2[5] = {0};
 char read_buf3[5] = {0};
 char read_buf5[5] = {0};
 
-void init(int fd);
+int init(int fd);
 
-int read_ttymxc6(void) {
+void * read_ttymxc6(__attribute__ ((unused)) void * _) {
 	memset(read_buf6, 0, sizeof(read_buf6));
 	while(1) {
 		int ret = read(fd6, &read_buf6, sizeof(read_buf6));
@@ -44,9 +45,10 @@ int read_ttymxc6(void) {
 		}
 		}
 	}
+    return NULL;
 }
 
-int read_ttymxc5(void) {
+void * read_ttymxc5(__attribute__ ((unused))  void * _) {
 	memset(read_buf5, 0, sizeof(read_buf5));
 	while(1) {
 		int ret = read(fd5, &read_buf5, sizeof(read_buf5));
@@ -57,6 +59,7 @@ int read_ttymxc5(void) {
 		}
 		}
 	}
+    return NULL;
 }
 
 int main(int argc, char* argv[])
@@ -122,7 +125,7 @@ int main(int argc, char* argv[])
 }
 	
 
-void init(int fd) {
+int init(int fd) {
     struct termios tty;
     if (tcgetattr(fd, &tty) != 0) {
         printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
@@ -161,4 +164,5 @@ void init(int fd) {
         return 1;
     }
 
+    return 0;
 }
