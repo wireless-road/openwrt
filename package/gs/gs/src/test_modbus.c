@@ -13,7 +13,7 @@
 #include "buttons.h"
 
 #define DEFAULT_MAX_SCAN_ADDR 3
-#define DEFAULT_BAUD_RATE B9600
+#define DEFAULT_BAUD_RATE 9600
 
 
 // 1st inst
@@ -65,8 +65,8 @@ int main(int argc, char* argv[])
                 break;
             case 'b':
                 b_cand = atoi(optarg);
-                if ( (b_cand == B9600)  || (b_cand == B19200) || ( b_cand == B38400 ) 
-                    || (b_cand == B57600 ) || (b_cand == B115200) )
+                if ( (b_cand == 9600)  || (b_cand == 19200) || ( b_cand == 38400 )
+                    || (b_cand == 57600 ) || (b_cand == 115200) )
                     baud = b_cand;
                 break;
             default:
