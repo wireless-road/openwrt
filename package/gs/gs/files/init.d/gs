@@ -89,6 +89,8 @@ run_gs() {
 	procd_set_param command $PROG
 #	procd_set_param respawn 3600 8 0
 	procd_set_param respawn
+#	uncomment following to catch app crashes
+#	procd_set_param limits core="unlimited"
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_close_instance
