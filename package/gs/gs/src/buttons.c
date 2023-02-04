@@ -1,12 +1,7 @@
 #include "buttons.h"
 
 static int buttons_fd;
-
-static const char *const evval[3] = {
-    "RELEASED",
-    "PRESSED ",
-    "REPEATED"
-};
+static int stop_flag1, stop_flag2 = 0;
 
 void (*callback0)(rk_t*, int);
 void (*callback1)(rk_t*, int);
@@ -43,7 +38,7 @@ int buttons_handler(rk_t* left, rk_t* right){
 
     if (ret == (ssize_t)-1) {
         if (errno == EAGAIN || errno == EINTR) {
-                return 0;
+            return 0;
         }
     } else {
         if (ret != sizeof ev) {
@@ -55,21 +50,42 @@ int buttons_handler(rk_t* left, rk_t* right){
             switch (ev.code)
             {
                 case BTN_0: // start 1
-                    callback0(left, ev.code);
+                    if (stop_flag1 == 1)
+                        printf("Hold on left side detected\n");
+                        // TODO: replace with proper callback 
+                    else
+                        callback0(left, ev.code);
                     break;
                 case BTN_1:// stop 1
                     callback1(left, ev.code);
+                    stop_flag1 = 1;
                     break;
                 case BTN_2: //start 2
-                    callback2(right, ev.code);
+                    if (stop_flag2 == 1)
+                        printf("Hold on right side detected\n");
+                        // TODO: replace with proper callback 
+                    else
+                        callback2(right, ev.code);
                     break;
                 case BTN_3: // stop 2
                     callback3(right, ev.code);
+                    stop_flag2 = 1;
                     break;
                 default: // non-keyboard event
                     break;
+            } 
+        } else if (ev.type == EV_KEY && ev.value == 0) {
+            switch (ev.code) {
+                case BTN_1:
+                    stop_flag1 = 0; 
+                    printf("Left side released\n");
+                    break;
+                case BTN_3:
+                    stop_flag2 = 0;
+                    printf("Right side released\n");
+                    break;
             }
-        }
+        }   
     }
     return 0;
 }
