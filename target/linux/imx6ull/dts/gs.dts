@@ -22,6 +22,7 @@
 
 	gpio-keys {
 		compatible="gpio-keys";
+		label="Front panel buttons";
 
 		start_1 {
 			label = "Start 1";
