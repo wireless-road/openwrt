@@ -1,12 +1,15 @@
 #include "buttons.h"
 
 static int buttons_fd;
-static int stop_flag1, stop_flag2 = 0;
 
 void (*callback0)(rk_t*, int);
 void (*callback1)(rk_t*, int);
 void (*callback2)(rk_t*, int);
 void (*callback3)(rk_t*, int);
+void (*callback4)(rk_t*, int);
+void (*callback5)(rk_t*, int);
+void (*callback6)(rk_t*, int);
+void (*callback7)(rk_t*, int);
 
 void buttons_init(rk_t* left, rk_t* right){
     int fd = -1;
@@ -24,6 +27,11 @@ void buttons_init(rk_t* left, rk_t* right){
     callback1 = left->btn_clbk_stop;
     callback2 = right->btn_clbk_start;
     callback3 = right->btn_clbk_stop;
+    callback4 = left->btn_clbk_start_released;
+    callback5 = left->btn_clbk_stop_released;
+    callback6 = right->btn_clbk_start_released;
+    callback7 = right->btn_clbk_stop_released;
+
     return 0;
 }
 
@@ -50,39 +58,35 @@ int buttons_handler(rk_t* left, rk_t* right){
             switch (ev.code)
             {
                 case BTN_0: // start 1
-                    if (stop_flag1 == 1)
-                        printf("Hold on left side detected\n");
-                        // TODO: replace with proper callback 
-                    else
-                        callback0(left, ev.code);
+                    callback0(left, ev.code);
                     break;
                 case BTN_1:// stop 1
                     callback1(left, ev.code);
-                    stop_flag1 = 1;
                     break;
                 case BTN_2: //start 2
-                    if (stop_flag2 == 1)
-                        printf("Hold on right side detected\n");
-                        // TODO: replace with proper callback 
-                    else
-                        callback2(right, ev.code);
+                    callback2(right, ev.code);
                     break;
                 case BTN_3: // stop 2
                     callback3(right, ev.code);
-                    stop_flag2 = 1;
                     break;
                 default: // non-keyboard event
                     break;
             } 
         } else if (ev.type == EV_KEY && ev.value == 0) {
             switch (ev.code) {
-                case BTN_1:
-                    stop_flag1 = 0; 
-                    printf("Left side released\n");
+                case BTN_0: // start 1
+                    callback4(left, ev.code);
                     break;
-                case BTN_3:
-                    stop_flag2 = 0;
-                    printf("Right side released\n");
+                case BTN_1:// stop 1
+                    callback5(left, ev.code);
+                    break;
+                case BTN_2: //start 2
+                    callback6(right, ev.code);
+                    break;
+                case BTN_3: // stop 2
+                    callback7(right, ev.code);
+                    break;
+                default: // non-keyboard event
                     break;
             }
         }   

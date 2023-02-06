@@ -106,8 +106,12 @@ struct rk_t {
     gs_conninfo_t modbus;
     void (*btn_clbk_start)(int);
     void (*btn_clbk_stop)(int);
+    void (*btn_clbk_start_released)(int);
+    void (*btn_clbk_stop_released)(int);
     int stop_button_clicked_flag;
     int start_button_clicked_flag;
+    int stop_button_currently_pressed_flag;
+    int start_button_currently_pressed_flag;
     int start_button_delay_cnt;
     int reset_command_received_flag;
     led_t led;

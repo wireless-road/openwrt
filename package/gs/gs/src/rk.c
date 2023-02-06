@@ -17,6 +17,8 @@ static void rk_indicate_error_message(rk_t* self);
 static int rk_check_state(rk_t* self);
 static void button_start_callback(rk_t* self, int code);
 static void button_stop_callback(rk_t* self, int code);
+static void button_start_released_callback(rk_t* self, int code);
+static void button_stop_released_callback(rk_t* self, int code);
 static void button_start_handler(rk_t* self);
 static void rk_start_fueling_process(rk_t* self);
 static void rk_start_local_fueling_process(rk_t* self);
@@ -38,14 +40,19 @@ char tmp[RX_BUF_SIZE] = {0};
 int rk_init(int idx, rk_t* rk) {
     char filename[FILENAME_MAX_SIZE];
 
+    rk->state = trk_disabled_rk_installed;
     rk->cnt = 0;
     rk->store_prev_summators_flag = 0;
 
     rk->btn_clbk_start = button_start_callback;
     rk->btn_clbk_stop = button_stop_callback;
+    rk->btn_clbk_start_released = button_start_released_callback;
+    rk->btn_clbk_stop_released = button_stop_released_callback;
     rk->start_button_clicked_flag = 0;
     rk->start_button_delay_cnt = 0;
     rk->stop_button_clicked_flag = 0;
+    rk->start_button_currently_pressed_flag = 0;
+    rk->stop_button_currently_pressed_flag = 0;
     rk->reset_command_received_flag = 0;
 
     rk->fueling_current_volume = 0.00;
@@ -56,6 +63,7 @@ int rk_init(int idx, rk_t* rk) {
     rk->current_valve_number = 0.00;
 
     rk->in_4_20.enabled = 0;
+    rk->pagz_mode_enabled = 0;
 
     // isEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -124,6 +132,7 @@ int rk_init(int idx, rk_t* rk) {
         return -1;
     }
     rk->pagz_mode_enabled = ret;
+    printf("pagz mode: %d %d\r\n", rk->pagz_mode_enabled, ret);
 
 
     // summator_price
@@ -1033,7 +1042,14 @@ static void rk_start_local_fueling_process(rk_t* self)
 
 static void button_start_callback(rk_t* self, int code)
 {
-    printf("%s RK. start btn clbk\r\n", self->side == left ? "Left" : "Right");
+    printf("%s RK. start btn pressed clbk\r\n", self->side == left ? "Left" : "Right");
+
+    if(self->enabled == 0) {
+	    printf("%s RK disabled. Start button click ignored.\r\n", self->side == left ? "Left" : "Right");
+	    return;
+    }
+
+    self->start_button_currently_pressed_flag = 1;
 
     if(self->selfcheck_mode) {
     	printf("%s RK. selfcheckmode. Light green led\r\n", self->side == left ? "Left" : "Right");
@@ -1042,14 +1058,33 @@ static void button_start_callback(rk_t* self, int code)
     	return;
     }
 
-    if(self->state == trk_authorization_cmd) {
+    if(self->state == trk_authorization_cmd) 
+    {
     	self->start_button_clicked_flag = 1;
-    } else if (self->pagz_mode_enabled) {
+    } 
+    else if (self->pagz_mode_enabled) 
+    {
+	printf("paggz mode %d \r\n", self->pagz_mode_enabled);
     	printf("starting fueling in PAGZ mode\r\n");
 	self->stop_button_clicked_flag = 0;
 	self->start_button_clicked_flag = 1;
 	self->state = trk_authorization_cmd;
+    } 
+    else if( (self->state == trk_disabled_rk_installed) && 
+		(self->stop_button_currently_pressed_flag == 1) ) 
+    {
+	printf("%s RK. both buttons pressed.\r\n", self->side == left ? "Left" : "Right");
+    	self->can_bus.transmit(&self->can_bus, self->summator_volume, 0.00, self->summator_price);
     }
+}
+
+static void button_start_released_callback(rk_t* self, int code)
+{
+    printf("%s RK. start btn released clbk\r\n", self->side == left ? "Left" : "Right");
+    if(self->enabled == 0) {
+	    return;
+    }
+    self->start_button_currently_pressed_flag = 0;
 }
 
 static void button_start_handler(rk_t* self)
@@ -1075,7 +1110,13 @@ static void button_start_handler(rk_t* self)
 
 static void button_stop_callback(rk_t* self, int code)
 {
-    printf("%s RK. stop btn clbk\r\n", self->side == left ? "Left" : "Right");
+    printf("%s RK. stop btn pressed clbk\r\n", self->side == left ? "Left" : "Right");
+    if(self->enabled == 0) {
+	    printf("%s RK disabled. Stop button click ignored.\r\n", self->side == left ? "Left" : "Right");
+	    return;
+    }
+
+    self->stop_button_currently_pressed_flag = 1;
 
     if(self->selfcheck_mode) {
     	printf("%s RK. selfcheckmode. Light red led\r\n", self->side == left ? "Left" : "Right");
@@ -1087,6 +1128,15 @@ static void button_stop_callback(rk_t* self, int code)
     if (self->stop_button_clicked_flag == 0) {
     	self->stop_button_clicked_flag = 1;
     }
+}
+
+static void button_stop_released_callback(rk_t* self, int code)
+{
+    printf("%s RK. stop btn released clbk\r\n", self->side == left ? "Left" : "Right");
+    if(self->enabled == 0) {
+	    return;
+    }
+    self->stop_button_currently_pressed_flag = 0;
 }
 
 static void int_to_string_azt(int val, char* res, int* cnt, int len) {
