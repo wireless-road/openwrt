@@ -20,6 +20,7 @@ static void button_stop_callback(rk_t* self, int code);
 static void button_start_released_callback(rk_t* self, int code);
 static void button_stop_released_callback(rk_t* self, int code);
 static void button_start_handler(rk_t* self);
+static void rk_store_starting_values(rk_t* self);
 static void rk_start_fueling_process(rk_t* self);
 static void rk_start_local_fueling_process(rk_t* self);
 static void rk_stop_fueling_process(rk_t* self, int* cnt);
@@ -132,8 +133,6 @@ int rk_init(int idx, rk_t* rk) {
         return -1;
     }
     rk->pagz_mode_enabled = ret;
-    printf("pagz mode: %d %d\r\n", rk->pagz_mode_enabled, ret);
-
 
     // summator_price
     memset(filename, 0, FILENAME_MAX_SIZE);
@@ -443,7 +442,7 @@ static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
                            self->fueling_price_per_liter,
                            price);
 
-    if((cnt % 10 == 0) || necessary_flag) {
+    if((cnt % 100 == 0) || necessary_flag) {
 		printf("%s RK. currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, pressure: %d (%.2f mA), summator: %.2f, interrupted: %.2f\r\n",
 				self->side == left ? "Left" : "Right",
 				cnt,
@@ -1019,13 +1018,17 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
     }
 }
 
-static void rk_start_fueling_process(rk_t* self)
+static void rk_store_starting_values(rk_t* self)
 {
-//    self->state = trk_enabled_fueling_process;
     self->fueling_current_volume = 0.00;
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
     printf("flomac inventory mass starting value: %f. summator_volume: %.2f\r\n", self->flomac_inv_mass_starting_value, self->summator_volume);
     self->fueling_current_price = 0.00;
+}
+
+static void rk_start_fueling_process(rk_t* self)
+{
+	rk_store_starting_values(self);
     printf("%s RK. Waiting for human to approve fueling\n", self->side == left ? "Left" : "Right");
 }
 
@@ -1099,6 +1102,7 @@ static void button_start_handler(rk_t* self)
     	}
     } else {
     	if(self->state == trk_authorization_cmd) {
+    		rk_store_starting_values(self);
         	printf("%s RK. FUELING approved by human\r\n", self->side == left ? "Left" : "Right");
         	self->state = trk_enabled_fueling_process;
         	self->fueling_approved_by_human = 1;
