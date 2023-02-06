@@ -1,4 +1,4 @@
-all: gs test_modbus test_modbus2
+all: gs test_modbus test_modbus2 test_can
 
 CC = gcc
 CFLAGS += -Wall -Wunused -std=c11
@@ -22,7 +22,10 @@ test_modbus: $(OBJ)
 test_modbus2: $(OBJ)
 	$(CC) -o test_modbus2 test_modbus2.o $(LDFLAGS)
 
+test_can: test_can.o can.o settings.o
+	$(CC) -o  $@ $? $(CFLAGS) $(LDFLAGS)
+
 .PHONY: clean
 
 clean:
-	rm -f gs test_modbus *.o
+	rm -f gs test_modbus test_can *.o

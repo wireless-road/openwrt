@@ -23,6 +23,8 @@ define Build/Prepare
 	cp ./src/* $(PKG_BUILD_DIR)/
 	$(Build/Patch)
 endef
+# uncomment following to simplify core dumps parsing
+# TARGET_CFLAGS += -gdwarf -g3
 TARGET_LDFLAGS += -lmodbus
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" LDFLAGS="$(TARGET_LDFLAGS)"
@@ -33,6 +35,7 @@ define Package/gs/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/gs $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/test_modbus $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/test_modbus2 $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/test_can $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DATA) ./files/gpio_conf.json $(1)/etc/gpio_conf.json
 	$(INSTALL_DIR) $(1)/etc/gs

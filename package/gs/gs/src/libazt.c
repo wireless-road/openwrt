@@ -15,7 +15,7 @@ int azt_request_parser_sub(char* rx_buf, int rx_buf_len, int *idx);
 char azt_request_params[AZT_REQUEST_PARAMS_MAX_AMOUNT] = {0};
 int azt_request_params_cnt = 0;
 
-#define AZT_REQUESTS_BUF_SIZE	5
+#define AZT_REQUESTS_BUF_SIZE	10
 //azt_request_t azt_req;
 azt_request_t azt_reqs[AZT_REQUESTS_BUF_SIZE];
 int azt_reqs_cnt = 0;
@@ -119,8 +119,10 @@ int azt_request_parser_sub(char* rx_buf, int rx_buf_len, int *idx) {
 
 //    azt_req_clean(&azt_req);
 //    azt_req_extract(&azt_req, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
-    azt_req_extract(azt_reqs+azt_reqs_cnt, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
-    azt_reqs_cnt++;
+    if(azt_reqs_cnt < AZT_REQUESTS_BUF_SIZE) {
+    	azt_req_extract(azt_reqs+azt_reqs_cnt, rx_buf, azt_request_cmd_idx, ending_symbol_idx, address);
+    	azt_reqs_cnt++;
+    }
     return 0;
 }
 

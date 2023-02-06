@@ -1,4 +1,5 @@
 #include "settings.h"
+#include <unistd.h>
 
 #define RX_BUF_SIZE         64
 

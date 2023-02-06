@@ -417,19 +417,19 @@ modbus_t *gs_init(gs_conninfo_t *conninfo)
     return ctx;
 }
 
-int gs_scan(gs_conninfo_t *conninfo)
+int gs_scan_ext(gs_conninfo_t *conninfo, int maxAddrModBUS)
 {
     modbus_t *ctx;
     int ret;
-    char port[16];
+    char port[61];
 
-    sprintf(&port, "/dev/ttymxc%d", conninfo->port);
+    sprintf(port, "/dev/ttymxc%d", conninfo->port);
     printf("Connecting to %s...\n", port);
     ctx = modbus_new_rtu(port, conninfo->baudrate, 'N', 8, 1);
     if (ctx == NULL)
     {
         fprintf(stderr, "Unable to create the libmodbus context\n");
-        return ctx;
+        return -2;
     }
 
     modbus_set_response_timeout(ctx, 0, 100000);
@@ -440,17 +440,17 @@ int gs_scan(gs_conninfo_t *conninfo)
     {
         fprintf(stderr, "Error setting mode to RS485!\n");
         modbus_free(ctx);
-        return NULL;
+        return -3;
     }
 
     if (modbus_connect(ctx) == -1)
     {
         fprintf(stderr, "Connection failed: %s\n", modbus_strerror(errno));
         modbus_free(ctx);
-        return NULL;
+        return -4;
     }
 
-    for(int i=0; i<247; i++) {
+    for(int i=0; i<maxAddrModBUS; i++) {
         modbus_set_slave(ctx, i);
         ret = gs_get_version(ctx);
         printf("Slave address %d responce: %d\r\n", i, ret);
@@ -461,6 +461,11 @@ int gs_scan(gs_conninfo_t *conninfo)
     }
 
     return -1;
+}
+
+int gs_scan(gs_conninfo_t *conninfo)
+{
+    return gs_scan_ext(conninfo, 247);
 }
 
 void gs_close(modbus_t *ctx)
