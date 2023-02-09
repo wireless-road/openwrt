@@ -20,6 +20,13 @@ lorawan_gateway_ethernet_bridged)
 	uci set network.lan.device='eth0'
 	/etc/init.d/network restart
 	;;
+gs)
+	uci delete network.lan
+	uci delete network.@device[0]
+	uci delete network.globals
+	uci set network.lan=interface
+	uci set network.lan.proto='dhcp'
+	uci set network.lan.device='wlan0'
 esac
 
 board_config_flush
