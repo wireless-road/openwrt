@@ -15,6 +15,26 @@
 	model = "Gs";
 	compatible = "wirelessroad,stream-imx6ull", "fsl,imx6ull";
 
+	aliases {
+		cpu0 = &cpu0;
+		can1 = &can1;
+		clks = &clks;
+		ecspi3 = &ecspi3;
+		gpc = &gpc;
+		gpmi = &gpmi;
+		iomuxc = &iomuxc;
+		pwm4 = &pwm4;
+		adc1 = &adc1;
+		usbotg1 = &usbotg1;
+		usdhc1 = &usdhc1;
+		usdhc2 = &usdhc2;
+		wdog1 = &wdog1;
+		uart3 = &uart3;
+		uart5 = &uart5;
+		uart6 = &uart6;
+		i2c1 = &i2c1;
+	};
+
 	chosen {
 		stdout-path = &uart1;
 		bootargs = "console=ttymxc0,115200 rootwait fixrtc quiet";
@@ -67,64 +87,31 @@
 		};
 	};
 
-	aliases {
-		cpu0 = &cpu0;
-		can1 = &can1;
-		clks = &clks;
-		fec1 = &fec1;
-		fec2 = &fec2;
-		csi = &csi;
-		ecspi3 = &ecspi3;
-		gpc = &gpc;
-		gpmi = &gpmi;
-		iomuxc = &iomuxc;
-		pwm4 = &pwm4;
-		adc1 = &adc1;
-		usbotg1 = &usbotg1;
-		usbotg2 = &usbotg2;
-		usdhc1 = &usdhc1;
-		usdhc2 = &usdhc2;
-		wdog1 = &wdog1;
-		uart3 = &uart3;
-		uart5 = &uart5;
-		uart6 = &uart6;
-		i2c1 = &i2c1;
+	wfx_pwrseq: wfx_pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_wfx_reset>;
+		reset-gpios = <&gpio3 19 GPIO_ACTIVE_LOW>;
 	};
 
-		@aips3  {
-			compatible = "fsl,aips-bus", "simple-bus";
-			#address-cells = <1>;
-			#size-cells = <1>;
-			reg = <0x02200000 0x100000>;
-			ranges;
+	@aips3  {
+		compatible = "fsl,aips-bus", "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x02200000 0x100000>;
+		ranges;
 
-
-			rngb: rngb@02284000 {
-				compatible = "fsl,imx6sl-rng", "fsl,imx-rng", "imx-rng";
-				reg = <0x02284000 0x4000>;
-				interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
-				clocks =  <&clks IMX6UL_CLK_DUMMY>;
-			};
-
-			@iomuxc_snvs  {
-				compatible = "fsl,imx6ull-iomuxc-snvs";
-				reg = <0x02290000 0x10000>;
-				pinctrl-names = "default_snvs";
-			};
-
-			wfx_pwrseq: wfx_pwrseq {
-				compatible = "mmc-pwrseq-simple";
-				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_wfx_reset>;
-				reset-gpios = <&gpio3 19 GPIO_ACTIVE_LOW>;
-			};
-
+		rngb: rngb@02284000 {
+			compatible = "fsl,imx6sl-rng", "fsl,imx-rng", "imx-rng";
+			reg = <0x02284000 0x4000>;
+			interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
+			clocks =  <&clks IMX6UL_CLK_DUMMY>;
 		};
+	};
 };
 
 #include "wr_cpu.dtsi"
 #include "wr_partitions.dtsi"
-#include "wr_ethernet.dtsi"
 #include "wr_usb.dtsi"
 #include "wr_watchdog.dtsi"
 
@@ -149,6 +136,11 @@
 	fsl,cpu_pdnscr_iso = <0x1>;
 	fsl,ldo-bypass = <0>; /* DCDC, ldo-enable */
 };
+
+&iomuxc_snvs {
+ 	pinctrl-names = "default_snvs";
+	default_snvs {};
+ };
 
 &iomuxc {
 	pinctrl-names = "default";
@@ -199,59 +191,6 @@
 			>;
 		};
 
-		pinctrl_csi1: csi1grp {
-			fsl,pins = <
-				MX6UL_PAD_CSI_MCLK__CSI_MCLK            0x1b088
-				MX6UL_PAD_CSI_PIXCLK__CSI_PIXCLK        0x1b088
-				MX6UL_PAD_CSI_VSYNC__CSI_VSYNC          0x1b088
-				MX6UL_PAD_CSI_HSYNC__CSI_HSYNC          0x1b088
-				MX6UL_PAD_CSI_DATA00__CSI_DATA02        0x1b088
-				MX6UL_PAD_CSI_DATA01__CSI_DATA03        0x1b088
-				MX6UL_PAD_CSI_DATA02__CSI_DATA04        0x1b088
-				MX6UL_PAD_CSI_DATA03__CSI_DATA05        0x1b088
-				MX6UL_PAD_CSI_DATA04__CSI_DATA06        0x1b088
-				MX6UL_PAD_CSI_DATA05__CSI_DATA07        0x1b088
-				MX6UL_PAD_CSI_DATA06__CSI_DATA08        0x1b088
-				MX6UL_PAD_CSI_DATA07__CSI_DATA09        0x1b088
-				MX6UL_PAD_SNVS_TAMPER2__GPIO5_IO02      0x10b0
-				MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03      0x10b0
-			>;
-		};
-
-		pinctrl_usb_otg1_id: usbotg1idgrp {
-			fsl,pins = <
-				MX6UL_PAD_GPIO1_IO00__ANATOP_OTG1_ID	0x17059
-			>;
-		};
-
-		pinctrl_enet1: enet1grp {
-			fsl,pins = <
-				MX6UL_PAD_GPIO1_IO07__ENET1_MDC         0x1b0b0
-				MX6UL_PAD_GPIO1_IO06__ENET1_MDIO	0x1b0b0
-				MX6UL_PAD_ENET1_RX_EN__ENET1_RX_EN	0x1b0b0
-				MX6UL_PAD_ENET1_RX_ER__ENET1_RX_ER	0x1b0b0
-				MX6UL_PAD_ENET1_RX_DATA0__ENET1_RDATA00	0x1b0b0
-				MX6UL_PAD_ENET1_RX_DATA1__ENET1_RDATA01	0x1b0b0
-				MX6UL_PAD_ENET1_TX_EN__ENET1_TX_EN	0x1b0b0
-				MX6UL_PAD_ENET1_TX_DATA0__ENET1_TDATA00	0x1b0b0
-				MX6UL_PAD_ENET1_TX_DATA1__ENET1_TDATA01	0x1b0b0
-				MX6UL_PAD_ENET1_TX_CLK__ENET1_REF_CLK1	0x4001b031
-			>;
-		};
-
-		pinctrl_enet2: enet2grp {
-			fsl,pins = <
-				MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN      0x1b0b0
-				MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER      0x1b0b0
-				MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00 0x1b0b0
-				MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01 0x1b0b0
-				MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN      0x1b0b0
-				MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00 0x1b0b0
-				MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01 0x1b0b0
-				MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2  0x4001b031
-			>;
-		};
-
 		pinctrl_flexcan0: flexcan0grp{
 			fsl,pins = <
 				MX6UL_PAD_UART3_RTS_B__FLEXCAN1_RX	0x1b020
@@ -262,16 +201,6 @@
 		pinctrl_pwm4: pwm4grp {
 			fsl,pins = <
 				MX6UL_PAD_GPIO1_IO05__PWM4_OUT   0x110b0
-			>;
-		};
-
-		pinctrl_sai2: sai2grp {
-			fsl,pins = <
-				MX6UL_PAD_JTAG_TDI__SAI2_TX_BCLK	0x17088
-				MX6UL_PAD_JTAG_TDO__SAI2_TX_SYNC	0x17088
-				MX6UL_PAD_JTAG_TRST_B__SAI2_TX_DATA	0x11088
-				MX6UL_PAD_JTAG_TCK__SAI2_RX_DATA	0x11088
-				MX6UL_PAD_JTAG_TMS__SAI2_MCLK		0x17088
 			>;
 		};
 
@@ -383,19 +312,6 @@
 	status = "okay";
 };
 
-
-&sai2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_sai2>;
-
-	assigned-clocks = <&clks IMX6UL_CLK_SAI2_SEL>,
-			  <&clks IMX6UL_CLK_SAI2>;
-	assigned-clock-parents = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
-	assigned-clock-rates = <0>, <12288000>;
-
-	status = "okay";
-};
-
 &adc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_adc1>;
@@ -409,42 +325,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
 	status = "okay";
-};
-
-&usdhc1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usdhc1>;
-	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
-	keep-power-in-suspend;
-	enable-sdio-wakeup;
-	status = "okay";
-};
-
-&fec1 {
-	status = "disabled";
-};
-
-&fec2 {
-	status = "disabled";
-};
-
-&usdhc2 {  /* Wifi SDIO */
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usdhc2>;
-	no-1-8-v;
-	non-removable;
-	keep-power-in-suspend;
-	// wakeup-source;
-	mmc-pwrseq = <&wfx_pwrseq>;
-	status = "okay";
-	wfm200: wifi@1 {
-		compatible = "silabs,wf200";
-		reg = <1>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_wfx_irq &pinctrl_wfx_wakeup>;
-		wakeup-gpios = <&gpio3 13 GPIO_ACTIVE_HIGH>;
-		interrupts = <&gpio3 11 IRQ_TYPE_EDGE_RISING>;
-	};
 };
 
 &uart3 {
@@ -467,6 +347,38 @@
 	pinctrl-0 = <&pinctrl_uart6>;
 	rts-gpios = <&gpio4 27 GPIO_ACTIVE_HIGH>;
 	status = "okay";
+};
+
+&usbotg1 {
+	maximum-speed = "full-speed";
+	status = "okay";
+};
+
+&usdhc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc1>;
+	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
+	keep-power-in-suspend;
+	enable-sdio-wakeup;
+	status = "okay";
+};
+
+&usdhc2 {  /* Wifi SDIO */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2>;
+	no-1-8-v;
+	non-removable;
+	keep-power-in-suspend;
+	mmc-pwrseq = <&wfx_pwrseq>;
+	status = "okay";
+	wfm200: wifi@1 {
+		compatible = "silabs,wf200";
+		reg = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_wfx_irq &pinctrl_wfx_wakeup>;
+		wakeup-gpios = <&gpio3 13 GPIO_ACTIVE_HIGH>;
+		interrupts = <&gpio3 11 IRQ_TYPE_EDGE_RISING>;
+	};
 };
 
 &i2c1 {
