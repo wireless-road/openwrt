@@ -20,8 +20,10 @@ flexcan_wifi)
 gs)
         ip link set can0 down
         ip link set can0 up type can bitrate 125000
-        ip link set can1 down
-        ip link set can1 up type can bitrate 125000
+                # GS does not have CAN1 enabled, so this
+                # leads to error exit code and repeated execution every boot
+        # ip link set can1 down
+        # ip link set can1 up type can bitrate 125000
         ;;
 esac
 
