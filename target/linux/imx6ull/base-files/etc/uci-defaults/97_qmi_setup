@@ -12,10 +12,10 @@ gs | lorawan_gateway_3g)
     uci set network.wwan.ifname='wwan0'
     uci set network.wwan.proto='qmi'
     uci set network.wwan.device='/dev/cdc-wdm0'
-    uci set network.wwan.apn='internet.emt.ee'
+    uci set network.wwan.apn='internet'
     uci set network.wwan.auth='none'
     uci set network.wwan.ifname='wwan0'
-    uci set network.wwan.autoconnect='0'
+    uci set network.wwan.autoconnect='1'
     ;;
 
 *)
