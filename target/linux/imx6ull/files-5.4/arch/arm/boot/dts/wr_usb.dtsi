@@ -10,7 +10,7 @@
 	phys = <&usbphy1>;
 	phy-names = "usb-phy";
 	maximum-speed;
-	status = "okay";
+	status = "disabled";
 };
 
 &usbotg2 {
@@ -19,7 +19,7 @@
 	external-vbus-divider;
 	phys = <&usbphy2>;
 	phy-names = "usb-phy";
-	status = "okay";
+	status = "disabled";
 };
 
 &usbphy1 {
