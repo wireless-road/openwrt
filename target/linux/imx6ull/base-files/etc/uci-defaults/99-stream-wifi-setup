@@ -29,6 +29,7 @@ esac
 
 case "$board" in
 gs)
+	uci set wireless.@wifi-iface[0].mode="ap";
 	uci set wireless.@wifi-iface[0].hidden="1";
 	uci set wireless.@wifi-iface[0].ssid="openwrt";
 	uci set wireless.@wifi-iface[0].encryption="psk2";
