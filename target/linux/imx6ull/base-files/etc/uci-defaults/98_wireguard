@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# Copyright (C) 2013-2015 OpenWrt.org
+#
+
+. /lib/functions/uci-defaults.sh
+
+board=$(board_name)
+
+board_config_update
+
+case "$board" in
+gs)
+    # WG skeleton
+	#uci -q delete network.wg0
+	uci set network.wg0="interface"
+	uci set network.wg0.proto="wireguard"
+	#uci set network.wg0.private_key="priv_key_here"
+	uci add_list network.wg0.addresses="10.253.253.10"
+	#uci -q delete network.wgserver
+	uci set network.wgserver="wireguard_wg0"
+	#uci set network.wgserver.public_key="server_pub_key_here"
+	#uci set network.wgserver.preshared_key="psk_here"
+	#uci set network.wgserver.endpoint_host="ip_addr_of_server"
+	#uci set network.wgserver.endpoint_port="port_of_server"
+	uci set network.wgserver.route_allowed_ips="1"
+	uci set network.wgserver.persistent_keepalive="25"
+	uci add_list network.wgserver.allowed_ips="0.0.0.0/0"
+	uci commit;
+	;;
+*)
+	;;
+esac
+
+board_config_flush
+
+exit 0
