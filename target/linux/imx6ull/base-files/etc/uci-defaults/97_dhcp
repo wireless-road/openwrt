@@ -25,12 +25,11 @@ gs)
 	uci delete network.@device[0]
 	uci delete network.globals
 	uci set network.lan=interface
-	uci set network.lan.proto='dhcp'
-	uci set network.lan.metric="1024"
 	uci set network.lan.device='wlan0'
+	uci set network.lan.proto='static'
+	uci set network.lan.ipaddr='192.168.1.1/24'
 esac
 
 board_config_flush
 
 exit 0
-
