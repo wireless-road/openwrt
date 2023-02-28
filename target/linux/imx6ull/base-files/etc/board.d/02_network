@@ -13,7 +13,6 @@ case "$board" in
 lorawan_gateway_ethernet|\
 lorawan_gateway_ethernet_bridged|\
 lorawan_gateway_wifi|\
-lorawan_gateway_3g|\
 video_stream_ethernet|\
 video_stream_3g|\
 video_stream_wifi|\
