@@ -23,6 +23,7 @@
 			reg = <3>;
 			clocks = <&clks IMX6UL_CLK_ENET2_REF>;
 			clock-names = "rmii-ref";
+			status = "disabled";
 		};
 	};
 };
