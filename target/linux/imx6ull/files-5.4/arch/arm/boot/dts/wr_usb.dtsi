@@ -8,6 +8,7 @@
 	external-vbus-divider;
 	phys = <&usbphy1>;
 	phy-names = "usb-phy";
+	status = "disabled";
 };
 
 &usbotg2 {
@@ -16,4 +17,5 @@
 	external-vbus-divider;
 	phys = <&usbphy2>;
 	phy-names = "usb-phy";
+	status = "disabled";
 };
