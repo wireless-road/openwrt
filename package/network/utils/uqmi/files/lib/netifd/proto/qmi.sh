@@ -207,6 +207,7 @@ proto_qmi_setup() {
 		echo "Y" > /sys/class/net/$ifname/qmi/raw_ip
 	fi
 
+	# SIM5320E does not support sync command
 	#uqmi -s -d "$device" --sync > /dev/null 2>&1
 
 	uqmi -s -d "$device" --network-register > /dev/null 2>&1
@@ -219,8 +220,9 @@ proto_qmi_setup() {
 		registration_state=$(uqmi -s -d "$device" --get-serving-system 2>/dev/null | jsonfilter -e "@.registration" 2>/dev/null)
 
 		[ "$registration_state" = "registered" ] && break
-
-		if [ "$registration_state" = "searching" ] || [ "$registration_state" = "not_registered" ]; then
+		# Patch for SIM5320E, after power on this modem reports 'No data available'
+		# so jsonfilter returns nothing
+		if [ "$registration_state" = "searching" ] || [ "$registration_state" = "not_registered" ] || [ "$registration_state" = "" ]; then
 			if [ "$registration_timeout" -lt "$timeout" ] || [ "$timeout" = "0" ]; then
 				[ "$registration_state" = "searching" ] || {
 					echo "Device stopped network registration. Restart network registration"
