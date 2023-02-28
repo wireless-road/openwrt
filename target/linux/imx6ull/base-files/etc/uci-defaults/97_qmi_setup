@@ -17,7 +17,7 @@ gs | lorawan_gateway_3g)
     uci set network.wwan.ifname='wwan0'
     uci set network.wwan.autoconnect='1'
     uci set network.wwan.delay='10'
-    uci set network.wwan.timeout='30'
+    uci set network.wwan.timeout='60'
     ;;
 
 *)
