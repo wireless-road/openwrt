@@ -10,11 +10,12 @@ board=$(board_name)
 board_config_update
 
 case "$board" in
-gs)
+gs | lorawan_gateway_3g )
     # WG skeleton
 	#uci -q delete network.wg0
 	uci set network.wg0="interface"
 	uci set network.wg0.proto="wireguard"
+	uci set network.wg0.disabled="1"
 	#uci set network.wg0.private_key="priv_key_here"
 	uci add_list network.wg0.addresses="10.253.253.10"
 	#uci -q delete network.wgserver
