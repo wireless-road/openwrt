@@ -1,0 +1,19 @@
+#!/bin/sh
+
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+
+board=$(board_name)
+
+case "$board" in
+lorawan_gateway_3g)
+	ucidef_set_led_netdev "eth" "LAN" "green:eth" "eth0" "link tx rx"
+	ucidef_set_led_netdev "wwan" "WWAN" "green:3g" "wwan0" "link tx rx"
+    ucidef_set_led_netdev "wifi" "WiFi" "green:wifi" "wlan0" "link tx rx"
+	;;
+esac
+
+board_config_flush
+
+exit 0
