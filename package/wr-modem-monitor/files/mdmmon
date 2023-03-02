@@ -1,13 +1,47 @@
 #!/bin/sh
+err_count=0
+in_restart=0
+
+modem_restart() {
+	echo 0 > /sys/class/gpio/gpio8/value
+	sleep 3
+	echo 1 > /sys/class/gpio/gpio8/value
+	while ! [ -e /dev/cdc-wdm0 ]; do
+		echo "Waiting for modem.."
+		sleep 2
+	done
+	ifup wwan
+	err_count=0
+	in_restart=0
+}
+
 while true; do
-	status=$(ifstatus wwan | jsonfilter -e @.up)
+	status=$(ifstatus wwan | jsonfilter -q -e @.up)
 	case "$status" in
 	"true")
-		echo "Interface connected, nothing to do!"
+		if [ $err_count -eq 3 ]; then
+			echo "NetworkConnection loss detected, but interface is up. Restarting modev.."
+			ifdown wwan
+			modem_restart
+		fi
+		echo "Interface connected, checking ping.."
+		if ! ping -c 1 -W 5 -q 8.8.8.8 > /dev/null 2>&1; then
+			let err_count++
+			echo "Packet loss, retrying.."
+			continue
+		else
+			echo "WWAN connection ok, nothing to do!"
+		fi
 		;;
 	"false")
-		echo "Interface disconnected restarting modem!"
-		modem_restart
+		if [ $in_restart -eq 6 ]; then
+			echo "Modem in restarting state and timeout reached. Restarting again..."
+			let in_restart=0
+			modem_restart
+		else
+			echo "Interface is down and modem in restarting state."
+			let in_restart++
+		fi
 		;;
 	"")
 		echo "Unknown modem state, waiting for data..."
@@ -15,7 +49,3 @@ while true; do
 	esac
 	sleep 10
 done
-
-modem_restart() {
-	:
-}
