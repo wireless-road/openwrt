@@ -1,0 +1,21 @@
+#!/bin/sh
+while true; do
+	status=$(ifstatus wwan | jsonfilter -e @.up)
+	case "$status" in
+	"true")
+		echo "Interface connected, nothing to do!"
+		;;
+	"false")
+		echo "Interface disconnected restarting modem!"
+		modem_restart
+		;;
+	"")
+		echo "Unknown modem state, waiting for data..."
+		;;
+	esac
+	sleep 10
+done
+
+modem_restart() {
+	:
+}
