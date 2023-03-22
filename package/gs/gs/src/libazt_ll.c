@@ -57,8 +57,8 @@ int azt_port_init(void (*f)(char* rx_buf, int rx_buf_len)) {
     tty.c_cc[VMIN] = 0;
 
     // Set in/out baud rate to be 9600
-    cfsetispeed(&tty, B9600);
-    cfsetospeed(&tty, B9600);
+    cfsetispeed(&tty, B4800);
+    cfsetospeed(&tty, B4800);
 
     // Save tty settings, also checking for error
     if (tcsetattr(azt_port_fd, TCSANOW, &tty) != 0) {

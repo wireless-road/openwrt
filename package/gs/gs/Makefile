@@ -24,7 +24,7 @@ define Build/Prepare
 	$(Build/Patch)
 endef
 # uncomment following to simplify core dumps parsing
-# TARGET_CFLAGS += -gdwarf -g3
+TARGET_CFLAGS += -gdwarf -g3
 TARGET_LDFLAGS += -lmodbus
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" LDFLAGS="$(TARGET_LDFLAGS)"

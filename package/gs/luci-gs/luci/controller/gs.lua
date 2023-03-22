@@ -172,6 +172,7 @@ function gs_state_get()
     local led_enabled = nixio.fs.readfile("/mnt/gs/1/led_enabled"):sub(1,-2)
     local modbus_port = nixio.fs.readfile("/mnt/gs/1/modbus_port"):sub(1,-2)
     local selfcheck_mode = nixio.fs.readfile("/tmp/gs_selfcheck"):sub(1,-2)
+    local arm_level_software = nixio.fs.readfile("/mnt/gs/1/arm_level_software"):sub(1,-2)
 
     local relay_low_number = gpio_number_to_relay_code(relay_low_gpio)
     local relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
@@ -317,6 +318,14 @@ function gs_state_get()
 	        field_options = { ["4"]='разъем А', ["5"]='разъем B' }
 	    },
 	    {
+	        name = "arm_level_software",
+	        value = arm_level_software,
+	        label = "ПО операторской",
+	        explanation = "Программа, используемая в операторской.",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='GasKit', ["1"]='Doms' }
+	    },
+	    {
 	        name = "selfcheck_mode",
 	        value = selfcheck_mode,
 	        label = "режим самодиагностики",
@@ -344,6 +353,7 @@ function gs_state_get()
     led_enabled = nixio.fs.readfile("/mnt/gs/2/led_enabled"):sub(1,-2)
     modbus_port = nixio.fs.readfile("/mnt/gs/2/modbus_port"):sub(1,-2)
     selfcheck_mode = nixio.fs.readfile("/tmp/gs_selfcheck"):sub(1,-2)
+    arm_level_software = nixio.fs.readfile("/mnt/gs/2/arm_level_software"):sub(1,-2)
 
     relay_low_number = gpio_number_to_relay_code(relay_low_gpio)
     relay_middle_number = gpio_number_to_relay_code(relay_middle_gpio)
@@ -488,6 +498,14 @@ function gs_state_get()
 	        explanation = "Разъем, к которому подключен массомер согласно маркировке на корпусе устройства.",
 	        field_type = "dropdown",
 	        field_options = { ["4"]='разъем А', ["5"]='разъем B' }
+	    },
+	    {
+	        name = "arm_level_software",
+	        value = arm_level_software,
+	        label = "ПО операторской",
+	        explanation = "Программа, используемая в операторской.",
+	        field_type = "dropdown",
+	        field_options = { ["0"]='GasKit', ["1"]='Doms' }
 	    },
 	    {
 	        name = "selfcheck_mode",
