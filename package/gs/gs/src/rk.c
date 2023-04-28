@@ -126,7 +126,7 @@ int rk_init(int idx, rk_t* rk) {
     // isLocalControlEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_IS_PAGZ_MODE_ENABLED, idx);
-    memset(rk->config_filename_summator_price, 0, sizeof(rk->config_filename_is_local_control_enabled));
+    memset(rk->config_filename_is_local_control_enabled, 0, sizeof(rk->config_filename_is_local_control_enabled));
     strcpy(rk->config_filename_is_local_control_enabled, filename);
     ret = parse_true_false_config(filename);
     if(ret == -1) {
@@ -460,13 +460,13 @@ static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
 }
 
 static int rk_fueling_log_results(rk_t* self) {
-    char volume_summator[8] = {0};
+    char volume_summator[12] = {0};
     sprintf(volume_summator, "%.2f", self->summator_volume);
     set_config(self->config_filename_summator_volume, volume_summator, strlen(volume_summator));
     self->fueling_interrupted_volume = 0.00;
     self->fueling_interrupted_price = 0.00;
 
-    char price_summator[10] = {0};
+    char price_summator[16] = {0};
     sprintf(price_summator, "%.2f", self->summator_price);
     set_config(self->config_filename_summator_price, price_summator, strlen(price_summator));
 }
@@ -474,7 +474,6 @@ static int rk_fueling_log_results(rk_t* self) {
 static int rk_fueling_calculate_summators(rk_t* self) {
     self->fueling_current_price = self->fueling_current_volume * self->fueling_price_per_liter;
     float prev_summator_volume_rounded = roundf(self->prev_summator_volume * 100) / 100;
-    self->fueling_current_price = prev_summator_volume_rounded;
     float fueling_current_volume_rounded = roundf(self->fueling_current_volume * 100) / 100;
     self->fueling_current_volume = fueling_current_volume_rounded;
     float fueling_interrupted_volume_rounded = roundf(self->fueling_interrupted_volume * 100) / 100;
