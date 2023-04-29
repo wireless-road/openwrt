@@ -550,6 +550,26 @@ static int rk_fueling_scheduler(rk_t* self) {
             self->store_prev_summators_flag = 0;
         	printf("%s RK. FUELING FINISHED #1. Requested dose fueled\r\n", self->side == left ? "Left" : "Right");
         }
+        else if(self->reset_command_received_flag) {
+        	// 4. Пришла команда "СТОП" с GasKit
+        	if(!counter_is_started(&self->counter_reset_cmd)) {
+            	printf("%s RK. FUELING FINISHED #4. Reset command received. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
+        		counter_start(&self->counter_reset_cmd);
+        		valve_all_off(self);
+        	} else {
+        		if(counter_tick(&self->counter_reset_cmd)) {
+        			counter_reset(&self->counter_reset_cmd);
+                	self->reset_command_received_flag = 0;
+                	rk_fueling_log_results(self);
+                	self->fueling_interrupted_volume = self->summator_volume - self->prev_summator_volume;
+                	self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
+                	rk_stop_fueling_process(self, &self->cnt);
+                	printf("%s RK. FUELING FINISHED #4. Reset command received\r\n", self->side == left ? "Left" : "Right");
+                	return;
+        		} else {
+        		}
+        	}
+        }
         else if((self->flomac_mass_flowrate < self->mass_flow_rate_threshold_value) && (self->cnt > 500) && (self->fueling_current_volume >= 0.05)) // 20 - для исключения вероятности, что mass flow rate возрастает не мгновенно после открытия клапана
         {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
@@ -626,26 +646,6 @@ static int rk_fueling_scheduler(rk_t* self) {
             		}
             	}
         	}
-        else if(self->reset_command_received_flag) {
-        	// 4. Пришла команда "СТОП" с GasKit
-        	if(!counter_is_started(&self->counter_reset_cmd)) {
-            	printf("%s RK. FUELING FINISHED #4. Reset command received. Delay counter started.\r\n", self->side == left ? "Left" : "Right");
-        		counter_start(&self->counter_reset_cmd);
-        		valve_all_off(self);
-        	} else {
-        		if(counter_tick(&self->counter_reset_cmd)) {
-        			counter_reset(&self->counter_reset_cmd);
-                	self->reset_command_received_flag = 0;
-                	rk_fueling_log_results(self);
-                	self->fueling_interrupted_volume = self->summator_volume - self->prev_summator_volume;
-                	self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
-                	rk_stop_fueling_process(self, &self->cnt);
-                	printf("%s RK. FUELING FINISHED #4. Reset command received\r\n", self->side == left ? "Left" : "Right");
-                	return;
-        		} else {
-        		}
-        	}
-        }
 
         if(self->state != trk_enabled_fueling_process_local) {
         	// При локальной заправке (с кнопки СТАРТ) значения сумматоров не вычисляем, чтобы
