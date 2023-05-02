@@ -749,12 +749,12 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
                 self->reset_command_received_flag = 1;
                 azt_tx_ack();
             } else {
-            	if(self->arm_level_sofrware == arm_software_doms) {
+            	/*if(self->arm_level_sofrware == arm_software_doms) {
             		printf("%s RK. Address %d. RESET to disabled state\n", self->side == left ? "Left" : "Right", self->address);
             		self->state = trk_disabled_rk_installed;
                 	azt_tx_ack();
             	}
-            	else if(ret == 0) {
+            	else*/ if(ret == 0) {
 					self->state = trk_disabled_fueling_finished;
 					self->state_issue = trk_state_issue_less_or_equal_dose; // To-Do: implement correct issue setup
 					azt_tx_ack();
