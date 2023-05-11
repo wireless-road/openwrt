@@ -122,6 +122,67 @@ int rk_init(int idx, rk_t* rk) {
     rk->state = trk_disabled_rk_installed;
     rk->state_issue = trk_state_issue_less_or_equal_dose;
 
+    //    ////////////////////////////////////////////////
+//        char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
+//    	memset(responce, 0, sizeof(responce));
+//    	char fueling_current_vol[VOLUME_DIGITS] = {0};
+//    	rk->fueling_current_volume = 27.00f;
+//    	sprintf(fueling_current_vol, "%06.2f", fabs(rk->fueling_current_volume));
+//    	fueling_current_vol[3] = fueling_current_vol[4];
+//    	fueling_current_vol[4] = fueling_current_vol[5];
+//    	fueling_current_vol[5] = 0x00;
+//
+//    	strcpy(responce, fueling_current_vol);
+//    //				responce[0] = '0';
+//
+//    	printf("%s RK. Address %d. responce 0x34:%f     %s\n", rk->side == left ? "Left" : "Right", rk->address, rk->fueling_current_volume, responce);
+    //	//////////////////////////////////////////////////
+
+        //////////////////////////////////////////////////
+//        char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
+//    	char fueling_current_volume[5+1] = {0};
+//    	rk->fueling_current_volume = 27.00f;
+//    	sprintf(fueling_current_volume, "%06.2f", rk->fueling_current_volume);
+//    	fueling_current_volume[3] = fueling_current_volume[4];
+//    	fueling_current_volume[4] = fueling_current_volume[5];
+//    	fueling_current_volume[5] = 0x00;
+//
+//    	char fueling_current_price[7+1] = {0};
+//    	rk->fueling_current_price = 47.79f;
+//    	sprintf(fueling_current_price, "%08.2f", rk->fueling_current_price);
+//    	fueling_current_price[5] = fueling_current_price[6];
+//    	fueling_current_price[6] = fueling_current_price[7];
+//    	fueling_current_price[7] = 0x00;
+//
+//    	char fueling_price_per_liter_str[4+1] = {0};
+//    	rk->fueling_price_per_liter = 1.77f;
+//    	sprintf(fueling_price_per_liter_str, "%06.3f", rk->fueling_price_per_liter);
+//    	fueling_price_per_liter_str[2] = fueling_price_per_liter_str[3];
+//    	fueling_price_per_liter_str[3] = fueling_price_per_liter_str[4];
+//    	fueling_price_per_liter_str[4] = 0x00;
+    //	fueling_price_per_liter_str[5] = 0x00;
+//
+//    	strcpy(responce, fueling_current_volume);
+//    	printf("%s RK. Address %d. responce 0x35: %s\n", rk->side == left ? "Left" : "Right", rk->address, responce);
+    //	strcpy(responce + 5, fueling_current_price);
+    //	strcpy(responce + 5 + 6, fueling_price_per_liter_str );
+    ////	cnt = 5 + 6 + 4;
+    //	printf("%s RK. Address %d. responce 0x35: %s\n", rk->side == left ? "Left" : "Right", rk->address, responce);
+
+        //////////////////////////////////////////////////
+
+        ///////////////////////////////////////////////////
+    //    int cnt = 0;
+    //    char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
+    //    rk->summator_volume = 2285.00f;
+    //	int tmpp = (int)roundf(rk->summator_volume * 100.0);
+    //	int_to_string_azt(tmpp, responce, &cnt, 8);
+    //    rk->summator_price = 0.00f;
+    //	tmpp = (int)roundf(rk->summator_price * 100.0);
+    //	int_to_string_azt(tmpp, responce, &cnt, 8);
+    //	printf("%s RK. Address %d. responce 0x36: %s\n", rk->side == left ? "Left" : "Right", rk->address, responce);
+
+        ///////////////////////////////////////////////////
     // isLocalControlEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_IS_PAGZ_MODE_ENABLED, idx);
@@ -561,8 +622,10 @@ static int rk_fueling_scheduler(rk_t* self) {
         			counter_reset(&self->counter_reset_cmd);
                 	self->reset_command_received_flag = 0;
                 	rk_fueling_log_results(self);
-                	self->fueling_interrupted_volume = self->summator_volume - self->prev_summator_volume;
-                	self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
+                	if(self->arm_level_sofrware == arm_software_gas_kit) {
+                		self->fueling_interrupted_volume = self->summator_volume - self->prev_summator_volume;
+                		self->fueling_interrupted_price = self->summator_price - self->prev_summator_price;
+                	}
                 	rk_stop_fueling_process(self, &self->cnt);
                 	printf("%s RK. FUELING FINISHED #4. Reset command received\r\n", self->side == left ? "Left" : "Right");
                 	return;
@@ -691,6 +754,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
     char volume[7] = {0};
     char price_[8] = {0};
+    char price[7] = {0};
 
     switch (req->cmd) {
         case AZT_REQUEST_TRK_STATUS_REQUEST:
@@ -732,6 +796,19 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             if(self->is_not_fault(self)) {
                 self->state = trk_authorization_cmd;
                 azt_tx_ack();
+                if(self->arm_level_sofrware == arm_software_doms) {
+                	self->can_bus.transmit(&self->can_bus,
+                			   self->fueling_dose_in_liters,
+							   0.00,
+							   self->fueling_dose_in_liters * self->fueling_price_per_liter);
+                }
+
+//#ifdef SIMULATION
+//            	self->state = trk_enabled_fueling_process;
+//            	self->fueling_approved_by_human = 1;
+//            	self->stop_button_clicked_flag = 0;  // нажатие на кнопку СТАРТ сбрасывает нажатие на кнопку СТОП
+//            	valve_low_on(self);
+//#endif
             } else {
             	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
             	azt_tx_can();
@@ -766,16 +843,17 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         case AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE:  // 0x34
             // printf("%s RK. Address %d. AZT_REQUEST_CURRENT_FUEL_CHARGE_VALUE\n", self->side == left ? "Left" : "Right", self->address);
             if(self->arm_level_sofrware == arm_software_doms) {
-                char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
+            	char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
             	memset(responce, 0, sizeof(responce));
-            	char fueling_current_vol[VOLUME_DIGITS+1] = {0};
-            	sprintf(fueling_current_vol, "%07.2f", fabs(self->fueling_current_volume));
+            	char fueling_current_vol[VOLUME_DIGITS] = {0};
+            	sprintf(fueling_current_vol, "%06.2f", fabs(self->fueling_current_volume));
+            	fueling_current_vol[3] = fueling_current_vol[4];
             	fueling_current_vol[4] = fueling_current_vol[5];
-            	fueling_current_vol[5] = fueling_current_vol[6];
-            	fueling_current_vol[6] = 0x00;
+            	fueling_current_vol[5] = 0x00;
 
             	strcpy(responce, fueling_current_vol);
 				cnt = VOLUME_DIGITS-1;
+//            	printf("%s RK. Address %d. responce 0x34:%f     %s\n", self->side == left ? "Left" : "Right", self->address, self->fueling_current_volume, responce);
 				azt_tx(responce, cnt);
             }
             break;
@@ -811,11 +889,12 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
             azt_tx(responce, cnt);
             } else if(self->arm_level_sofrware == arm_software_doms) {
+
             	char fueling_current_volume[5+1] = {0};
-            	sprintf(fueling_current_volume, "%06.1f", self->fueling_current_volume);
+            	sprintf(fueling_current_volume, "%06.2f", self->fueling_current_volume);
+            	fueling_current_volume[3] = fueling_current_volume[4];
             	fueling_current_volume[4] = fueling_current_volume[5];
-            	fueling_current_volume[5] = fueling_current_volume[6];
-            	fueling_current_volume[6] = 0x00;
+            	fueling_current_volume[5] = 0x00;
 
             	char fueling_current_price[7+1] = {0};
             	sprintf(fueling_current_price, "%08.2f", self->fueling_current_price);
@@ -916,24 +995,25 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             azt_tx(responce, cnt);
             break;
         case AZT_REQUEST_PRICE_PER_LITER_SETUP:
-            printf("%s RK. Address %d. AZT_REQUEST_PRICE_PER_LITER_SETUP\n", self->side == left ? "Left" : "Right", self->address);
-
-            char price[7] = {0};
+            memset(price, 0, sizeof(price));
             price[0] = req->params[0];
             price[1] = req->params[1];
             price[2] = '.';
             price[3] = req->params[2];
             price[4] = req->params[3];
             self->fueling_price_per_liter = strtof(price, NULL);
+            printf("%s RK. Address %d. AZT_REQUEST_PRICE_PER_LITER_SETUP: %.2f\n", self->side == left ? "Left" : "Right", self->address, self->fueling_price_per_liter);
             if(self->arm_level_sofrware == arm_software_doms) {
             	tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
             }
             if(tmp == 0) {
                 azt_tx_ack();
-                self->can_bus.transmit(&self->can_bus,
-                           0.00,
-                           self->fueling_price_per_liter,
-                           0.00);
+                if(self->arm_level_sofrware == arm_software_gas_kit) {
+					self->can_bus.transmit(&self->can_bus,
+							   0.00,
+							   self->fueling_price_per_liter,
+							   0.00);
+                }
             } else {
                 azt_tx_can();
             }
@@ -976,6 +1056,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             ret = 0;  // To-Do: implement checkout whether we can start fueling process
             if(ret == 0) {
                 azt_tx_ack();
+                self->can_bus.transmit(&self->can_bus,
+                		   self->fueling_dose_in_liters,
+                           0.00,
+						   self->fueling_dose_in_liters * self->fueling_price_per_liter);
             } else {
                 azt_tx_can();
             }
@@ -999,6 +1083,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             ret = 0;  // To-Do: implement checkout whether we can start fueling process
             if(ret == 0) {
                 azt_tx_ack();
+                self->can_bus.transmit(&self->can_bus,
+                		   self->fueling_dose_in_liters,
+                           0.00,
+						   self->fueling_dose_in_liters * self->fueling_price_per_liter);
             } else {
                 azt_tx_can();
             }
