@@ -122,67 +122,6 @@ int rk_init(int idx, rk_t* rk) {
     rk->state = trk_disabled_rk_installed;
     rk->state_issue = trk_state_issue_less_or_equal_dose;
 
-    //    ////////////////////////////////////////////////
-//        char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
-//    	memset(responce, 0, sizeof(responce));
-//    	char fueling_current_vol[VOLUME_DIGITS] = {0};
-//    	rk->fueling_current_volume = 27.00f;
-//    	sprintf(fueling_current_vol, "%06.2f", fabs(rk->fueling_current_volume));
-//    	fueling_current_vol[3] = fueling_current_vol[4];
-//    	fueling_current_vol[4] = fueling_current_vol[5];
-//    	fueling_current_vol[5] = 0x00;
-//
-//    	strcpy(responce, fueling_current_vol);
-//    //				responce[0] = '0';
-//
-//    	printf("%s RK. Address %d. responce 0x34:%f     %s\n", rk->side == left ? "Left" : "Right", rk->address, rk->fueling_current_volume, responce);
-    //	//////////////////////////////////////////////////
-
-        //////////////////////////////////////////////////
-//        char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
-//    	char fueling_current_volume[5+1] = {0};
-//    	rk->fueling_current_volume = 27.00f;
-//    	sprintf(fueling_current_volume, "%06.2f", rk->fueling_current_volume);
-//    	fueling_current_volume[3] = fueling_current_volume[4];
-//    	fueling_current_volume[4] = fueling_current_volume[5];
-//    	fueling_current_volume[5] = 0x00;
-//
-//    	char fueling_current_price[7+1] = {0};
-//    	rk->fueling_current_price = 47.79f;
-//    	sprintf(fueling_current_price, "%08.2f", rk->fueling_current_price);
-//    	fueling_current_price[5] = fueling_current_price[6];
-//    	fueling_current_price[6] = fueling_current_price[7];
-//    	fueling_current_price[7] = 0x00;
-//
-//    	char fueling_price_per_liter_str[4+1] = {0};
-//    	rk->fueling_price_per_liter = 1.77f;
-//    	sprintf(fueling_price_per_liter_str, "%06.3f", rk->fueling_price_per_liter);
-//    	fueling_price_per_liter_str[2] = fueling_price_per_liter_str[3];
-//    	fueling_price_per_liter_str[3] = fueling_price_per_liter_str[4];
-//    	fueling_price_per_liter_str[4] = 0x00;
-    //	fueling_price_per_liter_str[5] = 0x00;
-//
-//    	strcpy(responce, fueling_current_volume);
-//    	printf("%s RK. Address %d. responce 0x35: %s\n", rk->side == left ? "Left" : "Right", rk->address, responce);
-    //	strcpy(responce + 5, fueling_current_price);
-    //	strcpy(responce + 5 + 6, fueling_price_per_liter_str );
-    ////	cnt = 5 + 6 + 4;
-    //	printf("%s RK. Address %d. responce 0x35: %s\n", rk->side == left ? "Left" : "Right", rk->address, responce);
-
-        //////////////////////////////////////////////////
-
-        ///////////////////////////////////////////////////
-    //    int cnt = 0;
-    //    char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
-    //    rk->summator_volume = 2285.00f;
-    //	int tmpp = (int)roundf(rk->summator_volume * 100.0);
-    //	int_to_string_azt(tmpp, responce, &cnt, 8);
-    //    rk->summator_price = 0.00f;
-    //	tmpp = (int)roundf(rk->summator_price * 100.0);
-    //	int_to_string_azt(tmpp, responce, &cnt, 8);
-    //	printf("%s RK. Address %d. responce 0x36: %s\n", rk->side == left ? "Left" : "Right", rk->address, responce);
-
-        ///////////////////////////////////////////////////
     // isLocalControlEnabled
     memset(filename, 0, FILENAME_MAX_SIZE);
     sprintf(filename, CONFIG_FILE_IS_PAGZ_MODE_ENABLED, idx);
@@ -845,14 +784,14 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             if(self->arm_level_sofrware == arm_software_doms) {
             	char responce[AZT_RESPONCE_MAX_LENGTH] = {0};
             	memset(responce, 0, sizeof(responce));
-            	char fueling_current_vol[VOLUME_DIGITS] = {0};
-            	sprintf(fueling_current_vol, "%06.2f", fabs(self->fueling_current_volume));
-            	fueling_current_vol[3] = fueling_current_vol[4];
+            	char fueling_current_vol[VOLUME_DIGITS+1] = {0};
+            	sprintf(fueling_current_vol, "%07.2f", fabs(self->fueling_current_volume));
             	fueling_current_vol[4] = fueling_current_vol[5];
-            	fueling_current_vol[5] = 0x00;
+            	fueling_current_vol[5] = fueling_current_vol[6];
+            	fueling_current_vol[6] = 0x00;
 
             	strcpy(responce, fueling_current_vol);
-				cnt = VOLUME_DIGITS-1;
+				cnt = VOLUME_DIGITS;
 //            	printf("%s RK. Address %d. responce 0x34:%f     %s\n", self->side == left ? "Left" : "Right", self->address, self->fueling_current_volume, responce);
 				azt_tx(responce, cnt);
             }
