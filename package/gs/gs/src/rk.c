@@ -741,13 +741,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 							   0.00,
 							   self->fueling_dose_in_liters * self->fueling_price_per_liter);
                 }
-
-//#ifdef SIMULATION
-//            	self->state = trk_enabled_fueling_process;
-//            	self->fueling_approved_by_human = 1;
-//            	self->stop_button_clicked_flag = 0;  // нажатие на кнопку СТАРТ сбрасывает нажатие на кнопку СТОП
-//            	valve_low_on(self);
-//#endif
             } else {
             	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
             	azt_tx_can();
@@ -765,12 +758,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
                 self->reset_command_received_flag = 1;
                 azt_tx_ack();
             } else {
-            	/*if(self->arm_level_sofrware == arm_software_doms) {
-            		printf("%s RK. Address %d. RESET to disabled state\n", self->side == left ? "Left" : "Right", self->address);
-            		self->state = trk_disabled_rk_installed;
-                	azt_tx_ack();
-            	}
-            	else*/ if(ret == 0) {
+            	if(ret == 0) {
 					self->state = trk_disabled_fueling_finished;
 					self->state_issue = trk_state_issue_less_or_equal_dose; // To-Do: implement correct issue setup
 					azt_tx_ack();
