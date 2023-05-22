@@ -716,17 +716,20 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         case AZT_REQUEST_TRK_AUTHORIZATION:
             printf("%s RK. Address %d. AZT_REQUEST_TRK_AUTHORIZATION\n", self->side == left ? "Left" : "Right", self->address);
             ret = 0;
-            if(self->is_not_fault(self)) {
+            if (self->state != trk_disabled_rk_installed) {
+            	printf("%s RK. FUELING can't be started in %08X state (probably fueling in PAGZ mode).\r\n", self->side == left ? "Left" : "Right", self->state);
+            	azt_tx_can();
+	    } else if(!self->is_not_fault(self)) {
+            	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
+            	azt_tx_can();
+            	self->state = trk_disabled_rk_installed;
+	    } else {
                 self->state = trk_authorization_cmd;
                 azt_tx_ack();
 		self->can_bus.transmit(&self->can_bus,
 			self->fueling_dose_in_liters,
 			0.00,
 			self->fueling_dose_in_liters * self->fueling_price_per_liter);
-            } else {
-            	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
-            	azt_tx_can();
-            	self->state = trk_disabled_rk_installed;
             }
             break;
         case AZT_REQUEST_TRK_RESET:
@@ -956,16 +959,19 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             price_[5] = req->params[4];
             price_[6] = req->params[5];
             float fueling_dose_in_rubles = strtof(price_, NULL);
-            self->fueling_dose_in_liters = fueling_dose_in_rubles / self->fueling_price_per_liter;
-            printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_RUBLES. %.2f rub --> %.2f volume\n", self->side == left ? "Left" : "Right", self->address, fueling_dose_in_rubles, self->fueling_dose_in_liters);
-            self->fueling_dose_in_rubles = 0.00;
-            ret = 0;  // To-Do: implement checkout whether we can start fueling process
-            if(ret == 0) {
+	    if(self->fueling_in_pagz_mode_flag == 0) {
+            	self->fueling_dose_in_liters = fueling_dose_in_rubles / self->fueling_price_per_liter;
+            	printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_RUBLES. %.2f rub --> %.2f volume\n", self->side == left ? "Left" : "Right", self->address, fueling_dose_in_rubles, self->fueling_dose_in_liters);
+            	self->fueling_dose_in_rubles = 0.00;
+	    } else {
+            	printf("%s RK. Address %d. Can't set dose in PAGZ mode.\n", self->side == left ? "Left" : "Right", self->address);
+	    }
+            if(self->fueling_in_pagz_mode_flag == 0) {
                 azt_tx_ack();
                 self->can_bus.transmit(&self->can_bus,
-                		   self->fueling_dose_in_liters,
-                           0.00,
-						   self->fueling_dose_in_liters * self->fueling_price_per_liter);
+            		self->fueling_dose_in_liters,
+            		0.00,
+            		self->fueling_dose_in_liters * self->fueling_price_per_liter);
             } else {
                 azt_tx_can();
             }
@@ -981,18 +987,19 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             volume[4] = req->params[3];
             volume[5] = req->params[4];
             float fueling_dose_in_liters = strtof(volume, NULL);
-            self->fueling_dose_in_liters = fueling_dose_in_liters;
-            self->fueling_dose_in_rubles = 0.00; // when workstation sets fuel dose volume we reset fuel dose in rubles
-            printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_LITERS: %.2f\n", self->side == left ? "Left" : "Right", self->address, self->fueling_dose_in_liters);
-
-//            tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
-            ret = 0;  // To-Do: implement checkout whether we can start fueling process
-            if(ret == 0) {
+	    if(self->fueling_in_pagz_mode_flag == 0) {
+            	self->fueling_dose_in_liters = fueling_dose_in_liters;
+            	self->fueling_dose_in_rubles = 0.00;
+            	printf("%s RK. Address %d. AZT_REQUEST_FUELING_DOSE_IN_LITERS: %.2f\n", self->side == left ? "Left" : "Right", self->address, self->fueling_dose_in_liters);
+	    } else {
+            	printf("%s RK. Address %d. Can't set dose in PAGZ mode.\n", self->side == left ? "Left" : "Right", self->address);
+	    }
+            if(self->fueling_in_pagz_mode_flag == 0) {
                 azt_tx_ack();
                 self->can_bus.transmit(&self->can_bus,
-                		   self->fueling_dose_in_liters,
-                           0.00,
-						   self->fueling_dose_in_liters * self->fueling_price_per_liter);
+            		self->fueling_dose_in_liters,
+            		0.00,
+            		self->fueling_dose_in_liters * self->fueling_price_per_liter);
             } else {
                 azt_tx_can();
             }
@@ -1109,7 +1116,7 @@ static void rk_start_local_fueling_process(rk_t* self)
 {
     self->state = trk_enabled_fueling_process_local;
     self->fueling_current_volume = 0.00;
-	self->fueling_dose_in_liters = 500.0;
+    self->fueling_dose_in_liters = 900.0;
     self->flomac_inv_mass_starting_value = atomic_load(&self->modbus.summator_mass);
     printf("flomac inventory mass starting value: %f\r\n", self->flomac_inv_mass_starting_value);
     self->fueling_current_price = 0.00;
