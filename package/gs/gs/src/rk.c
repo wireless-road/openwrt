@@ -931,8 +931,11 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             self->fueling_price_per_liter = strtof(price, NULL);
             printf("%s RK. Address %d. AZT_REQUEST_PRICE_PER_LITER_SETUP: %.2f\n", self->side == left ? "Left" : "Right", self->address, self->fueling_price_per_liter);
             if(self->arm_level_sofrware == arm_software_doms) {
+		// check whether ItOil sets price before each fueling. If so - no need to write in flash.
             	tmp = set_config(self->config_filename_price_per_liter, price, strlen(price));
-            }
+            } else {
+		tmp = 0;
+	    }
             if(tmp == 0) {
                 azt_tx_ack();
                 if(self->arm_level_sofrware == arm_software_gas_kit) {
