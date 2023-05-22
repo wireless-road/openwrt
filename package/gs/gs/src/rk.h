@@ -40,6 +40,11 @@ typedef enum {
     trk_state_issue_overdose = 0x31
 } trk_state_issue_t;
 
+// ПО операторской, используемое для отпуска топлива
+typedef enum {
+	arm_software_gas_kit = 0x00,
+	arm_software_doms = 0x01
+} arm_software_t;
 
 #define DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING	50
 
@@ -128,6 +133,7 @@ struct rk_t {
     int fueling_approved_by_human;  // заправщик нажал на кнопку "СТАРТ", подтерждая тем самым, что можно начинать заправку (шланг вставлен в ТС)
     int selfcheck_mode;  // флаг работы в режиме самодиагностики. Задается из веб-интерфейса через файл /tmp/gs_selfcheck. Используется на производстве для первичной проверки корректности сборки колонки.
     int current_valve_number;
+    arm_software_t arm_level_sofrware;  // ПО операторской, используемое для отпуска топлива
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
@@ -142,6 +148,7 @@ struct rk_t {
 #define DEF_CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE  "/etc/gs/%d/setting_mass_flow_rate_threshold_value"  // уставка низкого расхода топлива при наполнении бака
 #define DEF_CONFIG_FILE_VALVES_AMOUNT  				"/etc/gs/%d/setting_valves_amount"
 #define DEF_CONFIG_FILE_MASS_FLOW_RATE_BREAK_ERROR	"/etc/gs/%d/setting_mass_flow_rate_break_error_threshold"  // уставка высокого расхода топлива (обрыв шланга)
+#define DEF_CONFIG_FILE_ARM_LEVEL_SOFTWARE          "/etc/gs/%d/arm_level_software" // gaskit vs doms
 
 #define CONFIG_FILE_IS_ENABLED                  "/mnt/gs/%d/isEnabled"
 #define CONFIG_FILE_IS_LEFT                     "/mnt/gs/%d/isLeft"
@@ -155,6 +162,7 @@ struct rk_t {
 #define CONFIG_FILE_MASS_FLOW_RATE_THRESHOLD_VALUE  "/mnt/gs/%d/setting_mass_flow_rate_threshold_value"  // уставка низкого расхода топлива при наполнении бака
 #define CONFIG_FILE_VALVES_AMOUNT  					"/mnt/gs/%d/setting_valves_amount"
 #define CONFIG_FILE_MASS_FLOW_RATE_BREAK_ERROR		"/mnt/gs/%d/setting_mass_flow_rate_break_error_threshold"  // уставка высокого расхода топлива (обрыв шланга)
+#define CONFIG_FILE_ARM_LEVEL_SOFTWARE          "/mnt/gs/%d/arm_level_software" // gaskit vs doms
 
 #define CONFIG_FILE_SELFCHECK_MODE				"/tmp/gs_selfcheck"
 
