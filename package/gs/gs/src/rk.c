@@ -1138,8 +1138,6 @@ static void button_start_callback(rk_t* self, int code)
     } 
     else if (self->pagz_mode_enabled) 
     {
-	printf("paggz mode %d \r\n", self->pagz_mode_enabled);
-    	printf("starting fueling in PAGZ mode\r\n");
 	self->stop_button_clicked_flag = 0;
 	self->start_button_clicked_flag = 1;
 	self->state = trk_authorization_cmd;
