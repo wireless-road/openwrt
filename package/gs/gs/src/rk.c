@@ -445,12 +445,12 @@ static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
 	float volume = self->fueling_current_volume + self->fueling_interrupted_volume;
 	volume = round(volume * 100.0) / 100.0;
 	float price = volume * self->fueling_price_per_liter;
-    self->can_bus.transmit(&self->can_bus,
+	self->can_bus.transmit(&self->can_bus,
                            volume,
                            self->fueling_price_per_liter,
                            price);
 
-    if((cnt % 100 == 0) || necessary_flag) {
+	if((cnt % 100 == 0) || necessary_flag) {
 		printf("%s RK. currently fueled %d: %.2f of %.2f dose (%.2f --> %.2f). rate: %.2f, pressure: %d (%.2f mA), summator: %.2f, interrupted: %.2f\r\n",
 				self->side == left ? "Left" : "Right",
 				cnt,
@@ -463,8 +463,8 @@ static int rk_fueling_log(rk_t* self, int cnt, int necessary_flag) {
 			   self->pressure_4_20ma,
 			   self->summator_volume,
 			   self->fueling_interrupted_volume);
-    }
-    return 0;
+	}
+	return 0;
 }
 
 static int rk_fueling_log_results(rk_t* self) {
@@ -567,15 +567,6 @@ static int rk_fueling_scheduler(rk_t* self) {
         {
         	// 2. Бак заполнен (расход топлива снизился ниже порогового)
         	rk_fueling_log(self, self->cnt, 1);
-
-//        	if((self->valves_amount == TWO_VALVE) && (!relay_middle_is_on(&self->relay)))
-//        	{
-//        		// Если схема заправки - двухклапанная и верхний клапан еще не открыт, - то открываем его и продолжаем заправку
-//        		relay_middle_on(&self->relay);
-//        		self->cnt = 0;
-//        		printf("%s RK. FUELING PROCESS. HIGH VALVE OPENED\r\n", self->side == left ? "Left" : "Right");
-//        		return;
-//        	}
 
         	if(self->valves_amount > SINGLE_VALVE) {
         		switch (self->current_valve_number) {
