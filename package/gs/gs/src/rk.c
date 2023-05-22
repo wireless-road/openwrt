@@ -726,7 +726,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             } else {
             	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
             	azt_tx_can();
-            	self->state = trk_disabled_rk_taken_off;
+            	self->state = trk_disabled_rk_installed;
             }
             break;
         case AZT_REQUEST_TRK_RESET:
@@ -1008,7 +1008,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             } else {
             	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
                 azt_tx_can();
-                self->state = trk_disabled_rk_taken_off;
+                self->state = trk_disabled_rk_installed;
             }
             break;
         case AZT_REQUEST_TRK_ADDRESS_CHANGE:
