@@ -679,20 +679,20 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 
     switch (req->cmd) {
         case AZT_REQUEST_TRK_STATUS_REQUEST:
-//            printf("%s RK. Address %d. AZT_REQUEST_TRK_STATUS_REQUEST\n", self->side == left ? "Left" : "Right", self->address);
+		// printf("%s RK. Address %d. AZT_REQUEST_TRK_STATUS_REQUEST\n", self->side == left ? "Left" : "Right", self->address);
 
-        	if(self->arm_level_sofrware == arm_software_gas_kit) {
+		if(self->arm_level_sofrware == arm_software_gas_kit) {
 
-            cnt = 0;
-            memset(responce, 0, sizeof(responce));
+            		cnt = 0;
+            		memset(responce, 0, sizeof(responce));
 
-            responce[cnt] = self->state;
-            if(self->state == trk_enabled_fueling_process_local) {
-            	responce[cnt] = trk_disabled_rk_installed;
-            }
-            cnt++;
-            responce[cnt] = self->state_issue;
-            cnt++;
+            		responce[cnt] = self->state;
+            		if(self->state == trk_enabled_fueling_process_local) {
+            			responce[cnt] = trk_disabled_rk_installed;
+            		}
+            		cnt++;
+            		responce[cnt] = self->state_issue;
+            		cnt++;
         	} else if(self->arm_level_sofrware == arm_software_doms) {
 
         		cnt = 0;
