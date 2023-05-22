@@ -726,12 +726,10 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             if(self->is_not_fault(self)) {
                 self->state = trk_authorization_cmd;
                 azt_tx_ack();
-                if(self->arm_level_sofrware == arm_software_doms) {
-                	self->can_bus.transmit(&self->can_bus,
-                			   self->fueling_dose_in_liters,
-							   0.00,
-							   self->fueling_dose_in_liters * self->fueling_price_per_liter);
-                }
+		self->can_bus.transmit(&self->can_bus,
+			self->fueling_dose_in_liters,
+			0.00,
+			self->fueling_dose_in_liters * self->fueling_price_per_liter);
             } else {
             	printf("%s RK. FUELING can't be started due to ERROR state: %08X\r\n", self->side == left ? "Left" : "Right", self->error_state.code);
             	azt_tx_can();
@@ -929,12 +927,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 	    }
             if(tmp == 0) {
                 azt_tx_ack();
-                if(self->arm_level_sofrware == arm_software_gas_kit) {
-					self->can_bus.transmit(&self->can_bus,
-							   0.00,
-							   self->fueling_price_per_liter,
-							   0.00);
-                }
             } else {
                 azt_tx_can();
             }
