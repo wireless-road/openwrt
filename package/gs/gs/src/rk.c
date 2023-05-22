@@ -597,16 +597,10 @@ static int rk_fueling_scheduler(rk_t* self) {
         		}
         	}
 
-        	if(self->state == trk_enabled_fueling_process_local) {
-        		// Если заправка была начата локально (с кнопки СТАРТ), то "забываем" объем заправленного топлива,
-        		// чтобы в GasKit не возникла ошибка "Расхождения по счетчикам"
                 rk_fueling_log(self, self->cnt, 1);
-        		self->fueling_current_volume = 0.00;
-        	} else {
-                rk_fueling_log(self, self->cnt, 1);
-        	}
+
         	rk_stop_fueling_process(self, &self->cnt);
-            self->store_prev_summators_flag = 0;
+            	self->store_prev_summators_flag = 0;
         	printf("%s RK. FUELING FINISHED #2. FULL TANK Fueled due to low mass rate value: %.2f\r\n", self->side == left ? "Left" : "Right", self->flomac_mass_flowrate);
         }
         else if(self->stop_button_clicked_flag == 1) {
@@ -968,10 +962,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 	    }
             if(self->fueling_in_pagz_mode_flag == 0) {
                 azt_tx_ack();
-                self->can_bus.transmit(&self->can_bus,
-            		self->fueling_dose_in_liters,
-            		0.00,
-            		self->fueling_dose_in_liters * self->fueling_price_per_liter);
             } else {
                 azt_tx_can();
             }
@@ -996,10 +986,6 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
 	    }
             if(self->fueling_in_pagz_mode_flag == 0) {
                 azt_tx_ack();
-                self->can_bus.transmit(&self->can_bus,
-            		self->fueling_dose_in_liters,
-            		0.00,
-            		self->fueling_dose_in_liters * self->fueling_price_per_liter);
             } else {
                 azt_tx_can();
             }
