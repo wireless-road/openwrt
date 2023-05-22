@@ -55,6 +55,7 @@ int rk_init(int idx, rk_t* rk) {
     rk->start_button_currently_pressed_flag = 0;
     rk->stop_button_currently_pressed_flag = 0;
     rk->reset_command_received_flag = 0;
+    rk->fueling_in_pagz_mode_flag = 0;
 
     rk->fueling_current_volume = 0.00;
     rk->fueling_interrupted_volume = 0.00;
@@ -504,6 +505,7 @@ static void rk_stop_fueling_process(rk_t* self, int* cnt) {
     self->fueling_approved_by_human = 0;  // сбрасываем флаг нажатия на кнопку "Старт"
     self->start_button_clicked_flag = 0;
     self->start_button_delay_cnt = 0;
+    self->fueling_in_pagz_mode_flag = 0;
     *cnt = 0;
 }
 
@@ -687,7 +689,7 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
             		memset(responce, 0, sizeof(responce));
 
             		responce[cnt] = self->state;
-            		if(self->state == trk_enabled_fueling_process_local) {
+            		if(self->fueling_in_pagz_mode_flag) {
             			responce[cnt] = trk_disabled_rk_installed;
             		}
             		cnt++;
@@ -699,9 +701,9 @@ static int azt_req_handler(azt_request_t* req, rk_t* self)
         		memset(responce, 0, sizeof(responce));
 
         		responce[cnt] = self->state;
-        		if(self->state == trk_enabled_fueling_process_local) {
-        			responce[cnt] = trk_disabled_rk_installed;
-        		}
+            		if(self->fueling_in_pagz_mode_flag) {
+            			responce[cnt] = trk_disabled_rk_installed;
+            		}
         		cnt++;
         		if(self->state == trk_disabled_fueling_finished) {
         			responce[cnt] = self->state_issue;
@@ -1146,6 +1148,7 @@ static void button_start_callback(rk_t* self, int code)
     {
 	self->stop_button_clicked_flag = 0;
 	self->start_button_clicked_flag = 1;
+	self->fueling_in_pagz_mode_flag = 1;
 	self->state = trk_authorization_cmd;
     } 
 }

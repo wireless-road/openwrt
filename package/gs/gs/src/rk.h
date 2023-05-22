@@ -134,6 +134,7 @@ struct rk_t {
     int selfcheck_mode;  // флаг работы в режиме самодиагностики. Задается из веб-интерфейса через файл /tmp/gs_selfcheck. Используется на производстве для первичной проверки корректности сборки колонки.
     int current_valve_number;
     arm_software_t arm_level_sofrware;  // ПО операторской, используемое для отпуска топлива
+    int fueling_in_pagz_mode_flag;
 };
 
 #define DEF_CONFIG_FILE_IS_ENABLED                  "/etc/gs/%d/isEnabled"
