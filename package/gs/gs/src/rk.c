@@ -1136,23 +1136,23 @@ static void button_start_callback(rk_t* self, int code)
     {
     	self->start_button_clicked_flag = 1;
     } 
-    else if (self->pagz_mode_enabled) 
-    {
-	self->stop_button_clicked_flag = 0;
-	self->start_button_clicked_flag = 1;
-	self->state = trk_authorization_cmd;
-    } 
     else if( (self->state == trk_disabled_rk_installed) && 
 		(self->stop_button_currently_pressed_flag == 1) ) 
     {
 	printf("%s RK. both buttons pressed.\r\n", self->side == left ? "Left" : "Right");
     	self->can_bus.transmit(&self->can_bus, self->summator_volume, 0.00, self->summator_price);
     }
+    else if (self->pagz_mode_enabled) 
+    {
+	self->stop_button_clicked_flag = 0;
+	self->start_button_clicked_flag = 1;
+	self->state = trk_authorization_cmd;
+    } 
 }
 
 static void button_start_released_callback(rk_t* self, int code)
 {
-    printf("%s RK. start btn released clbk\r\n", self->side == left ? "Left" : "Right");
+    // printf("%s RK. start btn released clbk\r\n", self->side == left ? "Left" : "Right");
     if(self->enabled == 0) {
 	    return;
     }
@@ -1205,7 +1205,7 @@ static void button_stop_callback(rk_t* self, int code)
 
 static void button_stop_released_callback(rk_t* self, int code)
 {
-    printf("%s RK. stop btn released clbk\r\n", self->side == left ? "Left" : "Right");
+    // printf("%s RK. stop btn released clbk\r\n", self->side == left ? "Left" : "Right");
     if(self->enabled == 0) {
 	    return;
     }
