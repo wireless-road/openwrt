@@ -1139,6 +1139,7 @@ static void button_start_callback(rk_t* self, int code)
     }
     else if (self->pagz_mode_enabled) 
     {
+	printf("%s RK. fueling in PAGZ mode requested\r\n", self->side == left ? "Left" : "Right");
 	self->stop_button_clicked_flag = 0;
 	self->start_button_clicked_flag = 1;
 	self->fueling_in_pagz_mode_flag = 1;
@@ -1157,7 +1158,7 @@ static void button_start_released_callback(rk_t* self, int code)
 
 static void button_start_handler(rk_t* self)
 {
-    if(self->pagz_mode_enabled) {
+    if(self->fueling_in_pagz_mode_flag) {
     	printf("%s RK. LOCAL FUELING started by pressing start button\r\n", self->side == left ? "Left" : "Right");
 
     	if(self->state == trk_authorization_cmd) {
