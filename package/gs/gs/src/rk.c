@@ -536,9 +536,9 @@ static int rk_fueling_scheduler(rk_t* self) {
         {
         	// 1. Заданная доза топлива заправлена
         	rk_stop_fueling_process(self, &self->cnt);
-            self->fueling_current_volume = self->fueling_dose_in_liters;
+		self->fueling_current_volume = self->fueling_dose_in_liters;
         	rk_fueling_log(self, self->cnt, 1);
-            self->store_prev_summators_flag = 0;
+		self->store_prev_summators_flag = 0;
         	printf("%s RK. FUELING FINISHED #1. Requested dose fueled\r\n", self->side == left ? "Left" : "Right");
         }
         else if(self->reset_command_received_flag) {
