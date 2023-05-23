@@ -101,7 +101,7 @@ int rk_init(int idx, rk_t* rk) {
 
     CAN_init(idx, &rk->can_bus);
 #ifndef SIMULATION
-    rk->can_bus.transmit(&rk->can_bus, FIRMWARE_VERSION, FIRMWARE_SUBVERSION, DEVICE_MARKING_CODE);
+    rk->can_bus.transmit(&rk->can_bus, FIRMWARE_VERSION, 0.00, DEVICE_MARKING_CODE);
 #else
     rk->can_bus.transmit(&rk->can_bus, 0.00, 0.00, 0.00);
 #endif
