@@ -1129,6 +1129,17 @@ static void button_start_callback(rk_t* self, int code)
     	return;
     }
 
+    if((self->state == trk_enabled_fueling_process) || 
+	(self->state == trk_disabled_fueling_finished) || 
+	(self->state == trk_enabled_fueling_process) ||
+	(self->state == trk_disabled_local_control_unit_dose) ||
+	(self->state == trk_enabled_fueling_process_local))
+	{
+		// do nothing
+		printf("%s RK. Ignore start button as fueling already started\r\n", self->side == left ? "Left" : "Right");
+		return;
+	}
+
     if(self->state == trk_authorization_cmd) 
     {
     	self->start_button_clicked_flag = 1;
