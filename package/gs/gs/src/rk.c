@@ -231,7 +231,7 @@ int rk_init(int idx, rk_t* rk) {
         return -1;
     }
     rk->arm_level_sofrware = ret;
-    printf("ERROR %s RK. arm level software: %d\r\n", rk->side == left ? "Left" : "Right", rk->arm_level_sofrware);
+    printf("INFO %s RK. arm level software: %s\r\n", rk->side == left ? "Left" : "Right", rk->arm_level_sofrware == 0 ? "GasKit" : "Doms/ItOil");
 
     ret = in_4_20_ma_init(idx, &rk->in_4_20, rk->enabled);
 
