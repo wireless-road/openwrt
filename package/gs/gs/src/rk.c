@@ -260,9 +260,10 @@ static int rk_check_state(rk_t* self) {
     if(!self->enabled) {
     	return 0;
     }
+    int ret = 0;
 #ifndef DEV_WITHOUT_4_20
     // 4-20ma checkout
-    int ret = in_4_20_ma_check_state(&self->in_4_20);
+    ret = in_4_20_ma_check_state(&self->in_4_20);
 
     if( (ret == IN_4_20_SWAPPED_WIRES_ERROR) && error_is_clear(&self->error_state, ERROR_INPUT_4_20_SWAPPED_WIRES) )
     {
@@ -347,6 +348,7 @@ static int rk_check_state(rk_t* self) {
         rk_indicate_error_message(self);
     }
 
+    self->flomac_temperature = atomic_load(&self->modbus.temperature);
 #endif
 
     // контроль обрыва шланга
@@ -1135,7 +1137,7 @@ static void button_start_callback(rk_t* self, int code)
 		(self->stop_button_currently_pressed_flag == 1) ) 
     {
 	printf("%s RK. both buttons pressed.\r\n", self->side == left ? "Left" : "Right");
-    	self->can_bus.transmit(&self->can_bus, self->summator_volume, 0.00, self->summator_price);
+    	self->can_bus.transmit(&self->can_bus, self->summator_volume, fabs(self->flomac_temperature), self->summator_price);
     }
     else if (self->pagz_mode_enabled) 
     {

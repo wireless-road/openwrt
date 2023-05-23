@@ -35,7 +35,7 @@ typedef struct measure_units {
 typedef struct measurements {
     float mass_flowrate;
     float density;
-    float temprature;
+    float temperature;
     float volme_flowrate;
     float dummy01;
     float pressure;
@@ -56,6 +56,7 @@ typedef struct gs_conninfo {
     _Atomic float summator_volume;
     _Atomic float summator_mass;
     _Atomic float mass_flowrate;
+    _Atomic float temperature;
     int connection_lost_flag;
     int connection_lost_counter;
     int measurements_read_counter;

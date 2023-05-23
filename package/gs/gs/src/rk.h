@@ -102,6 +102,7 @@ struct rk_t {
     float flomac_inv_mass_starting_value;
     float flomac_inv_mass;
     float flomac_mass_flowrate;
+    float flomac_temperature;
     int pressure_4_20ma_raw;
     float pressure_4_20ma;
     int fueling_current_finished_flag;

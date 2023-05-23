@@ -300,18 +300,19 @@ int gs_init_pthreaded(int idx, gs_conninfo_t *conninfo)
 
     atomic_init(&conninfo->summator_volume, 0.00);
     atomic_init(&conninfo->summator_mass, 0.00);
+    atomic_init(&conninfo->temperature, 0.00);
 
     pthread_create(&conninfo->thread_id, NULL, gs_thread, conninfo);
 }
 
 static void print_measts(measurements_t *ms)
 {
-	printf("MFR: %.2f. \
+	printf("MFR: %.2f. TMPR: %.2f \
 VFR: %.2f. PRESS: %.2f. M_TOT: %.2f. \
 V_TOTAL: %.2f. M_INV: %.2f. V_INV: %.2f\r\n",
 				ms->mass_flowrate,
 //				ms->density,
-//				ms->temprature,
+				ms->temperature,
 				ms->volme_flowrate,
 				ms->pressure,
 				ms->mass_total,
@@ -326,6 +327,7 @@ static void gs_thread(gs_conninfo_t* conninfo) {
     int ret;
     _Atomic float* mass = (_Atomic float*)&conninfo->summator_mass;
     _Atomic float* mass_flowrate = (_Atomic float*)&conninfo->mass_flowrate;
+    _Atomic float* temperature = (_Atomic float*)&conninfo->temperature;
     conninfo->ctx = gs_init(conninfo);
     ret = gs_get_version(conninfo->ctx);
     
@@ -358,20 +360,24 @@ static void gs_thread(gs_conninfo_t* conninfo) {
             simulate_mass_inventory_value();
             conninfo->measurements.mass_inventory = simulation_mass_inventory_value;
             conninfo->measurements.mass_flowrate = simulation_mass_rate_value;
+            conninfo->measurements.temperature = 0.00;
             atomic_store(mass, conninfo->measurements.mass_inventory);
             atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);
+            atomic_store(temperature, conninfo->measurements.temperature);
 #endif
         } else {
-        	conninfo->connection_lost_counter = 0;
+            conninfo->connection_lost_counter = 0;
             conninfo->connection_lost_flag = 0;
 //            print_measts(&conninfo->measurements);
 #ifdef SIMULATION
             simulate_mass_inventory_value();
             conninfo->measurements.mass_inventory = simulation_mass_inventory_value;
             conninfo->measurements.mass_flowrate = simulation_mass_rate_value;
+            conninfo->measurements.temperature = 0.00;
 #endif
             atomic_store(mass, conninfo->measurements.mass_inventory);
             atomic_store(mass_flowrate, conninfo->measurements.mass_flowrate);
+            atomic_store(temperature, conninfo->measurements.temperature);
         }
     }
 }
