@@ -68,7 +68,7 @@ struct rk_t {
     int enabled;
     rk_side side;
     trk_state_t state;
-    int fueling_process_flag;
+    led_mode_t led_mode;
     trk_state_issue_t state_issue;
     int address;
     int pagz_mode_enabled;

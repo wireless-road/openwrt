@@ -38,6 +38,12 @@ typedef enum {
     on = 0x31
 } led_state_t;
 
+typedef enum {
+    led_keep_turned_off = 0x00,
+    led_blink = 0x01,
+    led_keep_turned_on = 0x02
+} led_mode_t;
+
 struct led_t {
 	int enabled;
     int normal_led_port;
@@ -45,7 +51,7 @@ struct led_t {
     int normal_led_number;
     led_state_t normal_led_state;
     char normal_led_filename[CONFIG_FILENAME_MAX_LENGTH];
-    int32_t* normal_flag;
+    led_mode_t* mode;
     int error_led_port;
     int error_led_pin;
     int error_led_number;
@@ -66,7 +72,7 @@ struct led_t {
 #define NORMAL_LED_FILE							"/sys/class/gpio/gpio%d/value"
 #define ERROR_LED_FILE							"/sys/class/gpio/gpio%d/value"
 
-int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag);
+int led_init(int idx, led_t* led, int32_t* error_flag, led_mode_t* mode);
 
 #endif  // LED_H
 

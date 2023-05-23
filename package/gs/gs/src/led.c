@@ -5,7 +5,7 @@
 
 static int led_indicate_thread(led_t* led);
 
-int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
+int led_init(int idx, led_t* led, int32_t* error_flag, led_mode_t* mode) {
 
     char filename[FILENAME_MAX_SIZE];
 
@@ -74,7 +74,7 @@ int led_init(int idx, led_t* led, int32_t* error_flag, int* normal_flag) {
     strcpy(led->error_led_filename, filename);
 
     led->error_flag = error_flag;
-    led->normal_flag = normal_flag;
+    led->mode = mode;
 
     led->normal_led_state = off;
     led->error_led_state = off;
@@ -112,8 +112,8 @@ static int led_indicate_thread(led_t* led) {
     			set_config(led->error_led_filename, LIGHT_OFF, LEN_1);
     		}
 
-    		if(*led->normal_flag) {
-//        		printf("LED. Fueling: %d\r\n", *led->normal_flag);
+    		if(*led->mode == led_blink) {// blinking mode
+//        		printf("LED. Fueling: %d\r\n", *led->mode);
 				if(led->normal_led_state == off) {
 //					printf("LED. Fueling. ON.\r\n");
 					led->normal_led_state = on;
@@ -123,7 +123,12 @@ static int led_indicate_thread(led_t* led) {
 					led->normal_led_state = off;
 					set_config(led->normal_led_filename, LIGHT_OFF, LEN_1);
 				}
-    		} else {
+    		} else if(*led->mode == led_keep_turned_on) { 
+    			if(led->normal_led_state == off) {  // зеленый светодиод теперь сигнализирует только о текущем процессе заправки
+    				led->normal_led_state = on;
+    				set_config(led->normal_led_filename, LIGHT_ON, LEN_1);
+    			}
+    		} else {  
 /*    			if(led->normal_led_state == off) {
     				led->normal_led_state = on;
     				set_config(led->normal_led_filename, LIGHT_ON, LEN_1);

@@ -235,8 +235,8 @@ int rk_init(int idx, rk_t* rk) {
 
     ret = in_4_20_ma_init(idx, &rk->in_4_20, rk->enabled);
 
-    rk->fueling_process_flag = 0;
-    led_init(idx, &rk->led, &rk->error_state.code, &rk->fueling_process_flag);
+    rk->led_mode = led_keep_turned_off;
+    led_init(idx, &rk->led, &rk->error_state.code, &rk->led_mode);
 
     rk->modbus.side = rk->side;
     ret = gs_init_pthreaded(idx, &rk->modbus, rk->side);
@@ -377,13 +377,13 @@ static int rk_process(rk_t* self) {
     }
     switch (self->state) {
         case trk_disabled_rk_installed:
-        	self->fueling_process_flag = 0;
+        	self->led_mode = led_keep_turned_off;
             break;
         case trk_disabled_rk_taken_off:
-        	self->fueling_process_flag = 0;
+        	self->led_mode = led_keep_turned_off;
             break;
         case trk_authorization_cmd:
-        	self->fueling_process_flag = 1;
+        	self->led_mode = led_blink;
         	if(self->start_button_clicked_flag) {
         		if (self->pagz_mode_enabled) {
 					self->start_button_delay_cnt++;
@@ -414,16 +414,16 @@ static int rk_process(rk_t* self) {
             break;
         case trk_enabled_fueling_process:
         	if(self->fueling_approved_by_human == 1) {
-        		self->fueling_process_flag = 1;
+        		self->led_mode = led_keep_turned_on;
             	rk_fueling_scheduler(self);
         	}
             break;
         case trk_enabled_fueling_process_local:
-        	self->fueling_process_flag = 1;
+        	self->led_mode = led_keep_turned_on;
             rk_fueling_scheduler(self);
             break;
         case trk_disabled_fueling_finished:
-        	self->fueling_process_flag = 0;
+        	self->led_mode = led_keep_turned_off;
             break;
         case trk_disabled_local_control_unit_dose:
             break;
