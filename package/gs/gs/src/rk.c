@@ -1148,7 +1148,7 @@ static void button_start_callback(rk_t* self, int code)
 		(self->stop_button_currently_pressed_flag == 1) ) 
     {
 	printf("%s RK. both buttons pressed.\r\n", self->side == left ? "Left" : "Right");
-    	self->can_bus.transmit(&self->can_bus, self->summator_volume, fabs(self->flomac_temperature), self->summator_price);
+    	self->can_bus.transmit(&self->can_bus, self->summator_volume, fabs(self->flomac_temperature), 0.00);
     }
     else if (self->pagz_mode_enabled) 
     {
