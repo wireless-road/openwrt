@@ -2,8 +2,8 @@ state.mx6ulwm8960 {
 	control.1 {
 		iface MIXER
 		name 'Capture Volume'
-		value.0 27
-		value.1 27
+		value.0 55
+		value.1 55
 		comment {
 			access 'read write'
 			type INTEGER
@@ -11,8 +11,8 @@ state.mx6ulwm8960 {
 			range '0 - 63'
 			dbmin -1725
 			dbmax 3000
-			dbvalue.0 1200
-			dbvalue.1 1200
+			dbvalue.0 2400
+			dbvalue.1 2400
 		}
 	}
 	control.2 {
@@ -97,7 +97,7 @@ state.mx6ulwm8960 {
 	control.8 {
 		iface MIXER
 		name 'Right Input Boost Mixer RINPUT1 Volume'
-		value 3
+		value 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -105,7 +105,7 @@ state.mx6ulwm8960 {
 			range '0 - 3'
 			dbmin 0
 			dbmax 2900
-			dbvalue.0 2900
+			dbvalue.0 0
 		}
 	}
 	control.9 {
@@ -125,8 +125,8 @@ state.mx6ulwm8960 {
 	control.10 {
 		iface MIXER
 		name 'Playback Volume'
-		value.0 204
-		value.1 204
+		value.0 239
+		value.1 239
 		comment {
 			access 'read write'
 			type INTEGER
@@ -134,8 +134,8 @@ state.mx6ulwm8960 {
 			range '0 - 255'
 			dbmin -9999999
 			dbmax 0
-			dbvalue.0 -2550
-			dbvalue.1 -2550
+			dbvalue.0 -800
+			dbvalue.1 -800
 		}
 	}
 	control.11 {
@@ -168,8 +168,8 @@ state.mx6ulwm8960 {
 	control.13 {
 		iface MIXER
 		name 'Speaker Playback Volume'
-		value.0 101
-		value.1 101
+		value.0 0
+		value.1 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -177,8 +177,8 @@ state.mx6ulwm8960 {
 			range '0 - 127'
 			dbmin -9999999
 			dbmax 600
-			dbvalue.0 -2000
-			dbvalue.1 -2000
+			dbvalue.0 -9999999
+			dbvalue.1 -9999999
 		}
 	}
 	control.14 {
@@ -251,7 +251,7 @@ state.mx6ulwm8960 {
 	control.20 {
 		iface MIXER
 		name 'DAC Polarity'
-		value 'No Inversion'
+		value 'Right Inverted'
 		comment {
 			access 'read write'
 			type ENUMERATED
@@ -265,7 +265,7 @@ state.mx6ulwm8960 {
 	control.21 {
 		iface MIXER
 		name 'DAC Deemphasis Switch'
-		value false
+		value true
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -320,7 +320,7 @@ state.mx6ulwm8960 {
 	control.26 {
 		iface MIXER
 		name 'ALC Function'
-		value Off
+		value Stereo
 		comment {
 			access 'read write'
 			type ENUMERATED
@@ -345,7 +345,7 @@ state.mx6ulwm8960 {
 	control.28 {
 		iface MIXER
 		name 'ALC Target'
-		value 4
+		value 15
 		comment {
 			access 'read write'
 			type INTEGER
@@ -356,7 +356,7 @@ state.mx6ulwm8960 {
 	control.29 {
 		iface MIXER
 		name 'ALC Min Gain'
-		value 0
+		value 1
 		comment {
 			access 'read write'
 			type INTEGER
@@ -367,7 +367,7 @@ state.mx6ulwm8960 {
 	control.30 {
 		iface MIXER
 		name 'ALC Hold Time'
-		value 0
+		value 7
 		comment {
 			access 'read write'
 			type INTEGER
@@ -390,7 +390,7 @@ state.mx6ulwm8960 {
 	control.32 {
 		iface MIXER
 		name 'ALC Decay'
-		value 3
+		value 14
 		comment {
 			access 'read write'
 			type INTEGER
@@ -401,7 +401,7 @@ state.mx6ulwm8960 {
 	control.33 {
 		iface MIXER
 		name 'ALC Attack'
-		value 2
+		value 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -433,8 +433,8 @@ state.mx6ulwm8960 {
 	control.36 {
 		iface MIXER
 		name 'ADC PCM Capture Volume'
-		value.0 255
-		value.1 255
+		value.0 240
+		value.1 240
 		comment {
 			access 'read write'
 			type INTEGER
@@ -442,14 +442,14 @@ state.mx6ulwm8960 {
 			range '0 - 255'
 			dbmin -9999999
 			dbmax 3000
-			dbvalue.0 3000
-			dbvalue.1 3000
+			dbvalue.0 2250
+			dbvalue.1 2250
 		}
 	}
 	control.37 {
 		iface MIXER
 		name 'Left Output Mixer Boost Bypass Volume'
-		value 2
+		value 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -457,13 +457,13 @@ state.mx6ulwm8960 {
 			range '0 - 7'
 			dbmin -2100
 			dbmax 0
-			dbvalue.0 -1500
+			dbvalue.0 -2100
 		}
 	}
 	control.38 {
 		iface MIXER
 		name 'Left Output Mixer LINPUT3 Volume'
-		value 2
+		value 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -471,13 +471,13 @@ state.mx6ulwm8960 {
 			range '0 - 7'
 			dbmin -2100
 			dbmax 0
-			dbvalue.0 -1500
+			dbvalue.0 -2100
 		}
 	}
 	control.39 {
 		iface MIXER
 		name 'Right Output Mixer Boost Bypass Volume'
-		value 2
+		value 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -485,13 +485,13 @@ state.mx6ulwm8960 {
 			range '0 - 7'
 			dbmin -2100
 			dbmax 0
-			dbvalue.0 -1500
+			dbvalue.0 -2100
 		}
 	}
 	control.40 {
 		iface MIXER
 		name 'Right Output Mixer RINPUT3 Volume'
-		value 2
+		value 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -499,7 +499,7 @@ state.mx6ulwm8960 {
 			range '0 - 7'
 			dbmin -2100
 			dbmax 0
-			dbvalue.0 -1500
+			dbvalue.0 -2100
 		}
 	}
 	control.41 {
@@ -519,7 +519,7 @@ state.mx6ulwm8960 {
 	control.42 {
 		iface MIXER
 		name 'DAC Mono Mix'
-		value Stereo
+		value Mono
 		comment {
 			access 'read write'
 			type ENUMERATED
@@ -581,7 +581,7 @@ state.mx6ulwm8960 {
 	control.48 {
 		iface MIXER
 		name 'Right Boost Mixer RINPUT1 Switch'
-		value true
+		value false
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -601,7 +601,7 @@ state.mx6ulwm8960 {
 	control.50 {
 		iface MIXER
 		name 'Right Input Mixer Boost Switch'
-		value true
+		value false
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -611,7 +611,7 @@ state.mx6ulwm8960 {
 	control.51 {
 		iface MIXER
 		name 'Left Output Mixer PCM Playback Switch'
-		value true
+		value false
 		comment {
 			access 'read write'
 			type BOOLEAN
