@@ -17,7 +17,7 @@
 
 	chosen {
 		stdout-path = &uart1;
-		bootargs = "console=ttymxc0,115200 rootwait fixrtc quiet";
+		bootargs = "console=ttymxc0,115200 rootwait fixrtc";
 	};
 
 	memory@80000000 {
@@ -233,10 +233,9 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
-	codec: wm8960@1a {
+	codec: adau1761@38 {
 		#sound-dai-cells = <0>;
-		compatible = "wlf,wm8960";
-		reg = <0x1a>;
-		wlf,shared-lrclk;
+		compatible = "adi,adau1761";
+		reg = <0x38>;
 	};
 };
