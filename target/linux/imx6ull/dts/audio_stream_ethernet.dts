@@ -20,6 +20,14 @@
 		bootargs = "console=ttymxc0,115200 rootwait fixrtc";
 	};
 
+	clocks {
+		audio_clock: audio_clock {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <12288000>;
+		};
+	};
+
 	memory@80000000 {
         device_type = "memory";
 		reg = <0x80000000 0x20000000>;
@@ -236,6 +244,8 @@
 	codec: adau1761@38 {
 		#sound-dai-cells = <0>;
 		compatible = "adi,adau1761";
+		clocks = <&audio_clock>;
+		clock-names = "mclk";
 		reg = <0x38>;
 	};
 };
