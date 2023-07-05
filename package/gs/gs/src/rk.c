@@ -392,12 +392,13 @@ static int rk_process(rk_t* self) {
 						self->start_button_delay_cnt = 0;
 						rk_stop_fueling_process(self, &self->cnt);
 						self->stop_button_clicked_flag = 0;
+						self->state = trk_disabled_local_control_unit_dose;
 						printf("%s RK. Fueling not started due to stop button being pressed: %d\r\n", self->side == left ? "Left" : "Right");
 					}
 					if(self->start_button_delay_cnt > DELAY_BETWEEN_PRESSING_START_BUTTON_AND_STARTING_FUELING) {
 						self->start_button_clicked_flag = 0;
 						self->start_button_delay_cnt = 0;
-						printf("%s RK. Fueling start delay finished. Begin fueling: %d\r\n", self->side == left ? "Left" : "Right");
+						printf("%s RK. Fueling start delay finished. Begin fueling\r\n", self->side == left ? "Left" : "Right");
 						button_start_handler(self);
 					} else {
 						if(self->start_button_delay_cnt % 10 == 0)
@@ -426,6 +427,7 @@ static int rk_process(rk_t* self) {
         	self->led_mode = led_keep_turned_off;
             break;
         case trk_disabled_local_control_unit_dose:
+        	self->led_mode = led_keep_turned_off;
             break;
         default:
             break;
@@ -502,7 +504,12 @@ static int rk_fueling_calculate_summators(rk_t* self) {
 
 static void rk_stop_fueling_process(rk_t* self, int* cnt) {
 	valve_all_off(self);
-    self->state = trk_disabled_fueling_finished;
+	if(self->state == trk_enabled_fueling_process_local) {
+		printf("%s RK. trk_disabled_local_control_unit_dose\r\n", self->side == left ? "Left" : "Right");
+		self->state = trk_disabled_local_control_unit_dose;
+	} else {
+	    self->state = trk_disabled_fueling_finished;
+	}
     self->state_issue = trk_state_issue_less_or_equal_dose;
     self->fueling_approved_by_human = 0;  // сбрасываем флаг нажатия на кнопку "Старт"
     self->start_button_clicked_flag = 0;
@@ -625,6 +632,7 @@ static int rk_fueling_scheduler(rk_t* self) {
                 		}
                     	printf("%s RK. FUELING FINISHED #3. Stop button pressed\r\n", self->side == left ? "Left" : "Right");
             		} else {
+            			printf("%s RK. Stop fueling delay counter: %d\r\n", self->side == left ? "Left" : "Right", counter_state(&self->counter_stop_btn));
             		}
             	}
         	}
@@ -1132,7 +1140,6 @@ static void button_start_callback(rk_t* self, int code)
     if((self->state == trk_enabled_fueling_process) || 
 	(self->state == trk_disabled_fueling_finished) || 
 	(self->state == trk_enabled_fueling_process) ||
-	(self->state == trk_disabled_local_control_unit_dose) ||
 	(self->state == trk_enabled_fueling_process_local))
 	{
 		// do nothing
