@@ -35,7 +35,6 @@
 
 	aliases {
 		cpu0 = &cpu0;
-		
 		clks = &clks;
 		fec1 = &fec1;
 		fec2 = &fec2;
@@ -74,27 +73,55 @@
 	sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,name = "mx6ul-adau1761";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,bitclock-master = <&dailink_master>;
-		simple-audio-card,frame-master = <&dailink_master>;
 		simple-audio-card,widgets =
-			"Microphone", "Mic In",
-			"Speaker", "Headphone Out";
+			"Microphone", "Mic In";
+		// 	"Speaker", "Headphone Out";
 		simple-audio-card,routing =
-			"Headphone Out", "LHP",
-			"Headphone Out", "RHP",
-			"Mic In", "MICBIAS",
-			"LINN", "Mic In";
+		// 	"Headphone Out", "LHP",
+		// 	"Headphone Out", "RHP",
+		 	"Mic In", "MICBIAS",
+		 	"LINP", "Mic In";
 
-		simple-audio-card,cpu {
-			sound-dai = <&sai2>;
-		};
+		simple-audio-card,dai-link@0 {
+			format = "i2s";
+			bitclock-master = <&adau1761_dai>;
+			frame-master = <&adau1761_dai>;
 
-		dailink_master: simple-audio-card,codec {
-			sound-dai = <&codec>;
-			clocks = <&clks IMX6UL_CLK_SAI2>;
+			sai2_dai: cpu {
+				sound-dai = <&sai2>;
+				dai-tdm-slot-num = <2>;
+                dai-tdm-slot-width = <32>;
+			};
+			adau1761_dai: codec {
+				sound-dai = <&adau1761>;
+			};
 		};
 	};
+};
+
+&i2c1 {
+	clock_frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c1>;
+	status = "okay";
+
+	adau1761: codec@38 {
+		#sound-dai-cells = <0>;
+		compatible = "adi,adau1761";
+		clocks = <&audio_clock>;
+		clock-names = "mclk";
+		reg = <0x38>;
+	};
+};
+
+&sai2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sai2>;
+	//assigned-clocks = <&clks IMX6UL_CLK_SAI2_SEL>,
+	//		  <&clks IMX6UL_CLK_SAI2>;
+	//assigned-clock-parents = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
+	//assigned-clock-rates = <0>, <24000000>;
+	status = "okay";
 };
 
 #include "wr_cpu.dtsi"
@@ -104,10 +131,10 @@
 #include "wr_watchdog.dtsi"
 
 
-&clks {
-	assigned-clocks = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
-	assigned-clock-rates = <786432000>;
-};
+// &clks {
+// 	assigned-clocks = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
+// 	assigned-clock-rates = <786432000>;
+// };
 
 &gpc {
 	fsl,cpu_pupscr_sw2iso = <0x1>;
@@ -165,16 +192,16 @@
 		};
 
 		pinctrl_enet2: enet2grp {
-				fsl,pins = <
-						MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN      0x1b0b0
-						MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER      0x1b0b0
-						MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00 0x1b0b0
-						MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01 0x1b0b0
-						MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN      0x1b0b0
-						MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00 0x1b0b0
-						MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01 0x1b0b0
-						MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2  0x4001b031
-				>;
+			fsl,pins = <
+				MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN      0x1b0b0
+				MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER      0x1b0b0
+				MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00 0x1b0b0
+				MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01 0x1b0b0
+				MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN      0x1b0b0
+				MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00 0x1b0b0
+				MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01 0x1b0b0
+				MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2  0x4001b031
+			>;
 		};
 
 
@@ -208,18 +235,7 @@
 				MX6UL_PAD_JTAG_TMS__SAI2_MCLK       0x17088
 			>;
 		};
-
 	};
-};
-
-&sai2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_sai2>;
-	assigned-clocks = <&clks IMX6UL_CLK_SAI2_SEL>,
-			  <&clks IMX6UL_CLK_SAI2>;
-	assigned-clock-parents = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
-	assigned-clock-rates = <0>, <24000000>;
-	status = "okay";
 };
 
 &uart1 {
@@ -233,19 +249,4 @@
 	pinctrl-0 = <&pinctrl_uart5>;
 	rts-gpios = <&gpio4 25 GPIO_ACTIVE_HIGH>;
 	status = "okay";
-};
-
-&i2c1 {
-	clock_frequency = <100000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2c1>;
-	status = "okay";
-
-	codec: adau1761@38 {
-		#sound-dai-cells = <0>;
-		compatible = "adi,adau1761";
-		clocks = <&audio_clock>;
-		clock-names = "mclk";
-		reg = <0x38>;
-	};
 };
