@@ -72,15 +72,21 @@
 
 	sound {
 		compatible = "simple-audio-card";
-		simple-audio-card,name = "mx6ul-adau1761";
+		simple-audio-card,name = "NetSOM-ADAU1761";
 		simple-audio-card,widgets =
-			"Microphone", "Mic In";
-		// 	"Speaker", "Headphone Out";
+			"Microphone", "Mic 1 In",
+			"Microphone", "Mic 2 In",
+			"Speaker", "Line Out",
+			"Headphone", "Headphone Out";
 		simple-audio-card,routing =
-		// 	"Headphone Out", "LHP",
-		// 	"Headphone Out", "RHP",
-		 	"Mic In", "MICBIAS",
-		 	"LINP", "Mic In";
+			"Headphone Out", "LHP",
+			"Headphone Out", "RHP",
+			"Line Out", "LOUT",
+			"Line Out", "ROUT",
+			"Mic 1 In", "MICBIAS",
+			"LINN", "Mic 1 In",
+			"Mic 2 In", "MICBIAS",
+			"RINN", "Mic 2 In";
 
 		simple-audio-card,dai-link@0 {
 			format = "i2s";
