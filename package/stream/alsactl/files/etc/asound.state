@@ -1,4 +1,4 @@
-state.mx6uladau1761 {
+state.NetSOMADAU1761 {
 	control.1 {
 		iface MIXER
 		name 'Digital Capture Volume'
@@ -149,85 +149,48 @@ state.mx6uladau1761 {
 	}
 	control.14 {
 		iface MIXER
-		name 'Input 1 Capture Volume'
-		value 0
+		name 'Capture Volume'
+		value.0 63
+		value.1 63
 		comment {
 			access 'read write'
 			type INTEGER
-			count 1
-			range '0 - 7'
-			dbmin -9999999
-			dbmax 600
-			dbvalue.0 -9999999
+			count 2
+			range '0 - 63'
+			dbmin -1200
+			dbmax 3525
+			dbvalue.0 3525
+			dbvalue.1 3525
 		}
 	}
 	control.15 {
 		iface MIXER
-		name 'Input 2 Capture Volume'
-		value 0
+		name 'Capture Switch'
+		value.0 true
+		value.1 true
 		comment {
 			access 'read write'
-			type INTEGER
-			count 1
-			range '0 - 7'
-			dbmin -9999999
-			dbmax 600
-			dbvalue.0 -9999999
+			type BOOLEAN
+			count 2
 		}
 	}
 	control.16 {
 		iface MIXER
-		name 'Input 3 Capture Volume'
-		value 0
+		name 'PGA Boost Capture Volume'
+		value.0 2
+		value.1 2
 		comment {
 			access 'read write'
 			type INTEGER
-			count 1
-			range '0 - 7'
+			count 2
+			range '0 - 2'
 			dbmin -9999999
-			dbmax 600
-			dbvalue.0 -9999999
+			dbmax 2000
+			dbvalue.0 2000
+			dbvalue.1 2000
 		}
 	}
 	control.17 {
-		iface MIXER
-		name 'Input 4 Capture Volume'
-		value 0
-		comment {
-			access 'read write'
-			type INTEGER
-			count 1
-			range '0 - 7'
-			dbmin -9999999
-			dbmax 600
-			dbvalue.0 -9999999
-		}
-	}
-	control.18 {
-		iface MIXER
-		name 'Mono Playback Volume'
-		value 0
-		comment {
-			access 'read write'
-			type INTEGER
-			count 1
-			range '0 - 63'
-			dbmin -5700
-			dbmax 600
-			dbvalue.0 -5700
-		}
-	}
-	control.19 {
-		iface MIXER
-		name 'Mono Playback Switch'
-		value false
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
-	}
-	control.20 {
 		iface MIXER
 		name 'Aux Capture Volume'
 		value.0 0
@@ -243,11 +206,11 @@ state.mx6uladau1761 {
 			dbvalue.1 -9999999
 		}
 	}
-	control.21 {
+	control.18 {
 		iface MIXER
 		name 'Headphone Playback Volume'
-		value.0 57
-		value.1 57
+		value.0 0
+		value.1 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -255,22 +218,22 @@ state.mx6uladau1761 {
 			range '0 - 63'
 			dbmin -5700
 			dbmax 600
-			dbvalue.0 0
-			dbvalue.1 0
+			dbvalue.0 -5700
+			dbvalue.1 -5700
 		}
 	}
-	control.22 {
+	control.19 {
 		iface MIXER
 		name 'Headphone Playback Switch'
-		value.0 true
-		value.1 true
+		value.0 false
+		value.1 false
 		comment {
 			access 'read write'
 			type BOOLEAN
 			count 2
 		}
 	}
-	control.23 {
+	control.20 {
 		iface MIXER
 		name 'Lineout Playback Volume'
 		value.0 57
@@ -286,7 +249,7 @@ state.mx6uladau1761 {
 			dbvalue.1 0
 		}
 	}
-	control.24 {
+	control.21 {
 		iface MIXER
 		name 'Lineout Playback Switch'
 		value.0 true
@@ -297,7 +260,7 @@ state.mx6uladau1761 {
 			count 2
 		}
 	}
-	control.25 {
+	control.22 {
 		iface MIXER
 		name 'ADC Bias'
 		value 'Normal operation'
@@ -311,7 +274,7 @@ state.mx6uladau1761 {
 			item.3 'Power saving'
 		}
 	}
-	control.26 {
+	control.23 {
 		iface MIXER
 		name 'DAC Bias'
 		value 'Normal operation'
@@ -325,7 +288,7 @@ state.mx6uladau1761 {
 			item.3 'Power saving'
 		}
 	}
-	control.27 {
+	control.24 {
 		iface MIXER
 		name 'Capture Bias'
 		value 'Normal operation'
@@ -338,7 +301,7 @@ state.mx6uladau1761 {
 			item.2 'Power saving'
 		}
 	}
-	control.28 {
+	control.25 {
 		iface MIXER
 		name 'Playback Bias'
 		value 'Normal operation'
@@ -351,7 +314,7 @@ state.mx6uladau1761 {
 			item.2 'Power saving'
 		}
 	}
-	control.29 {
+	control.26 {
 		iface MIXER
 		name 'Headphone Bias'
 		value 'Normal operation'
@@ -365,7 +328,7 @@ state.mx6uladau1761 {
 			item.3 'Power saving'
 		}
 	}
-	control.30 {
+	control.27 {
 		iface MIXER
 		name 'Left Playback Mixer Left DAC Switch'
 		value true
@@ -375,7 +338,7 @@ state.mx6uladau1761 {
 			count 1
 		}
 	}
-	control.31 {
+	control.28 {
 		iface MIXER
 		name 'Left Playback Mixer Right DAC Switch'
 		value false
@@ -385,7 +348,7 @@ state.mx6uladau1761 {
 			count 1
 		}
 	}
-	control.32 {
+	control.29 {
 		iface MIXER
 		name 'Left Playback Mixer Aux Bypass Volume'
 		value 0
@@ -399,7 +362,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.33 {
+	control.30 {
 		iface MIXER
 		name 'Left Playback Mixer Right Bypass Volume'
 		value 0
@@ -413,7 +376,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.34 {
+	control.31 {
 		iface MIXER
 		name 'Left Playback Mixer Left Bypass Volume'
 		value 0
@@ -427,7 +390,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.35 {
+	control.32 {
 		iface MIXER
 		name 'Right Playback Mixer Left DAC Switch'
 		value false
@@ -437,7 +400,7 @@ state.mx6uladau1761 {
 			count 1
 		}
 	}
-	control.36 {
+	control.33 {
 		iface MIXER
 		name 'Right Playback Mixer Right DAC Switch'
 		value true
@@ -447,7 +410,7 @@ state.mx6uladau1761 {
 			count 1
 		}
 	}
-	control.37 {
+	control.34 {
 		iface MIXER
 		name 'Right Playback Mixer Aux Bypass Volume'
 		value 0
@@ -461,7 +424,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.38 {
+	control.35 {
 		iface MIXER
 		name 'Right Playback Mixer Right Bypass Volume'
 		value 0
@@ -475,7 +438,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.39 {
+	control.36 {
 		iface MIXER
 		name 'Right Playback Mixer Left Bypass Volume'
 		value 0
@@ -489,7 +452,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.40 {
+	control.37 {
 		iface MIXER
 		name 'Left LR Playback Mixer Left Volume'
 		value 1
@@ -503,7 +466,7 @@ state.mx6uladau1761 {
 			dbvalue.0 0
 		}
 	}
-	control.41 {
+	control.38 {
 		iface MIXER
 		name 'Left LR Playback Mixer Right Volume'
 		value 0
@@ -517,7 +480,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.42 {
+	control.39 {
 		iface MIXER
 		name 'Right LR Playback Mixer Left Volume'
 		value 0
@@ -531,7 +494,7 @@ state.mx6uladau1761 {
 			dbvalue.0 -9999999
 		}
 	}
-	control.43 {
+	control.40 {
 		iface MIXER
 		name 'Right LR Playback Mixer Right Volume'
 		value 1
@@ -545,7 +508,7 @@ state.mx6uladau1761 {
 			dbvalue.0 0
 		}
 	}
-	control.44 {
+	control.41 {
 		iface MIXER
 		name 'DAC Mono-Stereo-Mode'
 		value Stereo
@@ -559,7 +522,7 @@ state.mx6uladau1761 {
 			item.3 'Mono (L+R)'
 		}
 	}
-	control.45 {
+	control.42 {
 		iface MIXER
 		name 'DAC Playback Mux'
 		value AIFIN
@@ -571,7 +534,7 @@ state.mx6uladau1761 {
 			item.1 AIFIN
 		}
 	}
-	control.46 {
+	control.43 {
 		iface MIXER
 		name 'Capture Mux'
 		value DSP
