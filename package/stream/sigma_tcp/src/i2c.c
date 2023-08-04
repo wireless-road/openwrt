@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <err.h>
 #include <string.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
 
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
@@ -62,6 +64,8 @@ static int i2c_read(unsigned int addr, unsigned int len, uint8_t *data)
 		.nmsgs = 2,
 	};
 
+	int ret;
+
 	addr_buf[0] = (addr >> 8) & 0xff;
 	addr_buf[1] = addr & 0xff;
 
@@ -74,7 +78,8 @@ static int i2c_read(unsigned int addr, unsigned int len, uint8_t *data)
 	msg[1].buf = data;
 	msg[1].len = len;
 
-	return ioctl(i2c_fd, I2C_RDWR, &xfer);
+	ret = ioctl(i2c_fd, I2C_RDWR, &xfer);
+	return (ret < 0) ? ret : 0; 
 }
 
 static int i2c_write(unsigned int addr, unsigned int len, const uint8_t *data)
@@ -85,6 +90,7 @@ static int i2c_write(unsigned int addr, unsigned int len, const uint8_t *data)
 		.msgs = msg,
 		.nmsgs = 1,
 	};
+	int ret;
 
 	msg_buf[0] = addr >> 8;
 	msg_buf[1] = addr & 0xff;
@@ -95,7 +101,8 @@ static int i2c_write(unsigned int addr, unsigned int len, const uint8_t *data)
 	msg[0].buf = msg_buf;
 	msg[0].len = len + 2;
 
-	return ioctl(i2c_fd, I2C_RDWR, &xfer);
+	ret = ioctl(i2c_fd, I2C_RDWR, &xfer);
+	return (ret < 0) ? ret : 0;
 }
 
 const struct backend_ops i2c_backend_ops = {

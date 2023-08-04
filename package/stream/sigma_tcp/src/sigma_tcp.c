@@ -38,9 +38,10 @@ static void addr_to_str(const struct sockaddr *sa, char *s, size_t maxlen)
 	case AF_INET6:
 		inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
 				s, maxlen);
-	break;
+		break;
 	default:
 		strncpy(s, "Unkown", maxlen);
+		break;
 	}
 }
 
@@ -73,7 +74,7 @@ static int show_addrs(int sck)
 			continue;
 
 		addr_to_str(addr, ip, INET6_ADDRSTRLEN);
-		printf("%s: %s\n", &ifr[i].ifr_name, ip);
+		printf("%s: %s\n", ifr[i].ifr_name, ip);
 	}
 
 	return 0;
@@ -127,23 +128,27 @@ static void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+static bool extended_mode = false;
+
 static void handle_connection(int fd)
 {
 	uint8_t *buf;
 	size_t buf_size;
-	uint8_t *p = buf;
+	uint8_t *p;
 	unsigned int len;
 	unsigned int addr;
-	unsigned int total_len;
+/*	unsigned int total_len;*/
 	int count, ret;
 	char command;
-
+	const uint8_t header_sz = extended_mode ? 14 : 8;
 	count = 0;
 
 	buf_size = 256;
 	buf = malloc(buf_size);
 	if (!buf)
 		goto exit;
+
+	p = buf;
 
 	while (1) {
 		memmove(buf, p, count);
@@ -157,35 +162,52 @@ static void handle_connection(int fd)
 
 		count += ret;
 
-		while (count >= 7) {
+		while (count >= (header_sz - 1)) {
 			command = p[0];
-			total_len = (p[1] << 8) | p[2];
-			len = (p[4] << 8) | p[5];
-			addr = (p[6] << 8) | p[7];
+			if (!extended_mode) {
+				len = (p[4] << 8) | p[5];
+				addr = (p[6] << 8) | p[7];
+			}
 
 			if (command == COMMAND_READ) {
-				p += 8;
-				count -= 8;
+				int total_sz;
 
 				buf[0] = COMMAND_WRITE;
-				buf[1] = (0x4 + len) >> 8;
-				buf[2] = (0x4 + len) & 0xff;
-				buf[3] = backend_ops->read(addr, len, buf + 4);
-				write(fd, buf, 4 + len);
+				if (!extended_mode) {
+					buf[1] = (0x4 + len) >> 8;
+					buf[2] = (0x4 + len) & 0xff;
+					buf[3] = backend_ops->read(addr, len, buf + 4);
+					total_sz = 4 + len;
+				} else {
+					len = (p[6] << 24) | (p[7] << 16) | (p[8] << 8)
+						| p[9];
+					addr = (p[10] << 8) | p[11];
+					/* result status */
+					buf[12] = backend_ops->read(addr, len, buf + header_sz);
+					total_sz = header_sz + len;
+				}
+				write(fd, buf, total_sz);
+				p += header_sz;
+				count -= header_sz;
 			} else {
+				if (extended_mode) {
+					len = (p[8] << 24) | (p[9] << 16) | (p[10] << 8)
+						| p[11];
+					addr = (p[12] << 8) | p[13];
+				}
 				/* not enough data, fetch next bytes */
-				if (count < len + 8) {
-					if (buf_size < len + 8) {
-						buf_size = len + 8;
+				if (count < len + header_sz) {
+					if (buf_size < len + header_sz) {
+						buf_size = len + header_sz;
 						buf = realloc(buf, buf_size);
 						if (!buf)
 							goto exit;
 					}
 					break;
 				}
-				backend_ops->write(addr, len, p + 8);
-				p += len + 8;
-				count -= len + 8;
+				backend_ops->write(addr, len, p + header_sz);
+				p += len + header_sz;
+				count -= len + header_sz;
 			}
 		}
 	}
@@ -200,7 +222,6 @@ int main(int argc, char *argv[])
 	struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr;
     socklen_t sin_size;
-    struct sigaction sa;
     int reuse = 1;
     char s[INET6_ADDRSTRLEN];
     int ret;
@@ -227,7 +248,12 @@ int main(int argc, char *argv[])
 			exit(1);
 	}
 
-    memset(&hints, 0, sizeof hints);
+	/* check the last argument for extended mode */
+	if (!strcmp(argv[argc - 1], "--extended") ||
+	    !strcmp(argv[argc - 1], "-e"))
+		extended_mode = true;
+
+	memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
