@@ -10,7 +10,7 @@ PROG=/usr/sbin/canopend
 
 run_canopend() {
     procd_open_instance
-	procd_set_param command $PROG
+	procd_set_param command $PROG -i 1 -s /etc/ -c "local-/tmp/CO_command_socket" can0
 	procd_set_param respawn
 	procd_set_param stdout 1
 	procd_set_param stderr 1
