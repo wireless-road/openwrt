@@ -1,0 +1,12 @@
+--- a/Makefile
++++ b/Makefile
+@@ -54,8 +54,7 @@ OPT += -DCO_SINGLE_THREAD
+ #OPT += -Wextra -Wshadow -pedantic -fanalyzer
+ #OPT += -DCO_USE_GLOBALS
+ #OPT += -DCO_MULTIPLE_OD
+-CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
+-LDFLAGS =
++CFLAGS += $(OPT) $(INCLUDE_DIRS)
+ LDFLAGS += -g
+ #LDFLAGS += -pthread
+ 

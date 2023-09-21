@@ -1,0 +1,10 @@
+--- a/cocomm/cocomm.c
++++ b/cocomm/cocomm.c
+@@ -26,7 +26,6 @@
+ #include <stdlib.h>
+ #include <stdint.h>
+ #include <unistd.h>
+-#include <bits/getopt_core.h>
+ #include <string.h>
+ #include <netdb.h>
+ #include <limits.h>
