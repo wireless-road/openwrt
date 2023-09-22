@@ -17,8 +17,9 @@ for i in $(seq 10 13); do
 done
 
 while true; do
-    for i in $(seq 10 13); do
-        # set speed
-        cocomm "$i w 0x60FF 0 i32 $1"
-    done
+    # set speed
+    cocomm $(echo \"10 w 0x60FF 0 i32 $(( $1 * -1))\")
+    cocomm $(echo \"11 w 0x60FF 0 i32 $(( $1 * -1))\")
+    cocomm $(echo \"12 w 0x60FF 0 i32 $1\")
+    cocomm $(echo \"13 w 0x60FF 0 i32 $1\")
 done
