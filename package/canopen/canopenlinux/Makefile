@@ -41,6 +41,8 @@ define Package/canopenlinux/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/canopend $(1)/usr/sbin/canopend
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/cocomm/cocomm $(1)/usr/sbin/cocomm
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) ./files/*.sh $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/init.d/canopend $(1)/etc/init.d/canopend
 endef
