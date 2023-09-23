@@ -12,3 +12,6 @@
 [submodule "package/gs/luci-gs"]
 	path = package/gs/luci-gs
 	url = https://git.m2m-tele.com/openwrt-packages/gs/luci-gs.git
+[submodule "package/lora/lora-gateway/src"]
+	path = package/lora/lora-gateway/src
+	url = https://git.m2m-tele.com/openwrt-packages/lora/lora-gateway.git
