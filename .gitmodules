@@ -3,7 +3,7 @@
 	url = https://github.com/wireless-road/tensorflow
 [submodule "package/detector/src"]
 	path = package/detector/src
-	url = https://github.com/wireless-road/detector.git
+	url = https://git.m2m-tele.com/openwrt-packages/detector.git
 	branch = m2m
 [submodule "package/gs/gs"]
 	path = package/gs/gs
