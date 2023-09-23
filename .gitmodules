@@ -9,3 +9,6 @@
 	path = package/gs/gs
 	url = https://git.m2m-tele.com/openwrt-packages/gs/gs.git
 	branch = master
+[submodule "package/gs/luci-gs"]
+	path = package/gs/luci-gs
+	url = https://git.m2m-tele.com/openwrt-packages/gs/luci-gs.git
