@@ -3,5 +3,18 @@
 	url = https://github.com/wireless-road/tensorflow
 [submodule "package/detector/src"]
 	path = package/detector/src
-	url = https://github.com/wireless-road/detector.git
+	url = https://git.m2m-tele.com/openwrt-packages/detector.git
 	branch = m2m
+[submodule "package/gs/gs"]
+	path = package/gs/gs
+	url = https://git.m2m-tele.com/openwrt-packages/gs/gs.git
+	branch = master
+[submodule "package/gs/luci-gs"]
+	path = package/gs/luci-gs
+	url = https://git.m2m-tele.com/openwrt-packages/gs/luci-gs.git
+[submodule "package/lora/lora-gateway/src"]
+	path = package/lora/lora-gateway/src
+	url = https://git.m2m-tele.com/openwrt-packages/lora/lora-gateway.git
+[submodule "package/lora/luci-lora/luci"]
+	path = package/lora/luci-lora/luci
+	url = https://git.m2m-tele.com/openwrt-packages/lora/luci-lora.git
