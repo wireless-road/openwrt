@@ -49,6 +49,9 @@ imx6ull_board_detect() {
 	"Audio Stream WiFi")
 		name="audio_stream_wifi";
 		;;
+	"Codesys")
+		name="codesys";
+		;;
 	"FlexCAN Ethernet")
 		name="flexcan_ethernet";
 		;;
