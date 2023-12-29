@@ -10,22 +10,6 @@ reset_sx1301_board ()
 {
 	local gpio_pindir;
 	local chipreset_pin=$(uci get lora.SX1301_conf.chipreset_pin)
-	local pllreset_pin=$(uci get lora.SX1301_conf.pllreset_pin)
-	if [ "x$pllreset_pin" != "x" ];then
-		gpio_pindir="/sys/class/gpio/gpio$pllreset_pin";
-		if [ ! -e "$gpio_pindir" ];then
-			echo "$pllreset_pin" > /sys/class/gpio/export
-			sleep 2
-			echo "out" > $gpio_pindir/direction
-			echo "0" > $gpio_pindir/value
-			sleep 1
-			echo "1" > $gpio_pindir/value
-			sleep 1
-			echo "0" > $gpio_pindir/value
-			sleep 1
-		fi;
-	fi;
-
 	if [ "x$chipreset_pin" != "x" ];then
 		gpio_pindir="/sys/class/gpio/gpio$chipreset_pin";
 		if [ ! -e "$gpio_pindir" ];then
@@ -53,19 +37,13 @@ reload_service()
 
 start_service()
 {
-
 	reset_sx1301_board
-
 	procd_open_instance
-
 	procd_set_param command $PROG
-
-	procd_set_param respawn
-
+	procd_set_param respawn 3600 5 0
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-
 	procd_set_param file /etc/global_conf.json
-
 	procd_close_instance
 }
+
