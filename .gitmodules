@@ -5,6 +5,3 @@
 	path = package/detector/src
 	url = https://git.m2m-tele.com/openwrt-packages/detector.git
 	branch = m2m
-[submodule "package/lora/luci-lora/luci"]
-	path = package/lora/luci-lora/luci
-	url = https://git.m2m-tele.com/openwrt-packages/lora/luci-lora.git
