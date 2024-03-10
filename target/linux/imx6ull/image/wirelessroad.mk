@@ -253,6 +253,25 @@ endef
 TARGET_DEVICES += tensorflow_wifi_dev
 
 
+define Device/codesys
+        DEVICE_TITLE := Codesys 
+        DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-spi-dev kmod-can-flexcan
+        DEVICE_NAME := codesys
+        DEVICE_DTS := codesys
+        BOARDNAME := WIRELESSROAD_CODESYS_IMX6ULL
+        SUPPORTED_DEVICES := wirelessroad_stream-imx6ull codesys
+        IMAGE_SIZE := 31m
+        IMAGE_SIZE_FACTORY := 32m
+        CONSOLE := ttymxc0,115200
+        KERNEL := kernel-bin | buildDtb | append-dtb | uImage none | imx6ull-bootscript
+        IMAGES := u-boot.bin sdcard.bin mtd-sysupgrade.bin mtd-factory.bin
+        IMAGE/u-boot.bin := imx6ull-ubootimg
+        IMAGE/sdcard.bin := imx6ull-sdcard | append-metadata
+        IMAGE/mtd-sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
+        IMAGE/mtd-factory.bin := append-kernel | append-rootfs | pad-rootfs | imx6ull-mtd-factory | append-metadata | check-size $$$$(IMAGE_SIZE_FACTORY)
+endef
+TARGET_DEVICES += codesys
+
 define Device/flexcan_ethernet
         DEVICE_TITLE := FlexCAN Ethernet
         DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-spi-dev kmod-can-flexcan
