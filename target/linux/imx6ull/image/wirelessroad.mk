@@ -369,6 +369,25 @@ define Device/audio_stream_ethernet
 endef
 TARGET_DEVICES += audio_stream_ethernet
 
+define Device/audio_stream_ethernet_adau
+	DEVICE_TITLE := Audio Stream Ethernet Adau
+	DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-spi-dev
+	DEVICE_NAME := audio_stream_ethernet_adau
+	DEVICE_DTS := audio_stream_ethernet_adau
+	BOARDNAME := WIRELESSROAD_AUDIOSTREAM_IMX6ULL
+	SUPPORTED_DEVICES:= audio_stream_ethernet_adau
+	IMAGE_SIZE := 31m
+	IMAGE_SIZE_FACTORY := 32m
+	CONSOLE := ttymxc0,115200
+	KERNEL := kernel-bin | buildDtb | append-dtb | uImage none | imx6ull-bootscript
+	IMAGES := u-boot.bin sdcard.bin mtd-sysupgrade.bin mtd-factory.bin
+	IMAGE/u-boot.bin := imx6ull-ubootimg
+	IMAGE/sdcard.bin := imx6ull-sdcard | append-metadata
+	IMAGE/mtd-sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
+	IMAGE/mtd-factory.bin := append-kernel | append-rootfs | pad-rootfs | imx6ull-mtd-factory | append-metadata | check-size $$$$(IMAGE_SIZE_FACTORY)
+endef
+TARGET_DEVICES += audio_stream_ethernet_adau
+
 define Device/audio_stream_3g
 	DEVICE_TITLE := Audio Stream 3G
 	DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-spi-dev
