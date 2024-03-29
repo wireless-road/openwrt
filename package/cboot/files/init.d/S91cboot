@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# start UDP/CAn-Gateway application:
-
-/usr/bin/cboot 
-
