@@ -71,6 +71,7 @@ compile_board() {
 	if [ ! -d "./feeds" ];then
 		./scripts/feeds update -a
 		./scripts/feeds install -a
+		./scripts/feeds install -a
 	fi
 	
 	cp "$configfile" ./.config;
