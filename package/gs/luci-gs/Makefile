@@ -11,7 +11,7 @@ PKG_NAME:=luci-gs
 PKG_VERSION:=1
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.m2m-tele.com/openwrt-packages/gs/luci-gs.git
-PKG_SOURCE_VERSION:=7655f16d9ab954b860ebae9e4fcb5e07f22a9b05
+PKG_SOURCE_VERSION:=c4387f684de10054c506a82f5a4e2400f878748d
 
 include $(INCLUDE_DIR)/package.mk
 
