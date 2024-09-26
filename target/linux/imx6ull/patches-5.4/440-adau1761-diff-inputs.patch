@@ -1,0 +1,27 @@
+--- a/sound/soc/codecs/adau1761.c
++++ b/sound/soc/codecs/adau1761.c
+@@ -771,6 +771,13 @@ static struct snd_soc_dai_driver adau176
+ 	.ops = &adau17x1_dai_ops,
+ };
+ 
++static struct adau1761_platform_data netsom_pdata = {
++	.input_differential = true,
++	.lineout_mode = ADAU1761_OUTPUT_MODE_LINE,
++	.headphone_mode = ADAU1761_OUTPUT_MODE_HEADPHONE_CAPLESS,
++	.digmic_jackdetect_pin_mode = ADAU1761_DIGMIC_JACKDET_PIN_MODE_NONE,
++};
++
+ int adau1761_probe(struct device *dev, struct regmap *regmap,
+ 	enum adau17x1_type type, void (*switch_mode)(struct device *dev))
+ {
+@@ -778,6 +785,10 @@ int adau1761_probe(struct device *dev, s
+ 	const char *firmware_name;
+ 	int ret;
+ 
++  /* NetSOM diffirential input fix */
++  if (!dev->platform_data)
++		dev->platform_data = &netsom_pdata;
++
+ 	if (type == ADAU1361) {
+ 		dai_drv = &adau1361_dai_driver;
+ 		firmware_name = NULL;

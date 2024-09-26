@@ -43,6 +43,9 @@ imx6ull_board_detect() {
 	"Audio Stream Ethernet")
 		name="audio_stream_ethernet";
 		;;
+	"Audio Stream Ethernet Adau")
+		name="audio_stream_ethernet_adau";
+		;;
 	"Audio Stream 3G")
 		name="audio_stream_3g";
 		;;

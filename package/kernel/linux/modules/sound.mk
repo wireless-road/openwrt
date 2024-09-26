@@ -225,7 +225,7 @@ define KernelPackage/sound-soc-imx
 	$(LINUX_DIR)/sound/soc/fsl/snd-soc-fsl-ssi.ko \
 	$(LINUX_DIR)/sound/soc/fsl/imx-pcm-dma.ko
   AUTOLOAD:=$(call AutoLoad,56,snd-soc-imx-audmux snd-soc-fsl-ssi snd-soc-imx-pcm)
-  DEPENDS:=@TARGET_imx6 +kmod-sound-soc-core
+  DEPENDS:=@TARGET_imx6ull +kmod-sound-soc-core
   $(call AddDepends/sound)
 endef
 
@@ -252,6 +252,33 @@ define KernelPackage/sound-soc-imx-sgtl5000/description
 endef
 
 $(eval $(call KernelPackage,sound-soc-imx-sgtl5000))
+
+define KernelPackage/sound-soc-imx-adau1761
+  TITLE:=IMX SoC support for ADAU1761
+  KCONFIG:= \
+  CONFIG_SND_SOC_ADAU1761 \
+  CONFIG_SND_SOC_ADAU1761_I2C \
+  CONFIG_SND_SOC_ADAU17X1 \
+  CONFIG_SND_SOC_ADAU_UTILS \
+  CONFIG_SND_SOC_SIGMADSP \
+  CONFIG_SND_SOC_SIGMADSP_REGMAP
+  FILES:=\
+	$(LINUX_DIR)/sound/soc/codecs/snd-soc-adau-utils.ko \
+	$(LINUX_DIR)/sound/soc/codecs/snd-soc-adau17x1.ko \
+  $(LINUX_DIR)/sound/soc/codecs/snd-soc-adau1761-i2c.ko \
+  $(LINUX_DIR)/sound/soc/codecs/snd-soc-adau1761.ko \
+  $(LINUX_DIR)/sound/soc/codecs/snd-soc-sigmadsp-regmap.ko \
+  $(LINUX_DIR)/sound/soc/codecs/snd-soc-sigmadsp.ko
+  AUTOLOAD:=$(call AutoLoad,57,snd-soc-adau-utils snd-soc-adau17x1 snd-soc-adau1761-i2c snd-soc-sigmadsp-regmap snd-soc-sigmadsp)
+  DEPENDS:=@TARGET_imx6ull +kmod-sound-soc-imx
+  $(call AddDepends/sound)
+endef
+
+define KernelPackage/sound-soc-imx-adau1761/description
+ Support for i.MX6 Platform sound ADAU1761 codec
+endef
+
+$(eval $(call KernelPackage,sound-soc-imx-adau1761))
 
 
 define KernelPackage/sound-soc-spdif
